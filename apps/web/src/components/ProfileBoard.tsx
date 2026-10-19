@@ -292,7 +292,7 @@ function Stats({
             >
               <span
                 className={`w-full rounded-t-md ${extra ? "bg-amber-300" : "bg-accent/80"} ${selected ? "ring-2 ring-white" : bucket == null ? "" : "opacity-40"}`}
-                style={{ height: `${Math.max(4, (count / max) * 72)}px` }}
+                style={{ height: `${count === 0 ? 0 : 40 + (count / max) * 100}px` }}
               />
               <span className={`text-[10px] ${extra ? "text-amber-300" : "text-muted"}`}>{value}</span>
             </button>
