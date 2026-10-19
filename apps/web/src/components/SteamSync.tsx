@@ -38,13 +38,7 @@ export function SteamSync({ initialProfile }: { initialProfile: string }) {
         return;
       }
       setProfile(`https://steamcommunity.com/profiles/${payload.steamId}`);
-      setMessage(
-        t("profile.steamDone", {
-          matched: payload.matched,
-          added: payload.added,
-          unmatched: payload.unmatched,
-        }),
-      );
+      setMessage(t("profile.steamDone", { matched: payload.matched }));
       router.refresh();
     } catch {
       setFailed(true);

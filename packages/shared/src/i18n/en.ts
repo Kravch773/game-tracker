@@ -206,7 +206,7 @@ export const en = {
     steamPlaceholder: "https://steamcommunity.com/id/…",
     steamSync: "Sync",
     steamSyncing: "Syncing…",
-    steamDone: "In lists {matched}. New {added}. Not in the catalog {unmatched}.",
+    steamDone: "Hours updated for {matched} games already on your lists.",
     steamPrivate: "Steam did not return the library. Make Game details public on the Steam profile.",
     steamNotFound: "Steam profile not found.",
     steamInvalid: "A Steam profile link is required.",

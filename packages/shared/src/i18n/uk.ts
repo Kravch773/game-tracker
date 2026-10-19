@@ -204,7 +204,7 @@ export const uk = {
     steamPlaceholder: "https://steamcommunity.com/id/…",
     steamSync: "Синхронізувати",
     steamSyncing: "Синхронізація…",
-    steamDone: "У списках {matched}. Нових {added}. Немає в каталозі {unmatched}.",
+    steamDone: "Години оновлено в {matched} іграх, які вже є в списках.",
     steamPrivate: "Steam не віддав бібліотеку. У профілі Steam відкрий «Відомості про гру».",
     steamNotFound: "Профіль Steam не знайдено.",
     steamInvalid: "Потрібне посилання на профіль Steam.",
