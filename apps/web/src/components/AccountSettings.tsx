@@ -36,7 +36,15 @@ function UsernameForm({ username }: { username: string }) {
     >
       <label className="flex flex-col gap-2 text-sm text-muted">
         {t("auth.username")}
-        <input name="username" required minLength={3} maxLength={24} defaultValue={username} className={fieldClass} />
+        <input
+          name="username"
+          required
+          minLength={3}
+          maxLength={24}
+          pattern="(?=.*[A-Za-z0-9])[A-Za-z0-9_]{3,24}"
+          defaultValue={username}
+          className={fieldClass}
+        />
       </label>
       <PasswordField />
     </AuthForm>

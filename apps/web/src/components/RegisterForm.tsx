@@ -58,6 +58,7 @@ export function RegisterForm({ next }: { next: string | null }) {
           required
           minLength={3}
           maxLength={24}
+          pattern="(?=.*[A-Za-z0-9])[A-Za-z0-9_]{3,24}"
           autoComplete="username"
           className={fieldClass}
         />
