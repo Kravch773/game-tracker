@@ -11,6 +11,7 @@ import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
 import { formatShortDate } from "@/lib/format";
 import { PROFILE_SECTIONS, STATUS_LABELS, ratingLabel } from "@/lib/library";
+import { myGamesListCsv } from "@/lib/mygameslist";
 
 const TABS = [...PROFILE_SECTIONS, "favorites"] as const;
 const SCALE_KEY = "gt-profile-scale";
@@ -108,6 +109,13 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
               className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-4 text-sm font-semibold text-accent-ink!"
             >
               {t("profile.import")}
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadLibrary(library)}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-line px-4 text-sm font-medium hover:text-ink"
+            >
+              {t("profile.export")}
             </button>
             <a
               href="/settings"
@@ -235,6 +243,19 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
       )}
     </main>
   );
+}
+
+function downloadLibrary(library: UserLibrary) {
+  const games = (["playing", "finished", "dropped", "backlog"] as const).flatMap((status) =>
+    library[status].map((game) => ({ game, status })),
+  );
+  const blob = new Blob([myGamesListCsv(games)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `gametracker-${library.user.username}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function SectionTotals({

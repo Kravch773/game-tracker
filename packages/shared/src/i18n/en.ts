@@ -185,6 +185,7 @@ export const en = {
     followSelf: "You can't follow yourself",
     wheel: "Random game",
     import: "Import data",
+    export: "Export",
     importTitle: "Import",
     importMyGamesList: "MyGamesList",
     importHint: "CSV file: title, rating, status, review, createdAt, updatedAt.",

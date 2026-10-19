@@ -1,9 +1,9 @@
-import { LIBRARY_STATUSES, type LibraryStatus, type MyGamesListImportRow } from "@gametracker/shared";
+import { LIBRARY_STATUSES, type LibraryGame, type LibraryStatus, type MyGamesListImportRow } from "@gametracker/shared";
 
 const HEADER = ["title", "rating", "status", "review", "createdat", "updatedat"];
 
 export function parseMyGamesList(text: string): MyGamesListImportRow[] | null {
-  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim().length > 0);
+  const lines = csvRecords(text);
   const header = splitCsvLine(lines[0] ?? "").map((cell) => cell.trim().toLowerCase());
   if (HEADER.some((name, index) => header[index] !== name)) return null;
 
@@ -29,6 +29,28 @@ export function parseMyGamesList(text: string): MyGamesListImportRow[] | null {
   }
 
   return [...byTitle.values()].filter((row) => (LIBRARY_STATUSES as readonly string[]).includes(row.status));
+}
+
+export function myGamesListCsv(games: { game: LibraryGame; status: LibraryStatus }[]): string {
+  const lines = [
+    "title,rating,status,review,createdAt,updatedAt",
+    ...games.map(({ game, status }) =>
+      [
+        csvCell(game.title),
+        game.rating == null ? "" : String(game.rating),
+        status === "backlog" ? "want" : status,
+        csvCell(game.review ?? ""),
+        csvCell(game.addedAt),
+        csvCell(game.addedAt),
+      ].join(","),
+    ),
+  ];
+  return `\uFEFF${lines.join("\r\n")}`;
+}
+
+function csvCell(value: string): string {
+  if (/[",\n\r]/.test(value)) return `"${value.replaceAll('"', '""')}"`;
+  return value;
 }
 
 function mapStatus(value: string, rating: number | null): LibraryStatus | null {
@@ -58,6 +80,34 @@ function clip(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   return [...trimmed].slice(0, 2000).join("");
+}
+
+function csvRecords(text: string): string[] {
+  const records: string[] = [];
+  let current = "";
+  let quoted = false;
+  const source = text.replace(/^\uFEFF/, "");
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    if (quoted) {
+      current += char;
+      if (char === '"') {
+        if (source[index + 1] === '"') {
+          current += '"';
+          index += 1;
+        } else quoted = false;
+      }
+    } else if (char === '"') {
+      quoted = true;
+      current += char;
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && source[index + 1] === "\n") index += 1;
+      if (current.trim()) records.push(current);
+      current = "";
+    } else current += char;
+  }
+  if (current.trim()) records.push(current);
+  return records;
 }
 
 function splitCsvLine(line: string): string[] {

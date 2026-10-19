@@ -183,6 +183,7 @@ export const uk = {
     followSelf: "Не можна підписатися на себе",
     wheel: "Випадкова гра",
     import: "Імпортувати дані",
+    export: "Експортувати",
     importTitle: "Імпорт",
     importMyGamesList: "MyGamesList",
     importHint: "Файл CSV: title, rating, status, review, createdAt, updatedAt.",
