@@ -10,9 +10,9 @@ import {
   type SearchFilters,
 } from "@gametracker/shared";
 import { CollectionRow } from "@/components/CollectionRow";
-import { GameResult } from "@/components/GameResult";
 import { Icon } from "@/components/Icon";
 import { SearchForm } from "@/components/SearchForm";
+import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
 import { getCollections, getMe, searchGames } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
@@ -52,19 +52,21 @@ async function Results({ query, filters }: { query: string; filters: SearchFilte
     return <Empty text={t("home.tooShort")} />;
   }
 
-  const games = await searchGames(query.length >= 2 ? query : "", filters);
-  if (games.length === 0) {
+  const result = await searchGames(query.length >= 2 ? query : "", filters);
+  if (result.games.length === 0) {
     return <Empty text={t("home.nothing")} />;
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-      {games.map((game) => (
-        <li key={game.id}>
-          <GameResult game={game} />
-        </li>
-      ))}
-    </ul>
+    <SearchResults
+      key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}`}
+      query={query}
+      genre={filters.genre ?? ""}
+      platform={filters.platform ?? ""}
+      year={filters.year ? String(filters.year) : ""}
+      games={result.games}
+      hasMore={result.hasMore}
+    />
   );
 }
 

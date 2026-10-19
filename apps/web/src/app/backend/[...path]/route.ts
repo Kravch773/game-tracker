@@ -13,10 +13,11 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   if (cookie) headers.set("cookie", cookie);
   if (type) headers.set("content-type", type);
 
+  const method = request.method;
   const response = await fetch(target, {
-    method: request.method,
+    method,
     headers,
-    body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(),
+    body: method === "GET" || method === "HEAD" || method === "DELETE" ? undefined : await request.arrayBuffer(),
     redirect: "manual",
   });
 
@@ -25,6 +26,10 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   if (contentType) responseHeaders.set("content-type", contentType);
   for (const cookieHeader of response.headers.getSetCookie()) {
     responseHeaders.append("set-cookie", cookieHeader);
+  }
+
+  if (response.status === 204 || response.status === 205 || response.status === 304) {
+    return new NextResponse(null, { status: response.status, headers: responseHeaders });
   }
 
   return new NextResponse(await response.arrayBuffer(), {

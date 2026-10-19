@@ -108,6 +108,7 @@ export type GameDetails = GameSummary & {
 
 export type GameSearchResponse = {
   games: GameSummary[];
+  hasMore: boolean;
 };
 
 export const HOME_COLLECTION_IDS = [

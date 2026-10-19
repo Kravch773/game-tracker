@@ -27,6 +27,8 @@ export const en = {
     empty: "Enter a title to find a game.",
     tooShort: "Enter at least 2 characters.",
     nothing: "Nothing found.",
+    loadMore: "Load more",
+    loadFailed: "Could not load more.",
     queryLabel: "Game title",
     search: "Search",
     genre: "Genre",

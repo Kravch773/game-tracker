@@ -14,18 +14,23 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { apiUrl } from "./config";
 
-export async function searchGames(query: string, filters: SearchFilters = {}): Promise<GameSummary[]> {
+export async function searchGames(
+  query: string,
+  filters: SearchFilters = {},
+  offset = 0,
+): Promise<{ games: GameSummary[]; hasMore: boolean }> {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (filters.genre) params.set("genre", filters.genre);
   if (filters.platform) params.set("platform", filters.platform);
   if (filters.year) params.set("year", String(filters.year));
+  if (offset > 0) params.set("offset", String(offset));
   const response = await fetch(`${apiUrl}/games?${params}`, {
     cache: "no-store",
   });
   if (!response.ok) throw new Error(`Search failed with ${response.status}`);
   const payload = (await response.json()) as GameSearchResponse;
-  return payload.games;
+  return { games: payload.games ?? [], hasMore: payload.hasMore === true };
 }
 
 export async function getBrowse(kind: "genres" | "platforms", id: string): Promise<GameSummary[] | null> {

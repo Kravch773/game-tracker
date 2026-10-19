@@ -75,6 +75,7 @@ export function LibraryPanel({
     const saved = await persist(next, rating, review.trim() || null);
     if (saved && isScoredStatus(next)) {
       setDraftRating(rating);
+      setDraftReview(review);
       setError(null);
       setOpen(true);
     }
@@ -88,7 +89,7 @@ export function LibraryPanel({
 
   async function saveRating() {
     if (!status || !isScoredStatus(status)) return;
-    const saved = await persist(status, draftRating, review.trim() || null);
+    const saved = await persist(status, draftRating, draftReview.trim() || null);
     if (saved) setOpen(false);
   }
 
@@ -219,7 +220,7 @@ export function LibraryPanel({
             </>
           ) : null}
         </div>
-        {error && !open ? <p className="mt-3 text-sm text-accent">{error}</p> : null}
+        {error && !open && !reviewOpen ? <p className="mt-3 text-sm text-accent">{error}</p> : null}
       </section>
       <Dialog open={open} title={t("library.rate")} onClose={() => setOpen(false)}>
         <p className="text-sm text-muted">{t("library.ratingHint")}</p>
@@ -263,6 +264,18 @@ export function LibraryPanel({
             {t("library.noRating")}
           </button>
         ) : null}
+        <label className="mt-4 block text-sm">
+          {t("library.review")}
+          <textarea
+            value={draftReview}
+            onChange={(event) => onReview(event.target.value)}
+            rows={5}
+            className="mt-2 w-full resize-none rounded-2xl border border-line bg-bg/50 px-3 py-3 text-ink outline-none focus:border-accent"
+          />
+        </label>
+        <p className="mt-1 text-right text-xs text-muted">
+          {[...draftReview].length}/{REVIEW_MAX_LENGTH}
+        </p>
         {error ? <p className="mt-4 text-sm text-accent">{error}</p> : null}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <button type="button" disabled={pending} onClick={() => void saveRating()} className={primaryClass}>
