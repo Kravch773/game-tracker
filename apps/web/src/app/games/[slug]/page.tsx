@@ -1,7 +1,8 @@
-import { TRAILERS_ENABLED, t, type GameEntry, type GameLinkKind } from "@gametracker/shared";
+import { TRAILERS_ENABLED, t, type GameDetails, type GameEntry, type GameLinkKind } from "@gametracker/shared";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CollectionRow } from "@/components/CollectionRow";
+import { JsonLd } from "@/components/JsonLd";
 import { Icon, IconBadge, type IconName } from "@/components/Icon";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { ReviewList } from "@/components/ReviewList";
@@ -11,6 +12,7 @@ import { formatHours } from "@/lib/format";
 import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { absoluteUrl, pageMetadata, textSnippet } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +36,14 @@ export async function generateMetadata({
   await applyLocale();
   const { slug } = await params;
   const game = await getGame(slug);
-  return { title: game ? `${game.title} · GameTracker` : `${t("game.notFound")} · GameTracker` };
+  if (!game) return pageMetadata({ title: t("game.notFound"), description: t("meta.description"), path: `/games/${slug}`, index: false });
+  return pageMetadata({
+    title: game.title,
+    description: textSnippet(game.summary, t("meta.description")),
+    path: `/games/${game.slug}`,
+    image: game.coverUrl,
+    imageAlt: game.title,
+  });
 }
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -58,13 +67,14 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         {game.coverUrl ? (
           <img
             src={game.coverUrl}
-            alt=""
+            alt={game.title}
             className="w-full max-w-56 rounded-3xl object-cover shadow-2xl ring-1 ring-white/10"
           />
         ) : (
           <div className="aspect-[3/4] w-full max-w-56 rounded-3xl bg-raised ring-1 ring-white/10" />
         )}
         <div className="min-w-0">
+          <JsonLd data={gameJsonLd(game)} />
           <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
           <p className="mt-3 text-muted">
             {[year, game.platforms.join(" · ")].filter(Boolean).join(" · ") || t("common.unknownDate")}
@@ -255,6 +265,33 @@ function FewRatingsHint() {
       </span>
     </span>
   );
+}
+
+function gameJsonLd(game: GameDetails) {
+  const rating =
+    game.community.count > 0 && game.community.average != null && game.community.average <= 10
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: game.community.average,
+          ratingCount: game.community.count,
+          bestRating: 10,
+          worstRating: 0,
+        }
+      : undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    name: game.title,
+    url: absoluteUrl(`/games/${game.slug}`),
+    description: textSnippet(game.summary, t("meta.description")),
+    image: game.coverUrl ?? undefined,
+    datePublished: game.releaseDate ?? undefined,
+    genre: game.genres.length > 0 ? game.genres : undefined,
+    gamePlatform: game.platforms.length > 0 ? game.platforms : undefined,
+    author: game.developers.length > 0 ? game.developers.map((name) => ({ "@type": "Organization", name })) : undefined,
+    publisher: game.publishers.length > 0 ? game.publishers.map((name) => ({ "@type": "Organization", name })) : undefined,
+    aggregateRating: rating,
+  };
 }
 
 function Score({ label, value, icon, tone }: { label: string; value: string; icon: IconName; tone: string }) {

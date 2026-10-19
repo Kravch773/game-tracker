@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import { AccountSettings } from "@/components/AccountSettings";
 import { getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   await applyLocale();
-  return { title: `${t("settings.title")} · GameTracker` };
+  return pageMetadata({ title: t("settings.title"), description: t("meta.description"), path: "/settings", index: false, follow: false });
 }
 
 export default async function SettingsPage() {

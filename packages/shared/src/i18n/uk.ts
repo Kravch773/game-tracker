@@ -1,6 +1,11 @@
 export const uk = {
   meta: {
     description: "Каталог ігор з обкладинками, датами виходу та посиланнями на магазини",
+    genre: "Ігри жанру {name}: обкладинки, дати виходу та посилання на магазини.",
+    platform: "Ігри для {name}: обкладинки, дати виходу та посилання на магазини.",
+    calendar: "Календар релізів: які ігри виходять цього місяця.",
+    activity: "Нові оцінки, списки та відгуки гравців.",
+    profile: "Списки ігор, оцінки та обране {username}.",
   },
   common: {
     close: "Закрити",
@@ -206,6 +211,17 @@ export const uk = {
     steamFailed: "Не вдалося синхронізувати зі Steam.",
     steamUnconfigured: "Синхронізація Steam ще не налаштована.",
     steamTaken: "Цей профіль Steam уже прив’язаний до іншого акаунта.",
+    steamWishlist: "Бажане Steam",
+    steamWishlistSync: "Синхронізувати бажане",
+    steamWishlistSyncing: "Синхронізація бажаного…",
+    steamWishlistDone: "У бажаному {matched}. Немає в каталозі {unmatched}.",
+    steamWishlistPrivate: "Steam не віддав список бажаного. Зроби його відкритим у профілі Steam.",
+    steamWishlistHint: "Список бажаного Steam має бути відкритим.",
+    steamWishlistMissingTitle: "Бажане Steam поза каталогом",
+    steamWishlistMissingLead: "Ці ігри зі списку бажаного Steam не знайдені в каталозі.",
+    steamWishlistMissingEmpty: "Усі ігри зі списку бажаного є в каталозі.",
+    steamWishlistMissingLink: "Немає в каталозі: {count}",
+    steamWishlistApp: "Steam {appId}",
   },
   wheel: {
     title: "Випадкова гра",

@@ -21,7 +21,7 @@ const SCALES = [
   "grid-cols-5 gap-x-2 gap-y-4 sm:grid-cols-7 lg:grid-cols-10",
 ] as const;
 
-type Tab = (typeof TABS)[number];
+type Tab = (typeof TABS)[number] | "steamWishlist";
 type Sort = "added" | "release" | "rating" | "metacritic";
 
 const SORT_LABEL = {
@@ -44,11 +44,11 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
   const [list, setList] = useState<"followers" | "following" | null>(null);
   const [followers, setFollowers] = useState(library.followers);
   const [following, setFollowing] = useState(library.following);
-  const sorts: Sort[] = tab === "backlog" ? ["added", "release", "metacritic"] : ["added", "release", "rating", "metacritic"];
+  const sorts: Sort[] =
+    tab === "backlog" || tab === "steamWishlist" ? ["added", "release", "metacritic"] : ["added", "release", "rating", "metacritic"];
   const activeSort = sorts.includes(sort) ? sort : "added";
   const rated = [...library.finished, ...library.dropped].filter((game) => game.rating != null);
-  const source =
-    bucket == null ? (tab === "favorites" ? library.favorites : library[tab]) : rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket);
+  const source = bucket == null ? library[tab] : rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket);
   const games = sortGames(source, activeSort);
   const initial = library.user.username.slice(0, 1).toUpperCase();
 
@@ -65,7 +65,7 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
   function chooseTab(next: Tab) {
     setTab(next);
     setBucket(null);
-    if (next === "backlog" && sort === "rating") setSort("added");
+    if ((next === "backlog" || next === "steamWishlist") && sort === "rating") setSort("added");
   }
 
   function chooseScale(next: number) {
@@ -133,7 +133,7 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
       />
       <div className="mt-8 flex gap-2 overflow-x-auto pb-1" role="tablist">
         {TABS.map((item) => {
-          const count = item === "favorites" ? library.favorites.length : library[item].length;
+          const count = library[item].length;
           const label = item === "favorites" ? t("library.favorites") : STATUS_LABELS[item];
           const selected = tab === item && bucket == null;
           return (
@@ -152,6 +152,20 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
             </button>
           );
         })}
+        {email ? (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "steamWishlist" && bucket == null}
+            onClick={() => chooseTab("steamWishlist")}
+            className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-medium ${
+              tab === "steamWishlist" && bucket == null ? "bg-accent text-accent-ink" : "border border-line bg-white/5 text-muted hover:text-ink"
+            }`}
+          >
+            <Icon name="steam" className={tab === "steamWishlist" && bucket == null ? "text-accent-ink" : "text-sky-300"} />
+            {t("profile.steamWishlist")} {library.steamWishlist.length}
+          </button>
+        ) : null}
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-3 text-sm text-muted">
@@ -168,6 +182,11 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
             ))}
           </select>
         </label>
+        {email && tab === "steamWishlist" ? (
+          <a href="/steam/wishlist" className="text-sm text-accent-ink!">
+            {t("profile.steamWishlistMissingLink", { count: library.steamWishlistMissing })}
+          </a>
+        ) : null}
         <DisplayToggle label={t("profile.showDate")} checked={showDate} onChange={setShowDate} />
         <DisplayToggle label={t("profile.showRating")} checked={showRating} onChange={setShowRating} />
         <DisplayToggle label={t("profile.showMetacritic")} checked={showMetacritic} onChange={setShowMetacritic} />

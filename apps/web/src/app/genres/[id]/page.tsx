@@ -6,6 +6,7 @@ import { Icon, IconBadge, type IconName } from "@/components/Icon";
 import { GENRE_MARK } from "@/lib/marks";
 import { getBrowse } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { pageMetadata } from "@/lib/site";
 
 const TITLES: Record<CatalogGenreId, MessageKey> = {
   rpg: "collections.rpg",
@@ -22,7 +23,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   await applyLocale();
   const { id } = await params;
   const genre = CATALOG_GENRES.find((item) => item.id === id);
-  return { title: genre ? `${t(TITLES[genre.id])} · GameTracker` : "GameTracker" };
+  if (!genre) return pageMetadata({ title: "GameTracker", description: t("meta.description"), path: `/genres/${id}`, index: false });
+  const name = t(TITLES[genre.id]);
+  return pageMetadata({
+    title: name,
+    description: t("meta.genre", { name }),
+    path: `/genres/${genre.id}`,
+  });
 }
 
 export default async function GenrePage({ params }: { params: Promise<{ id: string }> }) {

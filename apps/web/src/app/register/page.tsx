@@ -6,12 +6,13 @@ import { RegisterForm } from "@/components/RegisterForm";
 import { getMe } from "@/lib/api";
 import { safeNext } from "@/lib/config";
 import { applyLocale } from "@/lib/locale";
+import { pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   await applyLocale();
-  return { title: `${t("auth.registerTitle")} · GameTracker` };
+  return pageMetadata({ title: t("auth.registerTitle"), description: t("meta.description"), path: "/register", index: false, follow: false });
 }
 
 export default async function RegisterPage({

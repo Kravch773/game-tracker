@@ -8,16 +8,35 @@ import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { LocaleSync } from "@/components/LocaleSync";
 import { getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { isPreviewDeployment, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const manrope = Manrope({ subsets: ["latin", "cyrillic"], variable: "--font-manrope" });
 const unbounded = Unbounded({ subsets: ["latin", "cyrillic"], variable: "--font-unbounded" });
 
 export async function generateMetadata(): Promise<Metadata> {
-  await applyLocale();
+  const locale = await applyLocale();
+  const description = t("meta.description");
   return {
-    title: "GameTracker",
-    description: t("meta.description"),
+    metadataBase: siteUrl(),
+    title: { default: "GameTracker", template: "%s · GameTracker" },
+    description,
+    applicationName: "GameTracker",
+    robots: isPreviewDeployment() ? { index: false, follow: false } : { index: true, follow: true },
+    openGraph: {
+      type: "website",
+      siteName: "GameTracker",
+      title: "GameTracker",
+      description,
+      locale: locale === "uk" ? "uk_UA" : "en_US",
+      images: [{ url: "/brand-logo.png", alt: "GameTracker" }],
+    },
+    twitter: {
+      card: "summary",
+      title: "GameTracker",
+      description,
+      images: ["/brand-mark.png"],
+    },
   };
 }
 

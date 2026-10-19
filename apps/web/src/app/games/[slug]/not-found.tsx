@@ -1,6 +1,9 @@
 import { t } from "@gametracker/shared";
+import type { Metadata } from "next";
 import { applyLocale } from "@/lib/locale";
 import { primaryClass } from "@/lib/ui";
+
+export const metadata: Metadata = { robots: { index: false, follow: true } };
 
 export default async function GameNotFound() {
   await applyLocale();

@@ -6,6 +6,7 @@ import { Icon, IconBadge } from "@/components/Icon";
 import { PLATFORM_MARK } from "@/lib/marks";
 import { getBrowse } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { pageMetadata } from "@/lib/site";
 
 const TITLES: Record<CatalogPlatformId, MessageKey> = {
   pc: "platforms.pc",
@@ -22,7 +23,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   await applyLocale();
   const { id } = await params;
   const platform = CATALOG_PLATFORMS.find((item) => item.id === id);
-  return { title: platform ? `${t(TITLES[platform.id])} · GameTracker` : "GameTracker" };
+  if (!platform) return pageMetadata({ title: "GameTracker", description: t("meta.description"), path: `/platforms/${id}`, index: false });
+  const name = t(TITLES[platform.id]);
+  return pageMetadata({
+    title: name,
+    description: t("meta.platform", { name }),
+    path: `/platforms/${platform.id}`,
+  });
 }
 
 export default async function PlatformPage({ params }: { params: Promise<{ id: string }> }) {

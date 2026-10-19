@@ -9,15 +9,37 @@ import {
   type MessageKey,
   type SearchFilters,
 } from "@gametracker/shared";
+import type { Metadata } from "next";
 import { CollectionRow } from "@/components/CollectionRow";
+import { JsonLd } from "@/components/JsonLd";
 import { Icon } from "@/components/Icon";
 import { SearchForm } from "@/components/SearchForm";
 import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
 import { getCollections, getMe, searchGames } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { absoluteUrl, pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string }>;
+}): Promise<Metadata> {
+  await applyLocale();
+  const params = await searchParams;
+  const query = (params.q ?? "").trim();
+  const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year);
+  return pageMetadata({
+    title: searching && query ? query : t("home.title"),
+    description: t("meta.description"),
+    path: "/",
+    index: !searching,
+    follow: true,
+    absolute: true,
+  });
+}
 
 export default async function HomePage({
   searchParams,
@@ -31,6 +53,23 @@ export default async function HomePage({
 
   return (
     <main>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "GameTracker",
+          url: absoluteUrl("/"),
+          description: t("meta.description"),
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: `${absoluteUrl("/")}?q={search_term_string}`,
+            },
+            "query-input": "required name=search_term_string",
+          },
+        }}
+      />
       <p className="text-sm font-medium tracking-[0.18em] text-accent uppercase">{t("home.eyebrow")}</p>
       <h1 className="mt-3 max-w-2xl font-display text-4xl tracking-tight sm:text-5xl">
         {t("home.title")}

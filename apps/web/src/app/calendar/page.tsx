@@ -6,12 +6,25 @@ import { IconBadge } from "@/components/Icon";
 import { getCalendar } from "@/lib/api";
 import { formatCalendarDay, formatMonth } from "@/lib/format";
 import { applyLocale } from "@/lib/locale";
+import { pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}): Promise<Metadata> {
   await applyLocale();
-  return { title: `${t("calendar.title")} · GameTracker` };
+  const { month } = await searchParams;
+  const filtered = Boolean(month && /^\d{4}-\d{2}$/.test(month));
+  return pageMetadata({
+    title: t("calendar.title"),
+    description: t("meta.calendar"),
+    path: "/calendar",
+    index: !filtered,
+    follow: true,
+  });
 }
 
 export default async function CalendarPage({

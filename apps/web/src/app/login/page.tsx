@@ -6,12 +6,13 @@ import { LoginForm } from "@/components/LoginForm";
 import { getMe } from "@/lib/api";
 import { safeNext } from "@/lib/config";
 import { applyLocale } from "@/lib/locale";
+import { pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   await applyLocale();
-  return { title: `${t("auth.loginTitle")} · GameTracker` };
+  return pageMetadata({ title: t("auth.loginTitle"), description: t("meta.description"), path: "/login", index: false, follow: false });
 }
 
 export default async function LoginPage({

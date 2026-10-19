@@ -99,6 +99,16 @@ export async function getLibrary(username: string): Promise<UserLibrary | null> 
   return (await response.json()) as UserLibrary;
 }
 
+export async function getSteamWishlistMissing(): Promise<{ appId: string; title: string | null }[]> {
+  const response = await fetch(`${apiUrl}/me/steam/wishlist/missing`, {
+    headers: await sessionHeaders(),
+    cache: "no-store",
+  });
+  if (!response.ok) return [];
+  const payload = (await response.json()) as { apps?: { appId: string; title: string | null }[] };
+  return payload.apps ?? [];
+}
+
 export async function getGameEntry(slug: string): Promise<GameEntry | null> {
   const response = await fetch(`${apiUrl}/games/${encodeURIComponent(slug)}/entry`, {
     headers: await sessionHeaders(),

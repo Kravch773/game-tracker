@@ -6,12 +6,24 @@ import { getActivity, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 import { formatDate } from "@/lib/format";
 import { ratingLabel } from "@/lib/library";
+import { pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ following?: string }>;
+}): Promise<Metadata> {
   await applyLocale();
-  return { title: `${t("activity.title")} · GameTracker` };
+  const { following } = await searchParams;
+  return pageMetadata({
+    title: t("activity.title"),
+    description: t("meta.activity"),
+    path: "/activity",
+    index: following !== "1",
+    follow: true,
+  });
 }
 
 export default async function ActivityPage({
