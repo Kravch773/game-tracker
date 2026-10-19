@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   if (!me) redirect("/login?next=/settings");
   return (
     <main>
-      <AccountSettings username={me.username} />
+      <AccountSettings username={me.username} steamId={me.steamId} />
     </main>
   );
 }

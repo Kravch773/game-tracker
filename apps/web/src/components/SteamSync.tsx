@@ -3,7 +3,9 @@
 import { t, type SteamSyncResult } from "@gametracker/shared";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
 import { apiUrl } from "@/lib/config";
+import { fieldClass, primaryClass } from "@/lib/ui";
 
 export function SteamSync({ initialProfile }: { initialProfile: string }) {
   const router = useRouter();
@@ -52,33 +54,33 @@ export function SteamSync({ initialProfile }: { initialProfile: string }) {
 
   return (
     <form
-      className="mt-4 flex flex-wrap items-center gap-2"
+      className="rounded-3xl border border-line bg-panel/80 p-5"
       onSubmit={(event) => {
         event.preventDefault();
         void sync();
       }}
     >
-      <label className="sr-only" htmlFor="steam-profile">
+      <h2 className="flex items-center gap-2.5 font-display text-2xl">
+        <Icon name="steam" className="h-5 w-5 text-accent" />
+        {t("settings.steamTitle")}
+      </h2>
+      <label className="mt-4 flex flex-col gap-2 text-sm text-muted" htmlFor="steam-profile">
         {t("profile.steamLabel")}
+        <input
+          id="steam-profile"
+          value={profile}
+          onChange={(event) => setProfile(event.target.value)}
+          placeholder={t("profile.steamPlaceholder")}
+          maxLength={200}
+          autoComplete="off"
+          spellCheck={false}
+          className={fieldClass}
+        />
       </label>
-      <input
-        id="steam-profile"
-        value={profile}
-        onChange={(event) => setProfile(event.target.value)}
-        placeholder={t("profile.steamPlaceholder")}
-        maxLength={200}
-        autoComplete="off"
-        spellCheck={false}
-        className="h-10 min-w-64 flex-1 rounded-full border border-line bg-panel px-4 text-sm text-ink outline-none placeholder:text-muted focus:border-accent"
-      />
-      <button
-        type="submit"
-        disabled={pending || profile.trim().length === 0}
-        className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-4 text-sm font-semibold text-accent-ink! disabled:opacity-50"
-      >
+      {message ? <p className={`mt-3 text-sm ${failed ? "text-rose-300" : "text-muted"}`}>{message}</p> : null}
+      <button type="submit" disabled={pending || profile.trim().length === 0} className={`${primaryClass} mt-4`}>
         {pending ? t("profile.steamSyncing") : t("profile.steamSync")}
       </button>
-      {message ? <p className={`w-full text-sm ${failed ? "text-rose-300" : "text-muted"}`}>{message}</p> : null}
     </form>
   );
 }

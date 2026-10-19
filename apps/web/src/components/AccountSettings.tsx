@@ -3,10 +3,11 @@
 import { t } from "@gametracker/shared";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/Icon";
+import { SteamSync } from "@/components/SteamSync";
 import { apiUrl } from "@/lib/config";
 import { fieldClass, primaryClass } from "@/lib/ui";
 
-export function AccountSettings({ username }: { username: string }) {
+export function AccountSettings({ username, steamId }: { username: string; steamId: string | null }) {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <h1 className="flex items-center gap-3 font-display text-4xl tracking-tight">
@@ -17,6 +18,7 @@ export function AccountSettings({ username }: { username: string }) {
       </h1>
       <UsernameForm username={username} />
       <PasswordForm />
+      <SteamSync initialProfile={steamId ? `https://steamcommunity.com/profiles/${steamId}` : ""} />
       <DeleteForm />
     </div>
   );

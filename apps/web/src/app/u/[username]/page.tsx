@@ -23,11 +23,5 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   const mine = me?.username.toLowerCase() === library.user.username.toLowerCase();
 
-  return (
-    <ProfileBoard
-      library={library}
-      email={mine && me ? me.email : null}
-      steamId={mine && me ? me.steamId : null}
-    />
-  );
+  return <ProfileBoard library={library} email={mine && me ? me.email : null} />;
 }

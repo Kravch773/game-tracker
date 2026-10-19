@@ -196,6 +196,7 @@ export const en = {
     importEmpty: "The file has no games.",
     importBadFile: "This is not a MyGamesList export.",
     importFailed: "Could not import.",
+    steamAdd: "Add Steam",
     steamLabel: "Steam profile",
     steamPlaceholder: "https://steamcommunity.com/id/…",
     steamSync: "Sync",
@@ -229,6 +230,7 @@ export const en = {
   },
   settings: {
     title: "Settings",
+    steamTitle: "Steam integration",
     username: "Name",
     password: "Password",
     current: "Current password",

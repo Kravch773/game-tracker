@@ -7,7 +7,6 @@ import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
 import { Icon } from "@/components/Icon";
 import { ImportDialog } from "@/components/ImportDialog";
-import { SteamSync } from "@/components/SteamSync";
 import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
 import { formatShortDate } from "@/lib/format";
@@ -32,15 +31,7 @@ const SORT_LABEL = {
   metacritic: "profile.sortMetacritic",
 } as const;
 
-export function ProfileBoard({
-  library,
-  email,
-  steamId,
-}: {
-  library: UserLibrary;
-  email: string | null;
-  steamId: string | null;
-}) {
+export function ProfileBoard({ library, email }: { library: UserLibrary; email: string | null }) {
   const [tab, setTab] = useState<Tab>("playing");
   const [sort, setSort] = useState<Sort>("added");
   const [scale, setScale] = useState(0);
@@ -104,6 +95,13 @@ export function ProfileBoard({
         </div>
         {email ? (
           <div className="flex shrink-0 items-center gap-2">
+            <a
+              href="/settings"
+              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line px-4 text-sm font-medium hover:text-ink"
+            >
+              <Icon name="steam" className="h-4 w-4" />
+              {t("profile.steamAdd")}
+            </a>
             <button
               type="button"
               onClick={() => setImportOpen(true)}
@@ -126,7 +124,6 @@ export function ProfileBoard({
           />
         )}
       </section>
-      {email ? <SteamSync initialProfile={steamId ? `https://steamcommunity.com/profiles/${steamId}` : ""} /> : null}
       <FollowList username={library.user.username} kind={list} onClose={() => setList(null)} />
       <SectionTotals library={library} tab={tab} bucket={bucket} onPick={chooseTab} />
       <Stats

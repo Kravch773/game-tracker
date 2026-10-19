@@ -194,6 +194,7 @@ export const uk = {
     importEmpty: "У файлі немає ігор.",
     importBadFile: "Це не експорт MyGamesList.",
     importFailed: "Не вдалося імпортувати.",
+    steamAdd: "Додати Steam",
     steamLabel: "Профіль Steam",
     steamPlaceholder: "https://steamcommunity.com/id/…",
     steamSync: "Синхронізувати",
@@ -227,6 +228,7 @@ export const uk = {
   },
   settings: {
     title: "Налаштування",
+    steamTitle: "Інтеграція Steam",
     username: "Ім’я",
     password: "Пароль",
     current: "Поточний пароль",
