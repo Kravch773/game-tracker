@@ -4,7 +4,6 @@ import { Manrope, Unbounded } from "next/font/google";
 import { Suspense, type ReactNode } from "react";
 import { AccountNav } from "@/components/AccountNav";
 import { HeaderSearch } from "@/components/HeaderSearch";
-import { Icon } from "@/components/Icon";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { LocaleSync } from "@/components/LocaleSync";
 import { getMe } from "@/lib/api";
@@ -32,11 +31,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <LocaleSync locale={locale}>
           <header className="sticky top-0 z-40 border-b border-line bg-bg/75 backdrop-blur-xl">
             <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:h-16 sm:flex-nowrap sm:py-0">
-              <a href="/" className="order-1 inline-flex shrink-0 items-center gap-2 font-display text-lg tracking-tight">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-accent text-accent-ink">
-                  <Icon name="gamepad" />
-                </span>
-                <span className="hidden sm:inline">GameTracker</span>
+              <a href="/" className="order-1 inline-flex shrink-0 items-center">
+                <picture>
+                  <source media="(min-width: 640px)" srcSet="/brand-logo.png" />
+                  <img src="/brand-mark.png" alt="GameTracker" className="h-9 w-auto" />
+                </picture>
               </a>
               <div className="order-2 ml-auto flex min-w-0 items-center gap-2 sm:order-3 sm:ml-0">
                 <LanguageSwitch />

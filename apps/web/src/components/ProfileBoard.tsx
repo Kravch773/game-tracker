@@ -4,6 +4,7 @@ import { t, type LibraryGame, type UserLibrary } from "@gametracker/shared";
 import { useEffect, useState } from "react";
 import { BacklogWheel } from "@/components/BacklogWheel";
 import { FollowButton } from "@/components/FollowButton";
+import { FollowList } from "@/components/FollowList";
 import { Icon } from "@/components/Icon";
 import { ImportDialog } from "@/components/ImportDialog";
 import { STATUS_MARK } from "@/lib/marks";
@@ -40,6 +41,9 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
   const [showMetacritic, setShowMetacritic] = useState(true);
   const [wheelOpen, setWheelOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [list, setList] = useState<"followers" | "following" | null>(null);
+  const [followers, setFollowers] = useState(library.followers);
+  const [following, setFollowing] = useState(library.following);
   const sorts: Sort[] = tab === "backlog" ? ["added", "release", "metacritic"] : ["added", "release", "rating", "metacritic"];
   const activeSort = sorts.includes(sort) ? sort : "added";
   const rated = [...library.finished, ...library.dropped].filter((game) => game.rating != null);
@@ -52,6 +56,11 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
     const saved = Number(window.localStorage.getItem(SCALE_KEY));
     if (Number.isInteger(saved) && saved >= 0 && saved < SCALES.length) setScale(saved);
   }, []);
+
+  useEffect(() => {
+    setFollowers(library.followers);
+    setFollowing(library.following);
+  }, [library.user.username, library.followers, library.following]);
 
   function chooseTab(next: Tab) {
     setTab(next);
@@ -73,16 +82,16 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-4xl tracking-tight">{library.user.username}</h1>
           {email ? <p className="mt-1 text-sm text-muted">{email}</p> : null}
-          <p className="mt-1 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-            <span className="inline-flex items-center gap-1">
+          <div className="mt-1 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+            <button type="button" onClick={() => setList("followers")} className="inline-flex items-center gap-1 hover:text-ink">
               <Icon name="users" className="text-sky-300" />
-              {library.followers} {t("profile.followers").toLowerCase()}
-            </span>
-            <span className="inline-flex items-center gap-1">
+              {followers} {t("profile.followers").toLowerCase()}
+            </button>
+            <button type="button" onClick={() => setList("following")} className="inline-flex items-center gap-1 hover:text-ink">
               <Icon name="user" className="text-violet-300" />
-              {library.following} {t("profile.following").toLowerCase()}
-            </span>
-          </p>
+              {following} {t("profile.following").toLowerCase()}
+            </button>
+          </div>
         </div>
         {email ? (
           <div className="flex shrink-0 items-center gap-2">
@@ -101,9 +110,14 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
             </a>
           </div>
         ) : (
-          <FollowButton username={library.user.username} following={library.followedByMe} />
+          <FollowButton
+            username={library.user.username}
+            following={library.followedByMe}
+            onChange={(next) => setFollowers((count) => Math.max(0, count + (next ? 1 : -1)))}
+          />
         )}
       </section>
+      <FollowList username={library.user.username} kind={list} onClose={() => setList(null)} />
       <SectionTotals library={library} tab={tab} bucket={bucket} onPick={chooseTab} />
       <Stats
         rated={rated}
@@ -372,7 +386,7 @@ function GameCard({
   const when = showDate ? cardDate(game, sort) : null;
   const metacritic = game.metacriticScore == null ? "—" : String(game.metacriticScore);
   return (
-    <a href={`/games/${encodeURIComponent(game.slug)}`} className="group block">
+    <a href={`/games/${encodeURIComponent(game.slug)}`} target="_blank" rel="noreferrer" className="group block">
       <span className="relative block overflow-hidden rounded-2xl border border-line bg-raised">
         {game.coverUrl ? (
           <img src={game.coverUrl} alt="" className="aspect-[3/4] w-full object-cover transition duration-300 group-hover:scale-105" />

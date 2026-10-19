@@ -1,4 +1,4 @@
-import type { CatalogGenreId, CatalogPlatformId, HomeCollectionId, LibraryStatus } from "@gametracker/shared";
+import type { CatalogGenreId, CatalogPlatformId, HomeCollectionId, LibraryStatus, SearchGenreId } from "@gametracker/shared";
 import type { IconName } from "@/components/Icon";
 
 export type Mark = { icon: IconName; tone: string };
@@ -31,6 +31,62 @@ export const GENRE_MARK: Record<CatalogGenreId, Mark> = {
   indie: COLLECTION_MARK.indie,
   racing: COLLECTION_MARK.racing,
 };
+
+export const SEARCH_GENRE_ICON: Record<SearchGenreId, IconName> = {
+  rpg: "dice",
+  shooter: "target",
+  adventure: "compass",
+  strategy: "flag",
+  indie: "heart",
+  racing: "wheel",
+  fighting: "fighting",
+  platform: "platform",
+  puzzle: "puzzle",
+  sport: "sport",
+  simulator: "simulator",
+  "hack-and-slash": "hack-and-slash",
+  tactical: "tactical",
+  rts: "rts",
+  tbs: "tbs",
+  music: "music",
+  arcade: "arcade",
+  "visual-novel": "visual-novel",
+  moba: "moba",
+  card: "card",
+  "point-and-click": "point-and-click",
+  quiz: "quiz",
+  pinball: "pinball",
+};
+
+const GENRE_NAME_ICON: Record<string, IconName> = {
+  "Role-playing (RPG)": "dice",
+  Shooter: "target",
+  Adventure: "compass",
+  Strategy: "flag",
+  Indie: "heart",
+  Racing: "wheel",
+  Fighting: "fighting",
+  Platform: "platform",
+  Puzzle: "puzzle",
+  Sport: "sport",
+  Simulator: "simulator",
+  "Hack and slash/Beat 'em up": "hack-and-slash",
+  Tactical: "tactical",
+  "Real Time Strategy (RTS)": "rts",
+  "Turn-based strategy (TBS)": "tbs",
+  Music: "music",
+  Arcade: "arcade",
+  "Visual Novel": "visual-novel",
+  MOBA: "moba",
+  "Card & Board Game": "card",
+  "Point-and-click": "point-and-click",
+  "Quiz/Trivia": "quiz",
+  Pinball: "pinball",
+};
+
+export function genreIcon(name: string): IconName | null {
+  return GENRE_NAME_ICON[name] ?? null;
+}
 
 export const PLATFORM_MARK: Record<CatalogPlatformId, Mark> = {
   pc: { icon: "pc", tone: "bg-slate-300/10 text-slate-200" },

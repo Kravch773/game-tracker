@@ -170,6 +170,8 @@ export const uk = {
     added: "Додано {date}",
     followers: "Підписники",
     following: "Підписки",
+    followsEmpty: "Поки нікого.",
+    followsFailed: "Не вдалося завантажити список.",
     follow: "Підписатися",
     unfollow: "Відписатися",
     followFailed: "Не вдалося оновити підписку",

@@ -8,6 +8,7 @@ import { ReviewList } from "@/components/ReviewList";
 import { TrailersButton } from "@/components/TrailersButton";
 import { VideoList } from "@/components/VideoList";
 import { formatHours } from "@/lib/format";
+import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 
@@ -76,11 +77,15 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             {game.igdbRating != null ? (
               <Score label="IGDB" value={game.igdbRating.toFixed(1)} icon="chart" tone="bg-sky-300 text-sky-950" />
             ) : null}
-            {game.genres.map((genre) => (
-              <span key={genre} className="inline-flex h-9 items-center rounded-full border border-line px-3 text-sm text-muted">
-                {genre}
-              </span>
-            ))}
+            {game.genres.map((genre) => {
+              const icon = genreIcon(genre);
+              return (
+                <span key={genre} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm text-muted">
+                  {icon ? <Icon name={icon} className="h-3.5 w-3.5" /> : null}
+                  {genre}
+                </span>
+              );
+            })}
           </div>
           <FactList game={game} />
           {game.summary ? <p className="mt-5 max-w-3xl text-lg leading-8">{game.summary}</p> : null}

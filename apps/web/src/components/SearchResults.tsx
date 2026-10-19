@@ -56,7 +56,7 @@ export function SearchResults({
       <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((game) => (
           <li key={game.id}>
-            <GameResult game={game} />
+            <GameResult game={game} newTab />
           </li>
         ))}
       </ul>

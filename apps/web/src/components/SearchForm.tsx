@@ -9,9 +9,10 @@ import {
   type MessageKey,
   type SearchGenreId,
 } from "@gametracker/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { apiUrl } from "@/lib/config";
+import { SEARCH_GENRE_ICON } from "@/lib/marks";
 
 const GENRE_LABEL: Record<SearchGenreId, MessageKey> = {
   rpg: "collections.rpg",
@@ -124,6 +125,8 @@ export function SearchForm({
               <li key={game.id}>
                 <a
                   href={`/games/${encodeURIComponent(game.slug)}`}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex items-center gap-3 px-4 py-2 hover:bg-white/5"
                   onMouseDown={(event) => event.preventDefault()}
                 >
@@ -143,14 +146,7 @@ export function SearchForm({
         ) : null}
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
-        <select name="genre" defaultValue={genre} className={selectClass} aria-label={t("home.genre")}>
-          <option value="">{t("home.genre")}: {t("home.any")}</option>
-          {SEARCH_GENRES.map((item) => (
-            <option key={item.id} value={item.id}>
-              {t(GENRE_LABEL[item.id])}
-            </option>
-          ))}
-        </select>
+        <GenreField genre={genre} />
         <select name="platform" defaultValue={platform} className={selectClass} aria-label={t("home.platform")}>
           <option value="">{t("home.platform")}: {t("home.any")}</option>
           {CATALOG_PLATFORMS.map((item) => (
@@ -170,6 +166,71 @@ export function SearchForm({
         />
       </div>
     </form>
+  );
+}
+
+function GenreField({ genre }: { genre: string }) {
+  const [value, setValue] = useState(genre);
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const selected = SEARCH_GENRES.find((item) => item.id === value);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointer(event: PointerEvent) {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointer);
+    return () => document.removeEventListener("pointerdown", onPointer);
+  }, [open]);
+
+  return (
+    <div ref={root} className="relative">
+      <input type="hidden" name="genre" value={value} />
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-label={t("home.genre")}
+        onClick={() => setOpen((current) => !current)}
+        className={`${selectClass} flex items-center gap-2 text-left`}
+      >
+        {selected ? <Icon name={SEARCH_GENRE_ICON[selected.id]} className="h-4 w-4" /> : null}
+        <span className="truncate">
+          {selected ? t(GENRE_LABEL[selected.id]) : `${t("home.genre")}: ${t("home.any")}`}
+        </span>
+      </button>
+      {open ? (
+        <ul className="absolute z-30 mt-2 max-h-80 w-full overflow-auto rounded-3xl border border-line bg-panel py-2 shadow-2xl">
+          <li>
+            <button
+              type="button"
+              className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-white/5"
+              onClick={() => {
+                setValue("");
+                setOpen(false);
+              }}
+            >
+              {t("home.genre")}: {t("home.any")}
+            </button>
+          </li>
+          {SEARCH_GENRES.map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-white/5"
+                onClick={() => {
+                  setValue(item.id);
+                  setOpen(false);
+                }}
+              >
+                <Icon name={SEARCH_GENRE_ICON[item.id]} className="h-4 w-4" />
+                {t(GENRE_LABEL[item.id])}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 

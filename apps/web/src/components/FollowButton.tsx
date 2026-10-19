@@ -6,7 +6,15 @@ import { Icon } from "@/components/Icon";
 import { apiUrl } from "@/lib/config";
 import { primaryClass, quietClass } from "@/lib/ui";
 
-export function FollowButton({ username, following }: { username: string; following: boolean }) {
+export function FollowButton({
+  username,
+  following,
+  onChange,
+}: {
+  username: string;
+  following: boolean;
+  onChange?: (following: boolean) => void;
+}) {
   const [on, setOn] = useState(following);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +35,7 @@ export function FollowButton({ username, following }: { username: string; follow
         return;
       }
       setOn(payload.following);
+      onChange?.(payload.following);
     } catch {
       setError(t("profile.followFailed"));
     } finally {

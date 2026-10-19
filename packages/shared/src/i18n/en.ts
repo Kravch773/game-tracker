@@ -172,6 +172,8 @@ export const en = {
     added: "Added {date}",
     followers: "Followers",
     following: "Following",
+    followsEmpty: "Nobody yet.",
+    followsFailed: "Could not load the list.",
     follow: "Follow",
     unfollow: "Unfollow",
     followFailed: "Could not update the follow",

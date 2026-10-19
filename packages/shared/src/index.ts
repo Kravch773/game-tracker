@@ -211,6 +211,10 @@ export type UserLibrary = {
   followedByMe: boolean;
 };
 
+export type FollowPerson = {
+  username: string;
+};
+
 export type MyGamesListImportRow = {
   title: string;
   rating: number | null;

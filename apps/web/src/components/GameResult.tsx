@@ -5,17 +5,24 @@ export function GameResult({
   detail,
   wrapDetail = false,
   compact = false,
+  newTab = false,
 }: {
   game: GameSummary;
   detail?: string;
   wrapDetail?: boolean;
   compact?: boolean;
+  newTab?: boolean;
 }) {
   const year = game.releaseDate?.slice(0, 4);
   const caption = detail?.trim() || year || t("common.unknownDate");
 
   return (
-    <a href={`/games/${game.slug}`} className="group block">
+    <a
+      href={`/games/${game.slug}`}
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noreferrer" : undefined}
+      className="group block"
+    >
       <span className={`block overflow-hidden border border-line bg-raised shadow-lg ${compact ? "rounded-xl" : "rounded-2xl"}`}>
         <Cover url={game.coverUrl} />
       </span>
