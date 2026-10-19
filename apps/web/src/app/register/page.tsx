@@ -1,0 +1,45 @@
+import { t } from "@gametracker/shared";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { IconBadge } from "@/components/Icon";
+import { RegisterForm } from "@/components/RegisterForm";
+import { getMe } from "@/lib/api";
+import { safeNext } from "@/lib/config";
+import { applyLocale } from "@/lib/locale";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  await applyLocale();
+  return { title: `${t("auth.registerTitle")} · GameTracker` };
+}
+
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  await applyLocale();
+  const me = await getMe();
+  const { next: nextParam } = await searchParams;
+  const next = safeNext(nextParam);
+  if (me) redirect(next ?? `/u/${encodeURIComponent(me.username)}`);
+
+  return (
+    <main className="mx-auto max-w-md rounded-3xl border border-line bg-panel/80 p-6 shadow-2xl sm:p-8">
+      <p className="text-sm font-medium tracking-[0.16em] text-accent uppercase">{t("auth.eyebrow")}</p>
+      <h1 className="mt-3 flex items-center gap-3 font-display text-4xl tracking-tight">
+        <IconBadge name="spark" tone="bg-violet-300/10 text-violet-300" size="lg" />
+        {t("auth.registerTitle")}
+      </h1>
+      <RegisterForm next={next} />
+      <p className="mt-5 text-sm text-muted">
+        {t("auth.hasProfile")} <a href={loginHref(next)} className="text-ink hover:text-accent">{t("nav.login")}</a>
+      </p>
+    </main>
+  );
+}
+
+function loginHref(next: string | null): string {
+  return next ? `/login?next=${encodeURIComponent(next)}` : "/login";
+}

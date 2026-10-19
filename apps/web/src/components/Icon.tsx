@@ -1,0 +1,77 @@
+export type IconName =
+  | "calendar"
+  | "pulse"
+  | "gear"
+  | "door"
+  | "user"
+  | "search"
+  | "star"
+  | "heart"
+  | "check"
+  | "close"
+  | "bookmark"
+  | "book"
+  | "camera"
+  | "film"
+  | "chat"
+  | "layers"
+  | "clock"
+  | "building"
+  | "users"
+  | "tag"
+  | "shield"
+  | "flame"
+  | "spark"
+  | "dice"
+  | "compass"
+  | "target"
+  | "flag"
+  | "wheel"
+  | "gamepad"
+  | "chart"
+  | "arrow"
+  | "link"
+  | "monitor"
+  | "disc"
+  | "box"
+  | "pc"
+  | "ps5"
+  | "ps4"
+  | "xbox-series"
+  | "xbox-one"
+  | "switch"
+  | "steam"
+  | "gog"
+  | "epic"
+  | "wiki"
+  | "meta";
+
+export function Icon({ name, className = "" }: { name: IconName; className?: string }) {
+  const sized = /\bh-/.test(className) ? className : `h-4 w-4 ${className}`;
+  return (
+    <img
+      src={`/icons/${name}.png`}
+      alt=""
+      draggable={false}
+      className={`pointer-events-none shrink-0 object-contain ${sized}`}
+    />
+  );
+}
+
+export function IconBadge({
+  name,
+  tone = "bg-accent/10 text-accent",
+  size = "md",
+}: {
+  name: IconName;
+  tone?: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const box = size === "lg" ? "h-12 w-12 rounded-2xl" : size === "sm" ? "h-8 w-8 rounded-lg" : "h-9 w-9 rounded-xl";
+  const glyph = size === "lg" ? "h-7 w-7" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
+  return (
+    <span className={`inline-flex shrink-0 items-center justify-center ring-1 ring-white/10 ${box} ${tone}`}>
+      <Icon name={name} className={glyph} />
+    </span>
+  );
+}
