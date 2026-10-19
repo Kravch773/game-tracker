@@ -4,23 +4,25 @@ export function GameResult({
   game,
   detail,
   wrapDetail = false,
+  compact = false,
 }: {
   game: GameSummary;
   detail?: string;
   wrapDetail?: boolean;
+  compact?: boolean;
 }) {
   const year = game.releaseDate?.slice(0, 4);
   const caption = detail?.trim() || year || t("common.unknownDate");
 
   return (
     <a href={`/games/${game.slug}`} className="group block">
-      <span className="block overflow-hidden rounded-2xl border border-line bg-raised shadow-lg">
+      <span className={`block overflow-hidden border border-line bg-raised shadow-lg ${compact ? "rounded-xl" : "rounded-2xl"}`}>
         <Cover url={game.coverUrl} />
       </span>
-      <span className="mt-3 block min-w-0">
-        <span className="block truncate font-medium group-hover:text-accent">{game.title}</span>
+      <span className={`block min-w-0 ${compact ? "mt-2" : "mt-3"}`}>
+        <span className={`block truncate font-medium group-hover:text-accent ${compact ? "text-sm" : ""}`}>{game.title}</span>
         <span
-          className={`mt-1 block text-sm text-muted ${wrapDetail ? "" : "truncate"}`}
+          className={`mt-1 block text-muted ${compact ? "text-xs" : "text-sm"} ${wrapDetail ? "" : "truncate"}`}
           title={detail?.trim() || undefined}
         >
           {caption}

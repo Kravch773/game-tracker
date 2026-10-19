@@ -229,10 +229,10 @@ export function LibraryPanel({
         </p>
         <input
           type="range"
-          min={1}
+          min={0}
           max={10}
           step={0.1}
-          value={draftRating != null && draftRating <= 10 ? draftRating : 1}
+          value={draftRating != null && draftRating <= 10 ? draftRating : 0}
           disabled={pending}
           aria-label={t("library.rate")}
           onChange={(event) => setDraftRating(Number(event.target.value))}

@@ -43,8 +43,8 @@ function mapRating(value: string): number | null {
   const raw = value.trim();
   if (!raw || raw.toLowerCase() === "nan") return null;
   const rating = Number(raw);
-  if (!Number.isFinite(rating) || rating <= 0) return null;
-  return Math.min(10, Math.max(1, Math.round(rating * 10) / 10));
+  if (!Number.isFinite(rating) || rating < 0) return null;
+  return Math.min(10, Math.max(0, Math.round(rating * 10) / 10));
 }
 
 function stamp(value: string): string | null {

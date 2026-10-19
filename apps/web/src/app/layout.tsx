@@ -1,8 +1,9 @@
 import { t } from "@gametracker/shared";
 import type { Metadata } from "next";
 import { Manrope, Unbounded } from "next/font/google";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { AccountNav } from "@/components/AccountNav";
+import { HeaderSearch } from "@/components/HeaderSearch";
 import { Icon } from "@/components/Icon";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { LocaleSync } from "@/components/LocaleSync";
@@ -30,16 +31,21 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body className="font-sans antialiased">
         <LocaleSync locale={locale}>
           <header className="sticky top-0 z-40 border-b border-line bg-bg/75 backdrop-blur-xl">
-            <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4">
-              <a href="/" className="inline-flex items-center gap-2 font-display text-lg tracking-tight">
+            <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:h-16 sm:flex-nowrap sm:py-0">
+              <a href="/" className="order-1 inline-flex shrink-0 items-center gap-2 font-display text-lg tracking-tight">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-accent text-accent-ink">
                   <Icon name="gamepad" />
                 </span>
                 <span className="hidden sm:inline">GameTracker</span>
               </a>
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="order-2 ml-auto flex min-w-0 items-center gap-2 sm:order-3 sm:ml-0">
                 <LanguageSwitch />
                 <AccountNav user={me} />
+              </div>
+              <div className="order-3 flex w-full justify-center sm:order-2 sm:w-auto sm:min-w-0 sm:flex-1">
+                <Suspense fallback={<div className="h-10 w-full max-w-md rounded-full border border-line bg-panel/50" />}>
+                  <HeaderSearch />
+                </Suspense>
               </div>
             </div>
           </header>

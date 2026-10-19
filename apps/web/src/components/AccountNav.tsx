@@ -41,10 +41,6 @@ export function AccountNav({ user }: { user: AuthUser | null }) {
         <Icon name="pulse" />
         <span className="hidden lg:inline">{t("nav.activity")}</span>
       </a>
-      <a href="/settings" className={linkClass} aria-label={t("nav.settings")}>
-        <Icon name="gear" />
-        <span className="hidden lg:inline">{t("nav.settings")}</span>
-      </a>
       <a
         href={`/u/${encodeURIComponent(user.username)}`}
         className="inline-flex h-11 min-w-0 items-center gap-2 rounded-full border border-line bg-white/5 pr-4 pl-1.5 text-sm font-medium hover:border-white/25"

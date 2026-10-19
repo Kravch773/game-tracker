@@ -52,10 +52,10 @@ export default async function CalendarPage({
                     )}
                     {day.date === "unscheduled" ? t("calendar.unscheduled") : formatCalendarDay(day.date)}
                   </h2>
-                  <ul className="mt-4 grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-3">
+                  <ul className="mt-4 grid grid-cols-4 gap-x-3 gap-y-6 sm:grid-cols-6">
                     {day.games.map((game) => (
-                      <li key={game.id} className={game.featured ? "relative z-10 sm:origin-center sm:scale-[1.12]" : undefined}>
-                        <GameResult game={game} detail={game.releasePlatforms.join(", ")} />
+                      <li key={game.id} className={game.featured ? "col-span-2" : undefined}>
+                        <GameResult game={game} detail={game.releasePlatforms.join(", ")} compact={!game.featured} />
                       </li>
                     ))}
                   </ul>

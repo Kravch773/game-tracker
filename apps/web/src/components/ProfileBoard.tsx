@@ -267,7 +267,7 @@ function Stats({
     return <p className="mt-6 text-sm text-muted">{t("profile.noRatings")}</p>;
   }
   const average = rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length;
-  const counts = Array.from({ length: 11 }, (_, index) => rated.filter((game) => scoreBucket(game.rating ?? 0) === index + 1).length);
+  const counts = Array.from({ length: 12 }, (_, index) => rated.filter((game) => scoreBucket(game.rating ?? -1) === index).length);
   const max = Math.max(...counts, 1);
   return (
     <section className="mt-8">
@@ -278,7 +278,7 @@ function Stats({
       <p className="mt-1 font-display text-3xl text-accent">{average.toFixed(1)}</p>
       <div className="mt-4 flex items-end gap-1">
         {counts.map((count, index) => {
-          const value = index + 1;
+          const value = index;
           const selected = bucket === value;
           const extra = value === 11;
           return (
@@ -328,7 +328,8 @@ function compareText(left: string | null, right: string | null): number {
 
 function scoreBucket(rating: number): number {
   if (rating >= 11) return 11;
-  return Math.min(10, Math.max(1, Math.floor(rating)));
+  if (rating < 1) return 0;
+  return Math.min(10, Math.floor(rating));
 }
 
 function bucketLabel(bucket: number): string {
