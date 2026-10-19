@@ -135,6 +135,7 @@ export const uk = {
     noRating: "Без оцінки",
     extra: "11 — екстра",
     review: "Відгук",
+    editReview: "Редагувати відгук",
     remove: "Прибрати зі списку",
     chooseSection: "Оберіть розділ",
     saveFailed: "Не вдалося зберегти",

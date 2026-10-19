@@ -137,6 +137,7 @@ export const en = {
     noRating: "No score",
     extra: "11 — extra",
     review: "Review",
+    editReview: "Edit review",
     remove: "Remove from list",
     chooseSection: "Choose a section",
     saveFailed: "Could not save",

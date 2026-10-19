@@ -73,9 +73,9 @@ export function CalendarSide({
                 <li key={game.id}>
                   <a href={`/games/${game.slug}`} className="flex items-center gap-3 rounded-2xl px-1 py-1 hover:bg-white/5">
                     {game.coverUrl ? (
-                      <img src={game.coverUrl} alt="" className="h-14 w-10 rounded-md object-cover" />
+                      <img src={game.coverUrl} alt="" className="h-[4.55rem] w-[3.25rem] rounded-md object-cover" />
                     ) : (
-                      <span className="h-14 w-10 rounded-md bg-raised" />
+                      <span className="h-[4.55rem] w-[3.25rem] rounded-md bg-raised" />
                     )}
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">{game.title}</span>

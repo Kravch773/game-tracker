@@ -18,7 +18,7 @@ export const STATUS_LABELS = {
 export const PROFILE_SECTIONS = LIBRARY_STATUSES;
 
 export function isScoredStatus(status: LibraryStatus): boolean {
-  return status === "finished" || status === "dropped";
+  return status === "playing" || status === "finished" || status === "dropped";
 }
 
 export function ratingLabel(rating: number): string {

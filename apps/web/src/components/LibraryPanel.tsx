@@ -19,6 +19,7 @@ export function LibraryPanel({
   entry: GameEntry;
 }) {
   const [open, setOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [status, setStatus] = useState(entry.status);
   const [rating, setRating] = useState<number | null>(entry.rating);
   const [review, setReview] = useState(entry.review ?? "");
@@ -71,20 +72,30 @@ export function LibraryPanel({
       await clearEntry();
       return;
     }
-    const scored = isScoredStatus(next);
-    const saved = await persist(next, scored ? rating : null, scored ? review.trim() || null : null);
-    if (saved && scored) {
-      setDraftRating(scored ? rating : null);
-      setDraftReview(scored ? review : "");
+    const saved = await persist(next, rating, review.trim() || null);
+    if (saved && isScoredStatus(next)) {
+      setDraftRating(rating);
       setError(null);
       setOpen(true);
     }
   }
 
+  function openReview() {
+    setDraftReview(review);
+    setError(null);
+    setReviewOpen(true);
+  }
+
   async function saveRating() {
     if (!status || !isScoredStatus(status)) return;
-    const saved = await persist(status, draftRating, draftReview.trim() || null);
+    const saved = await persist(status, draftRating, review.trim() || null);
     if (saved) setOpen(false);
+  }
+
+  async function saveReview() {
+    if (!status || !isScoredStatus(status)) return;
+    const saved = await persist(status, rating, draftReview.trim() || null);
+    if (saved) setReviewOpen(false);
   }
 
   async function clearEntry() {
@@ -196,10 +207,16 @@ export function LibraryPanel({
             {favorite ? t("library.favorited") : t("library.addFavorite")}
           </button>
           {status && isScoredStatus(status) ? (
-            <button type="button" disabled={pending} onClick={openRating} className={`${quietClass} gap-1.5`}>
-              <Icon name="star" className="text-accent" />
-              {t("library.rate")}
-            </button>
+            <>
+              <button type="button" disabled={pending} onClick={openRating} className={`${quietClass} gap-1.5`}>
+                <Icon name="star" className="text-accent" />
+                {t("library.rate")}
+              </button>
+              <button type="button" disabled={pending} onClick={openReview} className={`${quietClass} gap-1.5`}>
+                <Icon name="chat" className="text-accent" />
+                {t("library.editReview")}
+              </button>
+            </>
           ) : null}
         </div>
         {error && !open ? <p className="mt-3 text-sm text-accent">{error}</p> : null}
@@ -233,7 +250,7 @@ export function LibraryPanel({
         >
           {t("library.extra")}
         </button>
-        {status === "dropped" ? (
+        {status === "dropped" || status === "playing" ? (
           <button
             type="button"
             disabled={pending}
@@ -246,12 +263,23 @@ export function LibraryPanel({
             {t("library.noRating")}
           </button>
         ) : null}
-        <label className="mt-4 block text-sm">
+        {error ? <p className="mt-4 text-sm text-accent">{error}</p> : null}
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <button type="button" disabled={pending} onClick={() => void saveRating()} className={primaryClass}>
+            {pending ? t("common.saving") : t("common.save")}
+          </button>
+          <button type="button" disabled={pending} onClick={() => setOpen(false)} className={quietClass}>
+            {t("common.close")}
+          </button>
+        </div>
+      </Dialog>
+      <Dialog open={reviewOpen} title={t("library.editReview")} onClose={() => setReviewOpen(false)}>
+        <label className="block text-sm">
           {t("library.review")}
           <textarea
             value={draftReview}
             onChange={(event) => onReview(event.target.value)}
-            rows={5}
+            rows={6}
             className="mt-2 w-full resize-none rounded-2xl border border-line bg-bg/50 px-3 py-3 text-ink outline-none focus:border-accent"
           />
         </label>
@@ -260,10 +288,10 @@ export function LibraryPanel({
         </p>
         {error ? <p className="mt-4 text-sm text-accent">{error}</p> : null}
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <button type="button" disabled={pending} onClick={() => void saveRating()} className={primaryClass}>
+          <button type="button" disabled={pending} onClick={() => void saveReview()} className={primaryClass}>
             {pending ? t("common.saving") : t("common.save")}
           </button>
-          <button type="button" disabled={pending} onClick={() => setOpen(false)} className={quietClass}>
+          <button type="button" disabled={pending} onClick={() => setReviewOpen(false)} className={quietClass}>
             {t("common.close")}
           </button>
         </div>
