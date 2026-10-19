@@ -2,8 +2,7 @@
 
 import { t, type GameTrailer, type GameTrailersResponse } from "@gametracker/shared";
 import { useEffect, useId, useState } from "react";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:3001";
+import { apiUrl } from "@/lib/config";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
