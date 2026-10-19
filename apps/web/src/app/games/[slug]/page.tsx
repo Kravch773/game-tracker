@@ -45,7 +45,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 
   const me = await getMe();
   const entry = me ? await getGameEntry(slug) : null;
-  const saved: GameEntry = entry ?? { status: null, rating: null, review: null, favorite: false };
+  const saved: GameEntry = entry ?? { status: null, rating: null, review: null, favorite: false, steamMinutes: null };
   const year = game.releaseDate?.slice(0, 4);
 
   return (
@@ -71,6 +71,14 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
+            {saved.steamMinutes != null ? (
+              <Score
+                label="Steam"
+                value={t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) })}
+                icon="steam"
+                tone="bg-sky-300 text-sky-950"
+              />
+            ) : null}
             {game.metacriticScore != null ? (
               <Score label="Metacritic" value={String(game.metacriticScore)} icon="meta" tone="bg-emerald-300 text-emerald-950" />
             ) : null}

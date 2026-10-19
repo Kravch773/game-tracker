@@ -7,6 +7,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
 import { Icon } from "@/components/Icon";
 import { ImportDialog } from "@/components/ImportDialog";
+import { SteamSync } from "@/components/SteamSync";
 import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
 import { formatShortDate } from "@/lib/format";
@@ -31,7 +32,15 @@ const SORT_LABEL = {
   metacritic: "profile.sortMetacritic",
 } as const;
 
-export function ProfileBoard({ library, email }: { library: UserLibrary; email: string | null }) {
+export function ProfileBoard({
+  library,
+  email,
+  steamId,
+}: {
+  library: UserLibrary;
+  email: string | null;
+  steamId: string | null;
+}) {
   const [tab, setTab] = useState<Tab>("playing");
   const [sort, setSort] = useState<Sort>("added");
   const [scale, setScale] = useState(0);
@@ -117,6 +126,7 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
           />
         )}
       </section>
+      {email ? <SteamSync initialProfile={steamId ? `https://steamcommunity.com/profiles/${steamId}` : ""} /> : null}
       <FollowList username={library.user.username} kind={list} onClose={() => setList(null)} />
       <SectionTotals library={library} tab={tab} bucket={bucket} onPick={chooseTab} />
       <Stats
@@ -393,9 +403,21 @@ function GameCard({
         ) : (
           <span className="block aspect-[3/4] bg-line" />
         )}
-        {showRating && game.rating != null ? (
-          <span className="absolute top-2 left-2 rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-ink">
-            {ratingLabel(game.rating)}
+        {(showRating && game.rating != null) || game.steamMinutes != null ? (
+          <span className="absolute top-2 left-2 flex items-center gap-1">
+            {showRating && game.rating != null ? (
+              <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-ink">
+                {ratingLabel(game.rating)}
+              </span>
+            ) : null}
+            {game.steamMinutes != null ? (
+              <span
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-300 text-sky-950"
+                aria-label="Steam"
+              >
+                <Icon name="steam" className="h-3.5 w-3.5" />
+              </span>
+            ) : null}
           </span>
         ) : null}
       </span>

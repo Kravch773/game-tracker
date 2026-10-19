@@ -181,6 +181,7 @@ export type AuthUser = {
   id: string;
   username: string;
   email: string;
+  steamId: string | null;
 };
 
 export type GameEntry = {
@@ -188,6 +189,7 @@ export type GameEntry = {
   rating: number | null;
   review: string | null;
   favorite: boolean;
+  steamMinutes: number | null;
 };
 
 export type LibraryGame = GameSummary & {
@@ -197,6 +199,14 @@ export type LibraryGame = GameSummary & {
   startedAt: string | null;
   finishedAt: string | null;
   metacriticScore: number | null;
+  steamMinutes: number | null;
+};
+
+export type SteamSyncResult = {
+  steamId: string;
+  matched: number;
+  added: number;
+  unmatched: number;
 };
 
 export type UserLibrary = {
