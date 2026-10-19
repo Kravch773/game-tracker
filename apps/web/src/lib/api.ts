@@ -92,6 +92,7 @@ export const getMe = cache(async (): Promise<AuthUser | null> => {
 
 export async function getLibrary(username: string): Promise<UserLibrary | null> {
   const response = await fetch(`${apiUrl}/users/${encodeURIComponent(username)}`, {
+    headers: await sessionHeaders(),
     cache: "no-store",
   });
   if (response.status === 404) return null;
