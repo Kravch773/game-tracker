@@ -10,6 +10,7 @@ const PAGE_CAP = 10;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
+    { url: absoluteUrl("/news"), changeFrequency: "weekly", priority: 0.5 },
     { url: absoluteUrl("/calendar"), changeFrequency: "daily", priority: 0.7 },
     { url: absoluteUrl("/activity"), changeFrequency: "daily", priority: 0.4 },
     ...CATALOG_GENRES.map((genre) => ({

@@ -7,6 +7,7 @@ export const en = {
     platform: "Games for {name}: covers, release dates, and store links.",
     calendar: "Release calendar: which games come out this month.",
     activity: "New scores, lists, and reviews from players.",
+    news: "Catalog news: Ukrainian games and updates.",
     profile: "Game lists, scores, and favorites for {username}.",
     company: "Games from {name}: covers, release dates, and store links.",
   },
@@ -24,6 +25,7 @@ export const en = {
     logout: "Log out",
     activity: "Activity",
     calendar: "Calendar",
+    news: "News",
     settings: "Settings",
   },
   home: {
@@ -41,6 +43,7 @@ export const en = {
     platform: "Platform",
     year: "Year",
     any: "Any",
+    ukrainianGames: "Ukrainian games",
     unavailable: "The catalog is unavailable",
     apiFailed: "Could not reach the API.",
   },
@@ -305,6 +308,14 @@ export const en = {
     badSlug: "Invalid game address",
     badUsername: "Invalid name",
     badPayload: "Invalid data",
+  },
+  news: {
+    title: "News",
+    ukrainianTitle: "Ukrainian games are in the catalog",
+    ukrainianLead: "Search now lists games by Ukrainian studios from the Steam list Ukrainian games.",
+    ukrainianBody:
+      "A game from that list shows a yellow Ukrainian game tag. Ukrainian text and voice are marked separately. Open search to browse the full list.",
+    openSearch: "Open in search",
   },
   calendar: {
     title: "Release calendar",

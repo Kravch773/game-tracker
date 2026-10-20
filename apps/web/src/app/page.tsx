@@ -25,17 +25,18 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string }>;
 }): Promise<Metadata> {
   await applyLocale();
   const params = await searchParams;
   const query = (params.q ?? "").trim();
+  const ukrainian = params.origin === "ua";
   const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year);
   return pageMetadata({
-    title: searching && query ? query : t("home.title"),
-    description: t("meta.description"),
-    path: "/",
-    index: !searching,
+    title: ukrainian ? t("home.ukrainianGames") : searching && query ? query : t("home.title"),
+    description: ukrainian ? t("news.ukrainianLead") : t("meta.description"),
+    path: ukrainian ? "/?origin=ua" : "/",
+    index: ukrainian || !searching,
     follow: true,
     absolute: true,
   });
@@ -44,11 +45,12 @@ export async function generateMetadata({
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string }>;
 }) {
   await applyLocale();
   const params = await searchParams;
   const query = (params.q ?? "").trim();
+  const origin = params.origin === "ua" ? "ua" : "";
   const filters = readFilters(params);
 
   return (
@@ -80,32 +82,40 @@ export default async function HomePage({
       </div>
       <ShelfLinks />
       <div className="mt-10">
-        {query || hasFilters(filters) ? <Results query={query} filters={filters} /> : <Collections />}
+        {origin || query || hasFilters(filters) ? (
+          <Results query={origin ? "" : query} filters={origin ? {} : filters} origin={origin} />
+        ) : (
+          <Collections />
+        )}
       </div>
     </main>
   );
 }
 
-async function Results({ query, filters }: { query: string; filters: SearchFilters }) {
-  if (query.length > 0 && query.length < 2 && !hasFilters(filters)) {
+async function Results({ query, filters, origin }: { query: string; filters: SearchFilters; origin: "" | "ua" }) {
+  if (query.length > 0 && query.length < 2 && !hasFilters(filters) && !origin) {
     return <Empty text={t("home.tooShort")} />;
   }
 
-  const result = await searchGames(query.length >= 2 ? query : "", filters);
+  const result = await searchGames(query.length >= 2 ? query : "", filters, 0, origin || undefined);
   if (result.games.length === 0) {
     return <Empty text={t("home.nothing")} />;
   }
 
   return (
-    <SearchResults
-      key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}`}
-      query={query}
-      genre={filters.genre ?? ""}
-      platform={filters.platform ?? ""}
-      year={filters.year ? String(filters.year) : ""}
-      games={result.games}
-      hasMore={result.hasMore}
-    />
+    <div>
+      {origin ? <h2 className="mb-6 font-display text-3xl tracking-tight">{t("home.ukrainianGames")}</h2> : null}
+      <SearchResults
+        key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}|${origin}`}
+        query={query}
+        genre={filters.genre ?? ""}
+        platform={filters.platform ?? ""}
+        year={filters.year ? String(filters.year) : ""}
+        origin={origin}
+        games={result.games}
+        hasMore={result.hasMore}
+      />
+    </div>
   );
 }
 

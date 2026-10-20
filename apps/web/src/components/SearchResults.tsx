@@ -10,6 +10,7 @@ export function SearchResults({
   genre,
   platform,
   year,
+  origin = "",
   games,
   hasMore,
 }: {
@@ -17,6 +18,7 @@ export function SearchResults({
   genre: string;
   platform: string;
   year: string;
+  origin?: string;
   games: GameSummary[];
   hasMore: boolean;
 }) {
@@ -33,6 +35,7 @@ export function SearchResults({
     if (genre) params.set("genre", genre);
     if (platform) params.set("platform", platform);
     if (year) params.set("year", year);
+    if (origin) params.set("origin", origin);
     params.set("offset", String(items.length));
     try {
       const response = await fetch(`${apiUrl}/games?${params}`);
