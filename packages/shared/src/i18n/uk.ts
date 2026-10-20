@@ -107,6 +107,7 @@ export const uk = {
     watch: "Дивитися",
     developers: "Розробник",
     publishers: "Видавець",
+    series: "Серія",
     platforms: "Платформи",
     genres: "Жанри",
     stores: "Крамниці",

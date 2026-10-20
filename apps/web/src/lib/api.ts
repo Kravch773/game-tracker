@@ -26,6 +26,9 @@ export async function searchGames(
   if (filters.platform) params.set("platform", filters.platform);
   if (filters.year) params.set("year", String(filters.year));
   if (filters.sort && filters.sort !== "popular") params.set("sort", filters.sort);
+  if (filters.developer) params.set("developer", filters.developer);
+  if (filters.publisher) params.set("publisher", filters.publisher);
+  if (filters.series) params.set("series", filters.series);
   if (origin) params.set("origin", origin);
   if (offset > 0) params.set("offset", String(offset));
   const response = await fetch(`${apiUrl}/games?${params}`, {

@@ -59,6 +59,9 @@ type SideState = {
   genre: string;
   platform: string;
   year: string;
+  developer: string;
+  publisher: string;
+  series: string;
   origin: "" | "ua" | "ru";
   sort: SearchSort;
 };
@@ -79,7 +82,13 @@ export function CatalogSide(props: SideState) {
         </ul>
       </Section>
       <a
-        href={href(props, { origin: props.origin === "ua" ? "" : "ua", genre: props.origin === "ua" ? props.genre : "" })}
+        href={href(props, {
+          origin: props.origin === "ua" ? "" : "ua",
+          genre: props.origin === "ua" ? props.genre : "",
+          developer: props.origin === "ua" ? props.developer : "",
+          publisher: props.origin === "ua" ? props.publisher : "",
+          series: props.origin === "ua" ? props.series : "",
+        })}
         className="mt-2 flex items-center justify-between gap-3 rounded-2xl px-3 py-3 hover:bg-white/5"
       >
         <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("home.ukrainianGames")}</span>
@@ -103,6 +112,9 @@ export function CatalogSide(props: SideState) {
           hrefFor={(id) => href(props, { platform: props.platform === id ? "" : id })}
         />
       </Section>
+      <TextFilter {...props} field="series" label={t("game.series")} />
+      <TextFilter {...props} field="developer" label={t("game.developers")} />
+      <TextFilter {...props} field="publisher" label={t("game.publishers")} />
       <YearField {...props} />
     </aside>
   );
@@ -166,6 +178,41 @@ function OptionList({
   );
 }
 
+function TextFilter({
+  field,
+  label,
+  ...props
+}: SideState & { field: "developer" | "publisher" | "series"; label: string }) {
+  const current = props[field];
+  const [value, setValue] = useState(current);
+  function apply() {
+    const next = value.trim();
+    if (next === current) return;
+    window.location.href = href(props, { [field]: next, origin: "" });
+  }
+
+  return (
+    <Section title={label} initialOpen={current.length > 0}>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          apply();
+        }}
+      >
+        <input
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          onBlur={apply}
+          placeholder={t("home.filterSearch")}
+          maxLength={80}
+          aria-label={label}
+          className="h-10 w-full rounded-xl border border-line bg-bg/70 px-3 text-sm outline-none placeholder:text-muted focus:border-accent"
+        />
+      </form>
+    </Section>
+  );
+}
+
 function YearField(props: SideState) {
   const [value, setValue] = useState(props.year);
 
@@ -202,6 +249,9 @@ function href(current: SideState, patch: Partial<SideState>): string {
   if (next.genre) params.set("genre", next.genre);
   if (next.platform) params.set("platform", next.platform);
   if (next.year) params.set("year", next.year);
+  if (next.developer) params.set("developer", next.developer);
+  if (next.publisher) params.set("publisher", next.publisher);
+  if (next.series) params.set("series", next.series);
   if (next.origin) params.set("origin", next.origin);
   if (next.sort !== "popular") params.set("sort", next.sort);
   const query = params.toString();

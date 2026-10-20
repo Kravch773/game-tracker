@@ -12,6 +12,9 @@ export function SearchForm({
   year,
   origin,
   sort,
+  developer,
+  publisher,
+  series,
 }: {
   query: string;
   genre: string;
@@ -19,6 +22,9 @@ export function SearchForm({
   year: string;
   origin: string;
   sort: string;
+  developer: string;
+  publisher: string;
+  series: string;
 }) {
   const [text, setText] = useState(query);
   const [hints, setHints] = useState<GameSummary[]>([]);
@@ -60,6 +66,9 @@ export function SearchForm({
       {year ? <input type="hidden" name="year" value={year} /> : null}
       {origin ? <input type="hidden" name="origin" value={origin} /> : null}
       {sort && sort !== "popular" ? <input type="hidden" name="sort" value={sort} /> : null}
+      {developer ? <input type="hidden" name="developer" value={developer} /> : null}
+      {publisher ? <input type="hidden" name="publisher" value={publisher} /> : null}
+      {series ? <input type="hidden" name="series" value={series} /> : null}
       <div className="relative">
         <label className="sr-only" htmlFor="game-query">
           {t("home.queryLabel")}

@@ -67,7 +67,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
         <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
         <p className="mt-3 text-sm text-muted">{game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate")}</p>
-        <Credits developers={game.developers} publishers={game.publishers} />
+        <Credits developers={game.developers} publishers={game.publishers} series={game.series} />
         <div className="mt-5 flex flex-wrap gap-2">
           <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
           {saved.steamMinutes != null ? (
@@ -208,10 +208,19 @@ function OriginTags({ origins, text, audio }: { origins: GameOrigin[]; text: boo
   );
 }
 
-function Credits({ developers, publishers }: { developers: string[]; publishers: string[] }) {
-  if (developers.length === 0 && publishers.length === 0) return null;
+function Credits({
+  developers,
+  publishers,
+  series,
+}: {
+  developers: string[];
+  publishers: string[];
+  series: string | null;
+}) {
+  if (developers.length === 0 && publishers.length === 0 && !series) return null;
   return (
     <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+      {series ? <CompanyLinks role="series" label={t("game.series")} names={[series]} /> : null}
       <CompanyLinks role="developer" label={t("game.developers")} names={developers} />
       <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} />
     </div>
@@ -223,20 +232,19 @@ function CompanyLinks({
   label,
   names,
 }: {
-  role: "developer" | "publisher";
+  role: "developer" | "publisher" | "series";
   label: string;
   names: string[];
 }) {
   if (names.length === 0) return null;
+  const param = role === "series" ? "series" : role;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{label}</span>
       {names.map((name) => (
         <a
           key={name}
-          href={`/companies/${role}/${encodeURIComponent(name)}`}
-          target="_blank"
-          rel="noreferrer"
+          href={`/?${param}=${encodeURIComponent(name)}`}
           className="inline-flex h-8 items-center rounded-lg border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
         >
           {name}

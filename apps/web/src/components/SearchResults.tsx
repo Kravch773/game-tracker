@@ -11,6 +11,9 @@ export function SearchResults({
   platform,
   year,
   sort = "",
+  developer = "",
+  publisher = "",
+  series = "",
   origin = "",
   games,
   hasMore,
@@ -20,6 +23,9 @@ export function SearchResults({
   platform: string;
   year: string;
   sort?: string;
+  developer?: string;
+  publisher?: string;
+  series?: string;
   origin?: string;
   games: GameSummary[];
   hasMore: boolean;
@@ -38,6 +44,9 @@ export function SearchResults({
     if (platform) params.set("platform", platform);
     if (year) params.set("year", year);
     if (sort && sort !== "popular") params.set("sort", sort);
+    if (developer) params.set("developer", developer);
+    if (publisher) params.set("publisher", publisher);
+    if (series) params.set("series", series);
     if (origin) params.set("origin", origin);
     params.set("offset", String(items.length));
     try {

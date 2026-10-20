@@ -109,6 +109,7 @@ export const en = {
     watch: "Watch",
     developers: "Developer",
     publishers: "Publisher",
+    series: "Series",
     platforms: "Platforms",
     genres: "Genres",
     stores: "Stores",

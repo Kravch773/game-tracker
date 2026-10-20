@@ -26,18 +26,27 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string; developer?: string; publisher?: string; series?: string }>;
 }): Promise<Metadata> {
   await applyLocale();
   const params = await searchParams;
   const query = (params.q ?? "").trim();
   const origin = params.origin === "ua" ? "ua" : params.origin === "ru" ? "ru" : "";
-  const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year || params.sort);
+  const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year || params.sort || params.developer || params.publisher || params.series);
   return pageMetadata({
     title: origin === "ua" ? t("home.ukrainianGames") : origin === "ru" ? t("home.russianGames") : searching && query ? query : t("home.title"),
     description: origin === "ua" ? t("news.ukrainianLead") : origin === "ru" ? t("news.russianLead") : t("meta.description"),
     path: origin === "ua" ? "/?origin=ua" : origin === "ru" ? "/?origin=ru" : "/",
-    index: (Boolean(origin) || !searching) && !params.genre && !params.platform && !params.year && !params.sort && !query,
+    index:
+      (Boolean(origin) || !searching) &&
+      !params.genre &&
+      !params.platform &&
+      !params.year &&
+      !params.sort &&
+      !params.developer &&
+      !params.publisher &&
+      !params.series &&
+      !query,
     follow: true,
     absolute: true,
   });
@@ -46,7 +55,7 @@ export async function generateMetadata({
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string; developer?: string; publisher?: string; series?: string }>;
 }) {
   await applyLocale();
   const params = await searchParams;
@@ -87,6 +96,9 @@ export default async function HomePage({
           year={filters.year ? String(filters.year) : ""}
           origin={origin}
           sort={sort}
+          developer={filters.developer ?? ""}
+          publisher={filters.publisher ?? ""}
+          series={filters.series ?? ""}
         />
       </div>
       <ShelfLinks />
@@ -98,6 +110,9 @@ export default async function HomePage({
           year={filters.year ? String(filters.year) : ""}
           origin={origin}
           sort={sort}
+          developer={filters.developer ?? ""}
+          publisher={filters.publisher ?? ""}
+          series={filters.series ?? ""}
         />
         <div className="min-w-0 flex-1">
           {origin || query || hasFilters(filters) || sort !== "popular" ? (
@@ -130,12 +145,15 @@ async function Results({ query, filters, origin }: { query: string; filters: Sea
         </h2>
       ) : null}
       <SearchResults
-        key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}|${filters.sort ?? ""}|${origin}`}
+        key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}|${filters.sort ?? ""}|${filters.developer ?? ""}|${filters.publisher ?? ""}|${filters.series ?? ""}|${origin}`}
         query={origin ? (query.length >= 2 ? query : "") : query}
         genre={filters.genre ?? ""}
         platform={filters.platform ?? ""}
         year={filters.year ? String(filters.year) : ""}
         sort={filters.sort ?? ""}
+        developer={filters.developer ?? ""}
+        publisher={filters.publisher ?? ""}
+        series={filters.series ?? ""}
         origin={origin}
         games={result.games}
         hasMore={result.hasMore}
@@ -195,7 +213,15 @@ const PLATFORM_LABEL: Record<CatalogPlatformId, MessageKey> = {
   switch: "platforms.switch",
 };
 
-function readFilters(params: { genre?: string; platform?: string; year?: string; sort?: string }): SearchFilters {
+function readFilters(params: {
+  genre?: string;
+  platform?: string;
+  year?: string;
+  sort?: string;
+  developer?: string;
+  publisher?: string;
+  series?: string;
+}): SearchFilters {
   const genre = SEARCH_GENRES.find((item) => item.id === params.genre)?.id;
   const platform = CATALOG_PLATFORMS.find((item) => item.id === params.platform)?.id;
   const year = Number(params.year);
@@ -205,11 +231,19 @@ function readFilters(params: { genre?: string; platform?: string; year?: string;
     platform,
     year: Number.isInteger(year) && year >= 1970 && year <= 2035 ? year : undefined,
     sort,
+    developer: textQuery(params.developer),
+    publisher: textQuery(params.publisher),
+    series: textQuery(params.series),
   };
 }
 
+function textQuery(value: string | undefined): string | undefined {
+  const text = value?.trim() ?? "";
+  return text.length >= 2 ? text.slice(0, 80) : undefined;
+}
+
 function hasFilters(filters: SearchFilters): boolean {
-  return Boolean(filters.genre || filters.platform || filters.year);
+  return Boolean(filters.genre || filters.platform || filters.year || filters.developer || filters.publisher || filters.series);
 }
 
 async function Collections() {
