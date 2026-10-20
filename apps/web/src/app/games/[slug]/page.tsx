@@ -188,20 +188,38 @@ const LINK_MARK: Record<GameLinkKind, { icon: IconName; tone: string }> = {
 };
 
 function Credits({ developers, publishers }: { developers: string[]; publishers: string[] }) {
-  const parts = [
-    developers.length > 0 ? { label: t("game.developers"), value: developers.join(", ") } : null,
-    publishers.length > 0 ? { label: t("game.publishers"), value: publishers.join(", ") } : null,
-  ].filter((part) => part != null);
-  if (parts.length === 0) return null;
+  if (developers.length === 0 && publishers.length === 0) return null;
   return (
-    <p className="mt-2 text-sm text-muted">
-      {parts.map((part, index) => (
-        <span key={part.label}>
-          {index > 0 ? " · " : null}
-          {part.label} <span className="text-ink">{part.value}</span>
-        </span>
+    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+      <CompanyLinks role="developer" label={t("game.developers")} names={developers} />
+      <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} />
+    </div>
+  );
+}
+
+function CompanyLinks({
+  role,
+  label,
+  names,
+}: {
+  role: "developer" | "publisher";
+  label: string;
+  names: string[];
+}) {
+  if (names.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{label}</span>
+      {names.map((name) => (
+        <a
+          key={name}
+          href={`/companies/${role}/${encodeURIComponent(name)}`}
+          className="inline-flex h-8 items-center rounded-lg border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+        >
+          {name}
+        </a>
       ))}
-    </p>
+    </div>
   );
 }
 

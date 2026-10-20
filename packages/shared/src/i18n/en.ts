@@ -8,6 +8,7 @@ export const en = {
     calendar: "Release calendar: which games come out this month.",
     activity: "New scores, lists, and reviews from players.",
     profile: "Game lists, scores, and favorites for {username}.",
+    company: "Games from {name}: covers, release dates, and store links.",
   },
   common: {
     close: "Close",
@@ -112,6 +113,9 @@ export const en = {
     reviews: "Reviews",
     noReviews: "No reviews yet.",
     fewRatings: "Not enough scores yet to show an average for this game",
+    developerGames: "Games by this developer",
+    publisherGames: "Games by this publisher",
+    companyEmpty: "No games from this company are in the catalog yet.",
   },
   links: {
     official: "Official site",

@@ -33,6 +33,13 @@ export async function searchGames(
   return { games: payload.games ?? [], hasMore: payload.hasMore === true };
 }
 
+export async function getCompanyGames(role: "developer" | "publisher", name: string): Promise<GameSummary[]> {
+  const response = await fetch(`${apiUrl}/companies/${role}/${encodeURIComponent(name)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Company request failed with ${response.status}`);
+  const payload = (await response.json()) as { games?: GameSummary[] };
+  return payload.games ?? [];
+}
+
 export async function getBrowse(kind: "genres" | "platforms", id: string): Promise<GameSummary[] | null> {
   const response = await fetch(`${apiUrl}/browse/${kind}/${encodeURIComponent(id)}`, { cache: "no-store" });
   if (response.status === 404) return null;

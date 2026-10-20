@@ -187,7 +187,7 @@ export function LibraryPanel({
         </p>
         {rating != null ? <p className="mt-1 text-sm text-accent">{ratingLabel(rating)}</p> : null}
         {review ? <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">{review}</p> : null}
-        <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label={t("library.section")}>
+        <div className="mt-4 flex flex-col gap-2" role="group" aria-label={t("library.section")}>
           {PROFILE_SECTIONS.map((item) => (
             <button
               key={item}
@@ -195,35 +195,47 @@ export function LibraryPanel({
               disabled={pending}
               aria-pressed={status === item}
               onClick={() => void chooseStatus(item)}
-              className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border text-sm font-medium transition ${
+              className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
                 status === item
-                  ? "border-accent bg-accent text-accent-ink"
-                  : "border-line bg-raised hover:border-white/25"
+                  ? "border-accent bg-accent text-accent-ink hover:brightness-110"
+                  : "border-line bg-raised text-ink hover:border-accent hover:bg-accent/15 hover:text-accent"
               }`}
             >
               <Icon name={STATUS_MARK[item].icon} className={status === item ? "text-accent-ink" : STATUS_MARK[item].tone} />
               {STATUS_LABELS[item]}
             </button>
           ))}
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
             disabled={pending}
             aria-pressed={favorite}
             onClick={() => void toggleFavorite()}
-            className={`${favorite ? primaryClass : quietClass} gap-1.5`}
+            className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
+              favorite
+                ? "border-accent bg-accent text-accent-ink! hover:brightness-110"
+                : "border-line bg-raised text-ink hover:border-accent hover:bg-accent/15 hover:text-accent"
+            }`}
           >
             <Icon name="heart" className={favorite ? "text-accent-ink" : "text-pink-300"} />
             {favorite ? t("library.favorited") : t("library.addFavorite")}
           </button>
           {status && isScoredStatus(status) ? (
             <>
-              <button type="button" disabled={pending} onClick={openRating} className={`${quietClass} gap-1.5`}>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={openRating}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-line bg-raised px-3 text-sm font-medium whitespace-nowrap text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+              >
                 <Icon name="star" className="text-accent" />
                 {t("library.rate")}
               </button>
-              <button type="button" disabled={pending} onClick={openReview} className={`${quietClass} gap-1.5`}>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={openReview}
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-line bg-raised px-3 text-sm font-medium whitespace-nowrap text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+              >
                 <Icon name="chat" className="text-accent" />
                 {t("library.editReview")}
               </button>
