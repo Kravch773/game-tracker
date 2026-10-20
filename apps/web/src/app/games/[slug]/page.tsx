@@ -214,6 +214,8 @@ function CompanyLinks({
         <a
           key={name}
           href={`/companies/${role}/${encodeURIComponent(name)}`}
+          target="_blank"
+          rel="noreferrer"
           className="inline-flex h-8 items-center rounded-lg border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
         >
           {name}

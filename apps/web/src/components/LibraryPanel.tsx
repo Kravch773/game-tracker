@@ -198,13 +198,15 @@ export function LibraryPanel({
               className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
                 status === item
                   ? "border-accent bg-accent text-accent-ink hover:brightness-110"
-                  : "border-line bg-raised text-ink hover:border-accent hover:bg-accent/15 hover:text-accent"
+                  : "border-sky-300/40 bg-sky-300/15 text-sky-100 hover:border-sky-200 hover:bg-sky-300/25"
               }`}
             >
               <Icon name={STATUS_MARK[item].icon} className={status === item ? "text-accent-ink" : STATUS_MARK[item].tone} />
               {STATUS_LABELS[item]}
             </button>
           ))}
+        </div>
+        <div className="mt-3 flex flex-col gap-2">
           <button
             type="button"
             disabled={pending}
@@ -212,11 +214,11 @@ export function LibraryPanel({
             onClick={() => void toggleFavorite()}
             className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
               favorite
-                ? "border-accent bg-accent text-accent-ink! hover:brightness-110"
-                : "border-line bg-raised text-ink hover:border-accent hover:bg-accent/15 hover:text-accent"
+                ? "border-pink-300 bg-pink-300 text-pink-950! hover:brightness-110"
+                : "border-violet-300/40 bg-violet-300/15 text-violet-100 hover:border-violet-200 hover:bg-violet-300/25"
             }`}
           >
-            <Icon name="heart" className={favorite ? "text-accent-ink" : "text-pink-300"} />
+            <Icon name="heart" className={favorite ? "text-pink-950" : "text-pink-300"} />
             {favorite ? t("library.favorited") : t("library.addFavorite")}
           </button>
           {status && isScoredStatus(status) ? (
@@ -225,18 +227,18 @@ export function LibraryPanel({
                 type="button"
                 disabled={pending}
                 onClick={openRating}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-line bg-raised px-3 text-sm font-medium whitespace-nowrap text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
               >
-                <Icon name="star" className="text-accent" />
+                <Icon name="star" className="text-violet-200" />
                 {t("library.rate")}
               </button>
               <button
                 type="button"
                 disabled={pending}
                 onClick={openReview}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-line bg-raised px-3 text-sm font-medium whitespace-nowrap text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
               >
-                <Icon name="chat" className="text-accent" />
+                <Icon name="chat" className="text-violet-200" />
                 {t("library.editReview")}
               </button>
             </>
