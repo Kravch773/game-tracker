@@ -1,4 +1,4 @@
-import { TRAILERS_ENABLED, t, type GameDetails, type GameEntry, type GameLinkKind } from "@gametracker/shared";
+import { TRAILERS_ENABLED, t, type GameDetails, type GameEntry, type GameLinkKind, type GameOrigin } from "@gametracker/shared";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CollectionRow } from "@/components/CollectionRow";
@@ -64,6 +64,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       </a>
       <article className="mt-5">
         <JsonLd data={gameJsonLd(game)} />
+        <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
         <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
         <p className="mt-3 text-sm text-muted">{game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate")}</p>
         <Credits developers={game.developers} publishers={game.publishers} />
@@ -186,6 +187,26 @@ const LINK_MARK: Record<GameLinkKind, { icon: IconName; tone: string }> = {
   metacritic: { icon: "meta", tone: "bg-emerald-300 text-emerald-950" },
   official: { icon: "link", tone: "bg-accent text-accent-ink" },
 };
+
+function OriginTags({ origins, text, audio }: { origins: GameOrigin[]; text: boolean; audio: boolean }) {
+  const tags: { key: string; label: string; tone: string }[] = [];
+  if (origins.includes("ua")) tags.push({ key: "ua", label: t("game.ukrainianGame"), tone: "bg-yellow-300 text-yellow-950" });
+  if (origins.includes("ru")) tags.push({ key: "ru", label: t("game.russianGame"), tone: "bg-red-500 text-white" });
+  if (text || audio) {
+    const label = text && audio ? t("game.ukrainianTextVoice") : audio ? t("game.ukrainianVoice") : t("game.ukrainianText");
+    tags.push({ key: "lang", label, tone: "bg-sky-400 text-sky-950" });
+  }
+  if (tags.length === 0) return null;
+  return (
+    <div className="mb-4 flex flex-wrap gap-2">
+      {tags.map((tag) => (
+        <span key={tag.key} className={`inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold ${tag.tone}`}>
+          {tag.label}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 function Credits({ developers, publishers }: { developers: string[]; publishers: string[] }) {
   if (developers.length === 0 && publishers.length === 0) return null;
