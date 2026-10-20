@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import { CollectionRow } from "@/components/CollectionRow";
 import { JsonLd } from "@/components/JsonLd";
 import { Icon } from "@/components/Icon";
+import { CatalogSide } from "@/components/CatalogSide";
 import { SearchForm } from "@/components/SearchForm";
 import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
@@ -25,18 +26,18 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string }>;
 }): Promise<Metadata> {
   await applyLocale();
   const params = await searchParams;
   const query = (params.q ?? "").trim();
-  const ukrainian = params.origin === "ua";
-  const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year);
+  const origin = params.origin === "ua" ? "ua" : params.origin === "ru" ? "ru" : "";
+  const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year || params.sort);
   return pageMetadata({
-    title: ukrainian ? t("home.ukrainianGames") : searching && query ? query : t("home.title"),
-    description: ukrainian ? t("news.ukrainianLead") : t("meta.description"),
-    path: ukrainian ? "/?origin=ua" : "/",
-    index: ukrainian || !searching,
+    title: origin === "ua" ? t("home.ukrainianGames") : origin === "ru" ? t("home.russianGames") : searching && query ? query : t("home.title"),
+    description: origin === "ua" ? t("news.ukrainianLead") : origin === "ru" ? t("news.russianLead") : t("meta.description"),
+    path: origin === "ua" ? "/?origin=ua" : origin === "ru" ? "/?origin=ru" : "/",
+    index: (Boolean(origin) || !searching) && !params.genre && !params.platform && !params.year && !params.sort && !query,
     follow: true,
     absolute: true,
   });
@@ -45,13 +46,14 @@ export async function generateMetadata({
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string }>;
 }) {
   await applyLocale();
   const params = await searchParams;
   const query = (params.q ?? "").trim();
-  const origin = params.origin === "ua" ? "ua" : "";
+  const origin = params.origin === "ua" ? "ua" : params.origin === "ru" ? "ru" : "";
   const filters = readFilters(params);
+  const sort = filters.sort ?? "popular";
 
   return (
     <main>
@@ -78,39 +80,62 @@ export default async function HomePage({
       </h1>
       <p className="mt-3 max-w-xl text-muted">{t("home.lead")}</p>
       <div className="mt-8">
-        <SearchForm query={query} genre={params.genre ?? ""} platform={params.platform ?? ""} year={params.year ?? ""} />
+        <SearchForm
+          query={query}
+          genre={filters.genre ?? ""}
+          platform={filters.platform ?? ""}
+          year={filters.year ? String(filters.year) : ""}
+          origin={origin}
+          sort={sort}
+        />
       </div>
       <ShelfLinks />
-      <div className="mt-10">
-        {origin || query || hasFilters(filters) ? (
-          <Results query={origin ? "" : query} filters={origin ? {} : filters} origin={origin} />
-        ) : (
-          <Collections />
-        )}
+      <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-start">
+        <CatalogSide
+          q={query}
+          genre={filters.genre ?? ""}
+          platform={filters.platform ?? ""}
+          year={filters.year ? String(filters.year) : ""}
+          origin={origin}
+          sort={sort}
+        />
+        <div className="min-w-0 flex-1">
+          {origin || query || hasFilters(filters) || sort !== "popular" ? (
+            <Results query={query} filters={filters} origin={origin} />
+          ) : (
+            <Collections />
+          )}
+        </div>
       </div>
     </main>
   );
 }
 
-async function Results({ query, filters, origin }: { query: string; filters: SearchFilters; origin: "" | "ua" }) {
+async function Results({ query, filters, origin }: { query: string; filters: SearchFilters; origin: "" | "ua" | "ru" }) {
   if (query.length > 0 && query.length < 2 && !hasFilters(filters) && !origin) {
     return <Empty text={t("home.tooShort")} />;
   }
 
-  const result = await searchGames(query.length >= 2 ? query : "", filters, 0, origin || undefined);
+  const typed = query.length >= 2 ? query : "";
+  const result = await searchGames(typed, filters, 0, origin || undefined);
   if (result.games.length === 0) {
     return <Empty text={t("home.nothing")} />;
   }
 
   return (
     <div>
-      {origin ? <h2 className="mb-6 font-display text-3xl tracking-tight">{t("home.ukrainianGames")}</h2> : null}
+      {origin ? (
+        <h2 className="mb-6 font-display text-3xl tracking-tight">
+          {t(origin === "ru" ? "home.russianGames" : "home.ukrainianGames")}
+        </h2>
+      ) : null}
       <SearchResults
-        key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}|${origin}`}
-        query={query}
+        key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}|${filters.sort ?? ""}|${origin}`}
+        query={origin ? (query.length >= 2 ? query : "") : query}
         genre={filters.genre ?? ""}
         platform={filters.platform ?? ""}
         year={filters.year ? String(filters.year) : ""}
+        sort={filters.sort ?? ""}
         origin={origin}
         games={result.games}
         hasMore={result.hasMore}
@@ -170,14 +195,16 @@ const PLATFORM_LABEL: Record<CatalogPlatformId, MessageKey> = {
   switch: "platforms.switch",
 };
 
-function readFilters(params: { genre?: string; platform?: string; year?: string }): SearchFilters {
+function readFilters(params: { genre?: string; platform?: string; year?: string; sort?: string }): SearchFilters {
   const genre = SEARCH_GENRES.find((item) => item.id === params.genre)?.id;
   const platform = CATALOG_PLATFORMS.find((item) => item.id === params.platform)?.id;
   const year = Number(params.year);
+  const sort = (["popular", "release", "title"] as const).find((item) => item === params.sort);
   return {
     genre,
     platform,
     year: Number.isInteger(year) && year >= 1970 && year <= 2035 ? year : undefined,
+    sort,
   };
 }
 

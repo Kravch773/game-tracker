@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           "/*?genre=",
           "/*?platform=",
           "/*?year=",
+          "/*?sort=",
           "/*?month=",
           "/*?following=",
           "/*?next=",

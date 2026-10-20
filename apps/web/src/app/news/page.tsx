@@ -37,6 +37,15 @@ export default async function NewsPage() {
           {t("news.openSearch")}
         </a>
       </article>
+      <article className="mt-6 max-w-3xl rounded-3xl border border-line bg-panel/80 p-6 sm:p-8">
+        <p className="text-sm text-muted">{formatReleaseDate(PUBLISHED_ON)}</p>
+        <h2 className="mt-3 font-display text-3xl tracking-tight">{t("news.russianTitle")}</h2>
+        <p className="mt-4 text-[15px] leading-7 text-ink/80">{t("news.russianLead")}</p>
+        <p className="mt-3 text-[15px] leading-7 text-ink/80">{t("news.russianBody")}</p>
+        <a href="/?origin=ru" className={`${primaryClass} mt-6 text-accent-ink!`}>
+          {t("news.openSearch")}
+        </a>
+      </article>
     </main>
   );
 }

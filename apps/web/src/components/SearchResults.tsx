@@ -10,6 +10,7 @@ export function SearchResults({
   genre,
   platform,
   year,
+  sort = "",
   origin = "",
   games,
   hasMore,
@@ -18,6 +19,7 @@ export function SearchResults({
   genre: string;
   platform: string;
   year: string;
+  sort?: string;
   origin?: string;
   games: GameSummary[];
   hasMore: boolean;
@@ -35,6 +37,7 @@ export function SearchResults({
     if (genre) params.set("genre", genre);
     if (platform) params.set("platform", platform);
     if (year) params.set("year", year);
+    if (sort && sort !== "popular") params.set("sort", sort);
     if (origin) params.set("origin", origin);
     params.set("offset", String(items.length));
     try {
@@ -56,7 +59,7 @@ export function SearchResults({
 
   return (
     <div>
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 xl:grid-cols-4">
         {items.map((game) => (
           <li key={game.id}>
             <GameResult game={game} newTab />

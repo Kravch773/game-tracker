@@ -1,64 +1,24 @@
 "use client";
 
-import {
-  CATALOG_PLATFORMS,
-  SEARCH_GENRES,
-  t,
-  type CatalogPlatformId,
-  type GameSummary,
-  type MessageKey,
-  type SearchGenreId,
-} from "@gametracker/shared";
-import { useEffect, useRef, useState } from "react";
+import { t, type GameSummary } from "@gametracker/shared";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { apiUrl } from "@/lib/config";
-import { SEARCH_GENRE_ICON } from "@/lib/marks";
-
-const GENRE_LABEL: Record<SearchGenreId, MessageKey> = {
-  rpg: "collections.rpg",
-  shooter: "collections.shooter",
-  adventure: "collections.adventure",
-  strategy: "collections.strategy",
-  indie: "collections.indie",
-  racing: "collections.racing",
-  fighting: "genres.fighting",
-  platform: "genres.platform",
-  puzzle: "genres.puzzle",
-  sport: "genres.sport",
-  simulator: "genres.simulator",
-  "hack-and-slash": "genres.hack-and-slash",
-  tactical: "genres.tactical",
-  rts: "genres.rts",
-  tbs: "genres.tbs",
-  music: "genres.music",
-  arcade: "genres.arcade",
-  "visual-novel": "genres.visual-novel",
-  moba: "genres.moba",
-  card: "genres.card",
-  "point-and-click": "genres.point-and-click",
-  quiz: "genres.quiz",
-  pinball: "genres.pinball",
-};
-
-const PLATFORM_LABEL: Record<CatalogPlatformId, MessageKey> = {
-  pc: "platforms.pc",
-  ps5: "platforms.ps5",
-  ps4: "platforms.ps4",
-  "xbox-series": "platforms.xbox-series",
-  "xbox-one": "platforms.xbox-one",
-  switch: "platforms.switch",
-};
 
 export function SearchForm({
   query,
   genre,
   platform,
   year,
+  origin,
+  sort,
 }: {
   query: string;
   genre: string;
   platform: string;
   year: string;
+  origin: string;
+  sort: string;
 }) {
   const [text, setText] = useState(query);
   const [hints, setHints] = useState<GameSummary[]>([]);
@@ -94,7 +54,12 @@ export function SearchForm({
   }, [submitted, text]);
 
   return (
-    <form action="/" method="get" className="flex flex-col gap-3" role="search">
+    <form action="/" method="get" role="search">
+      {genre ? <input type="hidden" name="genre" value={genre} /> : null}
+      {platform ? <input type="hidden" name="platform" value={platform} /> : null}
+      {year ? <input type="hidden" name="year" value={year} /> : null}
+      {origin ? <input type="hidden" name="origin" value={origin} /> : null}
+      {sort && sort !== "popular" ? <input type="hidden" name="sort" value={sort} /> : null}
       <div className="relative">
         <label className="sr-only" htmlFor="game-query">
           {t("home.queryLabel")}
@@ -145,94 +110,6 @@ export function SearchForm({
           </ul>
         ) : null}
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        <GenreField genre={genre} />
-        <select name="platform" defaultValue={platform} className={selectClass} aria-label={t("home.platform")}>
-          <option value="">{t("home.platform")}: {t("home.any")}</option>
-          {CATALOG_PLATFORMS.map((item) => (
-            <option key={item.id} value={item.id}>
-              {t(PLATFORM_LABEL[item.id])}
-            </option>
-          ))}
-        </select>
-        <input
-          name="year"
-          defaultValue={year}
-          inputMode="numeric"
-          placeholder={t("home.year")}
-          aria-label={t("home.year")}
-          maxLength={4}
-          className={selectClass}
-        />
-      </div>
     </form>
   );
 }
-
-function GenreField({ genre }: { genre: string }) {
-  const [value, setValue] = useState(genre);
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  const selected = SEARCH_GENRES.find((item) => item.id === value);
-
-  useEffect(() => {
-    if (!open) return;
-    function onPointer(event: PointerEvent) {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    }
-    document.addEventListener("pointerdown", onPointer);
-    return () => document.removeEventListener("pointerdown", onPointer);
-  }, [open]);
-
-  return (
-    <div ref={root} className="relative">
-      <input type="hidden" name="genre" value={value} />
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-label={t("home.genre")}
-        onClick={() => setOpen((current) => !current)}
-        className={`${selectClass} flex items-center gap-2 text-left`}
-      >
-        {selected ? <Icon name={SEARCH_GENRE_ICON[selected.id]} className="h-4 w-4" /> : null}
-        <span className="truncate">
-          {selected ? t(GENRE_LABEL[selected.id]) : `${t("home.genre")}: ${t("home.any")}`}
-        </span>
-      </button>
-      {open ? (
-        <ul className="absolute z-30 mt-2 max-h-80 w-full overflow-auto rounded-3xl border border-line bg-panel py-2 shadow-2xl">
-          <li>
-            <button
-              type="button"
-              className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-white/5"
-              onClick={() => {
-                setValue("");
-                setOpen(false);
-              }}
-            >
-              {t("home.genre")}: {t("home.any")}
-            </button>
-          </li>
-          {SEARCH_GENRES.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-white/5"
-                onClick={() => {
-                  setValue(item.id);
-                  setOpen(false);
-                }}
-              >
-                <Icon name={SEARCH_GENRE_ICON[item.id]} className="h-4 w-4" />
-                {t(GENRE_LABEL[item.id])}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
-}
-
-const selectClass =
-  "h-11 w-full rounded-full border border-line bg-panel/90 px-4 text-sm text-ink outline-none focus:border-accent";

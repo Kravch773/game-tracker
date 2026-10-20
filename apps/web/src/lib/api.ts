@@ -18,13 +18,14 @@ export async function searchGames(
   query: string,
   filters: SearchFilters = {},
   offset = 0,
-  origin?: "ua",
+  origin?: "ua" | "ru",
 ): Promise<{ games: GameSummary[]; hasMore: boolean }> {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (filters.genre) params.set("genre", filters.genre);
   if (filters.platform) params.set("platform", filters.platform);
   if (filters.year) params.set("year", String(filters.year));
+  if (filters.sort && filters.sort !== "popular") params.set("sort", filters.sort);
   if (origin) params.set("origin", origin);
   if (offset > 0) params.set("offset", String(offset));
   const response = await fetch(`${apiUrl}/games?${params}`, {
