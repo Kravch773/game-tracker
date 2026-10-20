@@ -96,6 +96,9 @@ export const uk = {
     watch: "Дивитися",
     developers: "Розробник",
     publishers: "Видавець",
+    platforms: "Платформи",
+    genres: "Жанри",
+    stores: "Крамниці",
     themes: "Теми",
     age: "Вік",
     time: "Час проходження",
@@ -129,6 +132,7 @@ export const uk = {
   library: {
     list: "Список",
     signInToSave: "Увійдіть, щоб зберегти гру в профіль",
+    addToLibrary: "Додати в бібліотеку",
     inProfile: "У профілі",
     notInList: "Не в списку",
     inFavoritesSuffix: " · В обраному",

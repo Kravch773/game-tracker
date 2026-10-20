@@ -8,7 +8,7 @@ import { LibraryPanel } from "@/components/LibraryPanel";
 import { ReviewList } from "@/components/ReviewList";
 import { TrailersButton } from "@/components/TrailersButton";
 import { VideoList } from "@/components/VideoList";
-import { formatHours } from "@/lib/format";
+import { formatHours, formatReleaseDate } from "@/lib/format";
 import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
@@ -55,7 +55,6 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const me = await getMe();
   const entry = me ? await getGameEntry(slug) : null;
   const saved: GameEntry = entry ?? { status: null, rating: null, review: null, favorite: false, steamMinutes: null };
-  const year = game.releaseDate?.slice(0, 4);
 
   return (
     <main>
@@ -63,71 +62,76 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <Icon name="arrow" />
         {t("common.backToSearch")}
       </a>
-      <article className="mt-5 grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-        {game.coverUrl ? (
-          <img
-            src={game.coverUrl}
-            alt={game.title}
-            className="w-full max-w-56 rounded-3xl object-cover shadow-2xl ring-1 ring-white/10"
-          />
-        ) : (
-          <div className="aspect-[3/4] w-full max-w-56 rounded-3xl bg-raised ring-1 ring-white/10" />
-        )}
-        <div className="min-w-0">
-          <JsonLd data={gameJsonLd(game)} />
-          <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
-          <p className="mt-3 text-muted">
-            {[year, game.platforms.join(" · ")].filter(Boolean).join(" · ") || t("common.unknownDate")}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
-            {saved.steamMinutes != null ? (
-              <Score
-                label="Steam"
-                value={t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) })}
-                icon="steam"
-                tone="bg-sky-300 text-sky-950"
-              />
-            ) : null}
-            {game.metacriticScore != null ? (
-              <Score label="Metacritic" value={String(game.metacriticScore)} icon="meta" tone="bg-emerald-300 text-emerald-950" />
-            ) : null}
-            {game.igdbRating != null ? (
-              <Score label="IGDB" value={game.igdbRating.toFixed(1)} icon="chart" tone="bg-sky-300 text-sky-950" />
-            ) : null}
-            {game.genres.map((genre) => {
-              const icon = genreIcon(genre);
-              return (
-                <span key={genre} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm text-muted">
-                  {icon ? <Icon name={icon} className="h-3.5 w-3.5" /> : null}
-                  {genre}
-                </span>
-              );
-            })}
-          </div>
-          <FactList game={game} />
-          {game.summary ? <p className="mt-5 max-w-3xl text-lg leading-8">{game.summary}</p> : null}
-          {game.links.length > 0 ? (
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {game.links.map((link) => (
-                <li key={link.kind}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white/5 pr-4 pl-1.5 text-sm hover:border-accent"
-                  >
-                    <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${LINK_MARK[link.kind].tone}`}>
-                      <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
-                    </span>
-                    {linkLabel(link.kind)}
-                  </a>
-                </li>
-              ))}
-            </ul>
+      <article className="mt-5">
+        <JsonLd data={gameJsonLd(game)} />
+        <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
+        <p className="mt-3 text-sm text-muted">{game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate")}</p>
+        <Credits developers={game.developers} publishers={game.publishers} />
+        <div className="mt-5 flex flex-wrap gap-2">
+          <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
+          {saved.steamMinutes != null ? (
+            <Score
+              label="Steam"
+              value={t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) })}
+              icon="steam"
+              tone="bg-sky-300 text-sky-950"
+            />
           ) : null}
-          {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
-          <LibraryPanel slug={game.slug} loggedIn={me != null} entry={saved} />
+          {game.metacriticScore != null ? (
+            <Score label="Metacritic" value={String(game.metacriticScore)} icon="meta" tone="bg-emerald-300 text-emerald-950" />
+          ) : null}
+          {game.igdbRating != null ? (
+            <Score label="IGDB" value={game.igdbRating.toFixed(1)} icon="chart" tone="bg-sky-300 text-sky-950" />
+          ) : null}
+        </div>
+        <div className="mt-6 grid items-start gap-8 md:grid-cols-[11rem_minmax(0,1fr)_17rem]">
+          {game.coverUrl ? (
+            <div className="w-full max-w-56 md:max-w-none">
+              <img
+                src={game.coverUrl}
+                alt={game.title}
+                className="aspect-[3/4] w-full rounded-3xl object-cover shadow-2xl ring-1 ring-white/10"
+              />
+            </div>
+          ) : (
+            <div className="aspect-[3/4] w-full max-w-56 rounded-3xl bg-raised ring-1 ring-white/10 md:max-w-none" />
+          )}
+          <div className="order-3 min-w-0 md:order-none">
+            {game.summary ? <p className="max-w-3xl text-[15px] leading-7 text-ink/80">{game.summary}</p> : null}
+            <div className="mt-6 flex flex-col gap-5">
+              <ChipGroup label={t("game.platforms")} items={game.platforms} />
+              <ChipGroup label={t("game.genres")} items={game.genres} iconFor={genreIcon} />
+              <ChipGroup label={t("game.themes")} items={game.themes} />
+              <ChipGroup label={t("game.age")} items={game.ageRatings} />
+              <TimeToBeat time={game.timeToBeat} />
+            </div>
+            {game.links.length > 0 ? (
+              <div className="mt-5">
+                <h2 className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("game.stores")}</h2>
+                <ul className="mt-2.5 flex flex-wrap gap-2">
+                  {game.links.map((link) => (
+                    <li key={link.kind}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-white/5 pr-3 pl-1.5 text-sm hover:border-accent"
+                      >
+                        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${LINK_MARK[link.kind].tone}`}>
+                          <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
+                        </span>
+                        {linkLabel(link.kind)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
+          </div>
+          <div className="order-2 md:order-none">
+            <LibraryPanel slug={game.slug} loggedIn={me != null} entry={saved} />
+          </div>
         </div>
       </article>
       {(game.similar ?? []).length > 0 ? (
@@ -183,45 +187,72 @@ const LINK_MARK: Record<GameLinkKind, { icon: IconName; tone: string }> = {
   official: { icon: "link", tone: "bg-accent text-accent-ink" },
 };
 
-function FactList({ game }: { game: { developers: string[]; publishers: string[]; themes: string[]; ageRatings: string[]; timeToBeat: { hastily: number | null; normally: number | null; completely: number | null } | null } }) {
-  const facts = [
-    { icon: "building" as const, tone: "bg-sky-300/10 text-sky-300", label: t("game.developers"), value: (game.developers ?? []).join(", ") },
-    { icon: "users" as const, tone: "bg-violet-300/10 text-violet-300", label: t("game.publishers"), value: (game.publishers ?? []).join(", ") },
-    { icon: "tag" as const, tone: "bg-amber-300/10 text-amber-300", label: t("game.themes"), value: (game.themes ?? []).join(", ") },
-    { icon: "shield" as const, tone: "bg-emerald-300/10 text-emerald-300", label: t("game.age"), value: (game.ageRatings ?? []).join(", ") },
-  ].filter((item) => item.value);
-  const beat = game.timeToBeat;
-  const time = beat
-    ? [
-        beat.hastily != null ? `${t("game.hastily")} ${t("game.hours", { hours: formatHours(beat.hastily) })}` : null,
-        beat.normally != null ? `${t("game.normally")} ${t("game.hours", { hours: formatHours(beat.normally) })}` : null,
-        beat.completely != null ? `${t("game.completely")} ${t("game.hours", { hours: formatHours(beat.completely) })}` : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : "";
-  if (facts.length === 0 && !time) return null;
+function Credits({ developers, publishers }: { developers: string[]; publishers: string[] }) {
+  const parts = [
+    developers.length > 0 ? { label: t("game.developers"), value: developers.join(", ") } : null,
+    publishers.length > 0 ? { label: t("game.publishers"), value: publishers.join(", ") } : null,
+  ].filter((part) => part != null);
+  if (parts.length === 0) return null;
   return (
-    <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-      {facts.map((fact) => (
-        <div key={fact.label} className="flex gap-3 rounded-2xl border border-line bg-panel/70 p-3">
-          <IconBadge name={fact.icon} tone={fact.tone} />
-          <div className="min-w-0">
-            <dt className="text-muted">{fact.label}</dt>
-            <dd className="mt-1">{fact.value}</dd>
-          </div>
-        </div>
+    <p className="mt-2 text-sm text-muted">
+      {parts.map((part, index) => (
+        <span key={part.label}>
+          {index > 0 ? " · " : null}
+          {part.label} <span className="text-ink">{part.value}</span>
+        </span>
       ))}
-      {time ? (
-        <div className="flex gap-3 rounded-2xl border border-line bg-panel/70 p-3">
-          <IconBadge name="clock" tone="bg-rose-300/10 text-rose-300" />
-          <div className="min-w-0">
-            <dt className="text-muted">{t("game.time")}</dt>
-            <dd className="mt-1">{time}</dd>
-          </div>
-        </div>
-      ) : null}
-    </dl>
+    </p>
+  );
+}
+
+function ChipGroup({
+  label,
+  items,
+  iconFor,
+}: {
+  label: string;
+  items: string[];
+  iconFor?: (item: string) => IconName | null;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <section>
+      <h2 className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{label}</h2>
+      <ul className="mt-2.5 flex flex-wrap gap-2">
+        {items.map((item) => {
+          const icon = iconFor?.(item);
+          return (
+            <li key={item} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white/5 px-2.5 text-sm">
+              {icon ? <Icon name={icon} className="h-3.5 w-3.5 text-muted" /> : null}
+              {item}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function TimeToBeat({ time }: { time: GameDetails["timeToBeat"] }) {
+  if (!time) return null;
+  const items = [
+    time.hastily != null ? { label: t("game.hastily"), hours: time.hastily } : null,
+    time.normally != null ? { label: t("game.normally"), hours: time.normally } : null,
+    time.completely != null ? { label: t("game.completely"), hours: time.completely } : null,
+  ].filter((item) => item != null);
+  if (items.length === 0) return null;
+  return (
+    <section>
+      <h2 className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("game.time")}</h2>
+      <ul className="mt-2.5 flex flex-wrap gap-x-8 gap-y-3">
+        {items.map((item) => (
+          <li key={item.label}>
+            <p className="text-xs text-muted">{item.label}</p>
+            <p className="mt-1 text-sm font-medium">{t("game.hours", { hours: formatHours(item.hours) })}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

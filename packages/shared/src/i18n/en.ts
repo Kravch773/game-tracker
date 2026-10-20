@@ -98,6 +98,9 @@ export const en = {
     watch: "Watch",
     developers: "Developer",
     publishers: "Publisher",
+    platforms: "Platforms",
+    genres: "Genres",
+    stores: "Stores",
     themes: "Themes",
     age: "Age",
     time: "Time to beat",
@@ -131,6 +134,7 @@ export const en = {
   library: {
     list: "List",
     signInToSave: "Log in to save this game to your profile",
+    addToLibrary: "Add to library",
     inProfile: "In your profile",
     notInList: "Not on a list",
     inFavoritesSuffix: " · Favorited",

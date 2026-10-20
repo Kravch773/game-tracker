@@ -4,6 +4,7 @@ import { REVIEW_MAX_LENGTH, t, type GameEntry, type LibraryStatus } from "@gamet
 import { useState } from "react";
 import { Dialog } from "@/components/Dialog";
 import { Icon } from "@/components/Icon";
+import { LoginForm } from "@/components/LoginForm";
 import { apiUrl } from "@/lib/config";
 import { STATUS_MARK } from "@/lib/marks";
 import { PROFILE_SECTIONS, STATUS_LABELS, isScoredStatus, ratingLabel } from "@/lib/library";
@@ -28,8 +29,10 @@ export function LibraryPanel({
   const [draftReview, setDraftReview] = useState(entry.review ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginOpen, setLoginOpen] = useState(false);
 
-  const returnPath = `/login?next=${encodeURIComponent(`/games/${slug}`)}`;
+  const nextPath = `/games/${encodeURIComponent(slug)}`;
+  const registerHref = `/register?next=${encodeURIComponent(nextPath)}`;
 
   function openRating() {
     setDraftRating(rating);
@@ -155,21 +158,28 @@ export function LibraryPanel({
 
   if (!loggedIn) {
     return (
-      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-line bg-panel/80 p-5">
-        <div>
-          <p className="text-sm text-muted">{t("library.list")}</p>
-          <p className="mt-1 font-medium">{t("library.signInToSave")}</p>
-        </div>
-        <a href={returnPath} className={primaryClass}>
-          {t("nav.login")}
-        </a>
-      </section>
+      <>
+        <section className="rounded-3xl border border-line bg-panel/80 p-5">
+          <p className="text-sm leading-6 text-muted">{t("library.signInToSave")}</p>
+          <button type="button" onClick={() => setLoginOpen(true)} className={`${primaryClass} mt-4 w-full gap-2`}>
+            <Icon name="bookmark" className="text-accent-ink" />
+            {t("library.addToLibrary")}
+          </button>
+        </section>
+        <Dialog open={loginOpen} title={t("auth.loginTitle")} onClose={() => setLoginOpen(false)}>
+          <LoginForm next={nextPath} />
+          <p className="mt-5 text-center text-sm text-muted">{t("auth.noProfile")}</p>
+          <a href={registerHref} className={`${quietClass} mt-3 w-full`}>
+            {t("nav.register")}
+          </a>
+        </Dialog>
+      </>
     );
   }
 
   return (
     <>
-      <section className="mt-8 rounded-3xl border border-line bg-panel/80 p-5">
+      <section className="rounded-3xl border border-line bg-panel/80 p-5">
         <p className="text-sm text-muted">{t("library.inProfile")}</p>
         <p className="mt-1 font-medium">
           {status ? STATUS_LABELS[status] : t("library.notInList")}
@@ -177,7 +187,7 @@ export function LibraryPanel({
         </p>
         {rating != null ? <p className="mt-1 text-sm text-accent">{ratingLabel(rating)}</p> : null}
         {review ? <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">{review}</p> : null}
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label={t("library.section")}>
+        <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label={t("library.section")}>
           {PROFILE_SECTIONS.map((item) => (
             <button
               key={item}
