@@ -9,6 +9,10 @@ export function AccountNav({ user }: { user: AuthUser | null }) {
   if (!user) {
     return (
       <nav className="flex shrink-0 items-center gap-2">
+        <a href="/guide" className={linkClass} aria-label={t("nav.guide")}>
+          <Icon name="compass" />
+          <span className="hidden md:inline">{t("nav.guide")}</span>
+        </a>
         <a href="/news" className={linkClass} aria-label={t("nav.news")}>
           <Icon name="book" />
           <span className="hidden md:inline">{t("nav.news")}</span>
@@ -37,6 +41,10 @@ export function AccountNav({ user }: { user: AuthUser | null }) {
 
   return (
     <nav className="flex min-w-0 items-center gap-2">
+      <a href="/guide" className={linkClass} aria-label={t("nav.guide")}>
+        <Icon name="compass" />
+        <span className="hidden lg:inline">{t("nav.guide")}</span>
+      </a>
       <a href="/news" className={linkClass} aria-label={t("nav.news")}>
         <Icon name="book" />
         <span className="hidden lg:inline">{t("nav.news")}</span>

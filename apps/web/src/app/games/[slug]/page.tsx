@@ -67,7 +67,12 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
         <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
         <p className="mt-3 text-sm text-muted">{game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate")}</p>
-        <Credits developers={game.developers} publishers={game.publishers} series={game.series} />
+        <Credits
+          developers={game.developers}
+          publishers={game.publishers}
+          russianPublishers={game.russianPublishers ?? []}
+          series={game.series}
+        />
         <div className="mt-5 flex flex-wrap gap-2">
           <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
           {saved.steamMinutes != null ? (
@@ -211,10 +216,12 @@ function OriginTags({ origins, text, audio }: { origins: GameOrigin[]; text: boo
 function Credits({
   developers,
   publishers,
+  russianPublishers,
   series,
 }: {
   developers: string[];
   publishers: string[];
+  russianPublishers: string[];
   series: string | null;
 }) {
   if (developers.length === 0 && publishers.length === 0 && !series) return null;
@@ -222,7 +229,7 @@ function Credits({
     <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
       {series ? <CompanyLinks role="series" label={t("game.series")} names={[series]} /> : null}
       <CompanyLinks role="developer" label={t("game.developers")} names={developers} />
-      <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} />
+      <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} marked={russianPublishers} />
     </div>
   );
 }
@@ -231,26 +238,57 @@ function CompanyLinks({
   role,
   label,
   names,
+  marked = [],
 }: {
   role: "developer" | "publisher" | "series";
   label: string;
   names: string[];
+  marked?: string[];
 }) {
   if (names.length === 0) return null;
   const param = role === "series" ? "series" : role;
+  const markedNames = new Set(marked);
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{label}</span>
-      {names.map((name) => (
-        <a
-          key={name}
-          href={`/?${param}=${encodeURIComponent(name)}`}
-          className="inline-flex h-8 items-center rounded-lg border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
-        >
-          {name}
-        </a>
-      ))}
+      {names.map((name) => {
+        const russian = markedNames.has(name);
+        return (
+          <span key={name} className="inline-flex items-center gap-1">
+            <a
+              href={`/?${param}=${encodeURIComponent(name)}`}
+              className={
+                russian
+                  ? "inline-flex h-8 items-center rounded-lg border border-red-500/50 bg-red-500/15 px-2.5 text-sm font-medium text-red-300 transition hover:border-red-400 hover:bg-red-500/25 hover:text-red-200"
+                  : "inline-flex h-8 items-center rounded-lg border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+              }
+            >
+              {name}
+            </a>
+            {russian ? <PublisherTip /> : null}
+          </span>
+        );
+      })}
     </div>
+  );
+}
+
+function PublisherTip() {
+  const label = t("game.russianPublisher");
+  return (
+    <span className="group/tip relative inline-flex" tabIndex={0} aria-label={label}>
+      <svg viewBox="0 0 16 16" className="h-4 w-4 text-red-300" aria-hidden="true">
+        <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="8" cy="4.9" r="0.8" fill="currentColor" />
+        <path d="M8 7.15v4.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute top-[calc(100%+8px)] left-1/2 z-30 hidden -translate-x-1/2 rounded-lg border border-red-500/40 bg-bg px-2.5 py-1 text-xs font-medium whitespace-nowrap text-red-200 shadow-lg group-hover/tip:block group-focus/tip:block"
+      >
+        {label}
+      </span>
+    </span>
   );
 }
 
