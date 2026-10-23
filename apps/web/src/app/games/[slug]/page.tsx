@@ -70,6 +70,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <Credits
           developers={game.developers}
           publishers={game.publishers}
+          russianDevelopers={game.russianDevelopers ?? []}
           russianPublishers={game.russianPublishers ?? []}
           series={game.series}
         />
@@ -216,11 +217,13 @@ function OriginTags({ origins, text, audio }: { origins: GameOrigin[]; text: boo
 function Credits({
   developers,
   publishers,
+  russianDevelopers,
   russianPublishers,
   series,
 }: {
   developers: string[];
   publishers: string[];
+  russianDevelopers: string[];
   russianPublishers: string[];
   series: string | null;
 }) {
@@ -228,8 +231,8 @@ function Credits({
   return (
     <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
       {series ? <CompanyLinks role="series" label={t("game.series")} names={[series]} /> : null}
-      <CompanyLinks role="developer" label={t("game.developers")} names={developers} />
-      <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} marked={russianPublishers} />
+      <CompanyLinks role="developer" label={t("game.developers")} names={developers} marked={russianDevelopers} tip={t("game.russianDeveloper")} />
+      <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} marked={russianPublishers} tip={t("game.russianPublisher")} />
     </div>
   );
 }
@@ -239,11 +242,13 @@ function CompanyLinks({
   label,
   names,
   marked = [],
+  tip = "",
 }: {
   role: "developer" | "publisher" | "series";
   label: string;
   names: string[];
   marked?: string[];
+  tip?: string;
 }) {
   if (names.length === 0) return null;
   const param = role === "series" ? "series" : role;
@@ -265,7 +270,7 @@ function CompanyLinks({
             >
               {name}
             </a>
-            {russian ? <PublisherTip /> : null}
+            {russian ? <OriginTip label={tip} /> : null}
           </span>
         );
       })}
@@ -273,8 +278,7 @@ function CompanyLinks({
   );
 }
 
-function PublisherTip() {
-  const label = t("game.russianPublisher");
+function OriginTip({ label }: { label: string }) {
   return (
     <span className="group/tip relative inline-flex" tabIndex={0} aria-label={label}>
       <svg viewBox="0 0 16 16" className="h-4 w-4 text-red-300" aria-hidden="true">

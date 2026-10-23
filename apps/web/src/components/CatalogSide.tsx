@@ -9,8 +9,9 @@ import {
   type SearchGenreId,
   type SearchSort,
 } from "@gametracker/shared";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Icon } from "@/components/Icon";
+import { apiUrl } from "@/lib/config";
 import { SEARCH_GENRE_ICON } from "@/lib/marks";
 
 const GENRE_LABEL: Record<SearchGenreId, MessageKey> = {
@@ -185,11 +186,55 @@ function TextFilter({
 }: SideState & { field: "developer" | "publisher" | "series"; label: string }) {
   const current = props[field];
   const [value, setValue] = useState(current);
-  function apply() {
-    const next = value.trim();
-    if (next === current) return;
-    window.location.href = href(props, { [field]: next, origin: "" });
+  const [top, setTop] = useState<string[]>([]);
+  const [matches, setMatches] = useState<string[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${apiUrl}/suggest?field=${field}`, { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : { names: [] }))
+      .then((payload: { names?: string[] }) => setTop(payload.names ?? []))
+      .catch(() => {
+        if (!controller.signal.aborted) setTop([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [field]);
+
+  useEffect(() => {
+    const query = value.trim();
+    if (query.length < 2) {
+      setMatches(null);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams({ field, q: query });
+      fetch(`${apiUrl}/suggest?${params}`, { signal: controller.signal })
+        .then((response) => (response.ok ? response.json() : { names: [] }))
+        .then((payload: { names?: string[] }) => setMatches(payload.names ?? []))
+        .catch(() => {
+          if (!controller.signal.aborted) setMatches([]);
+        });
+    }, 180);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [field, value]);
+
+  function apply(next = value) {
+    const name = next.trim();
+    if (name === current) return;
+    window.location.href = href(props, { [field]: name, origin: "" });
   }
+
+  const query = value.trim();
+  const pool = matches ?? top.filter((name) => query.length === 0 || partialName(name, query));
+  const shown = current && !pool.includes(current) ? [current, ...pool].slice(0, 10) : pool.slice(0, 10);
 
   return (
     <Section title={label} initialOpen={current.length > 0}>
@@ -199,18 +244,42 @@ function TextFilter({
           apply();
         }}
       >
-        <input
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          onBlur={apply}
-          placeholder={t("home.filterSearch")}
-          maxLength={80}
-          aria-label={label}
-          className="h-10 w-full rounded-xl border border-line bg-bg/70 px-3 text-sm outline-none placeholder:text-muted focus:border-accent"
-        />
+        <label className="relative block">
+          <span className="sr-only">{label}</span>
+          <input
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            onBlur={() => apply()}
+            placeholder={t("home.filterSearch")}
+            maxLength={80}
+            className="h-10 w-full rounded-xl border border-line bg-bg/70 pr-3 pl-9 text-sm outline-none placeholder:text-muted focus:border-accent"
+          />
+          <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" />
+        </label>
       </form>
+      <ul className="mt-2 max-h-52 overflow-auto">
+        {shown.map((name) => (
+          <li key={name}>
+            <a
+              href={href(props, { [field]: current === name ? "" : name, origin: current === name ? props.origin : "" })}
+              onMouseDown={(event) => event.preventDefault()}
+              className={rowClass(name === current)}
+            >
+              <span className="truncate">{name}</span>
+            </a>
+          </li>
+        ))}
+        {!loading && shown.length === 0 ? <li className="px-3 py-2 text-sm text-muted">{t("home.nothing")}</li> : null}
+      </ul>
     </Section>
   );
+}
+
+function partialName(name: string, query: string): boolean {
+  const term = query.trim().toLowerCase();
+  if (name.toLowerCase().includes(term)) return true;
+  const folded = term.replace(/[^a-z0-9\u0400-\u04ff]+/gi, "");
+  return folded.length > 0 && name.toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]+/gi, "").includes(folded);
 }
 
 function YearField(props: SideState) {

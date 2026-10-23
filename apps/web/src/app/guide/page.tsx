@@ -101,6 +101,20 @@ export default async function GuidePage() {
         </Feature>
       </section>
 
+      <section className="grid items-center gap-8 overflow-hidden rounded-[2rem] border border-line bg-panel/70 px-6 py-8 sm:px-10 lg:grid-cols-[1.15fr_0.85fr]">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.18em] text-accent uppercase">{t("profile.wheel")}</p>
+          <h2 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">{t("guide.wheelTitle")}</h2>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-muted sm:text-base sm:leading-7">{t("guide.wheelBody")}</p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Status label={t("status.backlog")} tone="bg-white/15 text-ink" />
+            <Status label={t("wheel.elimination")} tone="bg-accent text-accent-ink" />
+            <Status label={t("wheel.instant")} tone="bg-white/10 text-ink" />
+          </div>
+        </div>
+        <WheelMock />
+      </section>
+
       <section className="flex flex-col items-start justify-between gap-4 rounded-[2rem] border border-line bg-white/5 px-6 py-8 sm:flex-row sm:items-center sm:px-10">
         <p className="max-w-xl text-base leading-7 text-ink/85">{t("guide.closing")}</p>
         <a href="/" className={`${primaryClass} text-accent-ink!`}>
@@ -108,6 +122,27 @@ export default async function GuidePage() {
         </a>
       </section>
     </main>
+  );
+}
+
+function WheelMock() {
+  return (
+    <div className="relative mx-auto h-64 w-64 max-w-full">
+      <span
+        aria-hidden="true"
+        className="absolute top-0 left-1/2 z-10 -translate-x-1/2 border-x-8 border-t-[18px] border-x-transparent border-t-accent"
+      />
+      <div
+        className="h-full w-full rounded-full shadow-2xl"
+        style={{
+          background:
+            "conic-gradient(#d6ff4a 0 45deg, #7aa2ff 45deg 90deg, #c084fc 90deg 135deg, #ff8b6a 135deg 180deg, #5ce1e6 180deg 225deg, #ffd166 225deg 270deg, #7cffb2 270deg 315deg, #ff7ad9 315deg 360deg)",
+        }}
+      />
+      <div className="absolute inset-[30%] flex items-center justify-center rounded-full bg-bg px-3 text-center text-xs font-semibold">
+        {t("wheel.spin")}
+      </div>
+    </div>
   );
 }
 
