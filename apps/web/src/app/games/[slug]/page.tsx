@@ -13,6 +13,7 @@ import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 import type { Design } from "@/lib/look-cookie";
+import { sharpCover } from "@/lib/images";
 import { youtubeIdOf } from "@/lib/video";
 import { getLook } from "@/lib/look";
 import { absoluteUrl, pageMetadata, textSnippet } from "@/lib/site";
@@ -85,9 +86,6 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       <main className="flex flex-col gap-5">
         <JsonLd data={gameJsonLd(game)} />
         <div className="flex flex-wrap gap-5">
-          <div className="flex-[3_1_260px] overflow-hidden rounded-[32px] bg-raised">
-            {game.coverUrl ? <img src={game.coverUrl} alt={game.title} className="h-full min-h-80 w-full object-cover" /> : null}
-          </div>
           <article className="flex flex-[5_1_440px] flex-col gap-4 rounded-[32px] bg-panel p-6 sm:p-8">
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex h-8 items-center rounded-full bg-tile-sun px-3 text-sm font-bold text-[#1b1530]">{date}</span>
@@ -101,7 +99,15 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             <StoreLinks links={game.links} variant="pills" />
             {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
           </article>
-          <div className="flex-[3_1_280px]">{panel}</div>
+          {/* The cover keeps its own 3:4 shape above the list card instead of stretching to the info tile's height. */}
+          <div className="order-first flex flex-[3_1_280px] flex-col gap-5 md:order-none">
+            {game.coverUrl ? (
+              <img src={sharpCover(game.coverUrl)} alt={game.title} className="aspect-[3/4] w-full rounded-[32px] object-cover" />
+            ) : (
+              <div className="aspect-[3/4] w-full rounded-[32px] bg-raised" />
+            )}
+            {panel}
+          </div>
         </div>
         <div className="flex flex-wrap gap-5">
           {game.screenshots.length > 0 || game.videos.length > 0 ? (
@@ -154,7 +160,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       <div className="relative -mt-28 grid items-start gap-8 md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[17rem_minmax(0,1fr)]">
         <aside className="flex flex-col gap-4">
           {game.coverUrl ? (
-            <img src={game.coverUrl} alt={game.title} className="aspect-[3/4] w-44 rounded-3xl object-cover shadow-2xl ring-1 ring-ink/10 md:w-full" />
+            <img src={sharpCover(game.coverUrl)} alt={game.title} className="aspect-[3/4] w-44 rounded-3xl object-cover shadow-2xl ring-1 ring-ink/10 md:w-full" />
           ) : (
             <div className="aspect-[3/4] w-44 rounded-3xl bg-raised ring-1 ring-ink/10 md:w-full" />
           )}
