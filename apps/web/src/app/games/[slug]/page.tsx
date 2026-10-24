@@ -126,7 +126,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         </section>
         {(game.similar ?? []).length > 0 ? (
           <section className="rounded-[32px] bg-panel p-6">
-            <CollectionRow title={t("game.similar")} games={game.similar} mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }} />
+            <CollectionRow title={t("game.similar")} games={game.similar} rows={1} mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }} />
           </section>
         ) : null}
       </main>
@@ -220,7 +220,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       </div>
       {(game.similar ?? []).length > 0 ? (
         <div id="similar" className="mt-12 scroll-mt-24">
-          <CollectionRow title={t("game.similar")} games={game.similar} mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }} />
+          <CollectionRow title={t("game.similar")} games={game.similar} rows={1} mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }} />
         </div>
       ) : null}
     </main>
