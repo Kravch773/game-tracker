@@ -317,6 +317,10 @@ export const uk = {
   },
   auth: {
     eyebrow: "Акаунт",
+    pointLists: "Граю, хочу пограти, пройдено, кинуто",
+    pointScores: "Оцінки від 0 до 10, а 11 — для найкращих",
+    pointSteam: "Години й бажане зі Steam",
+    pointFeed: "Стрічка друзів і календар релізів",
     loginTitle: "Вхід",
     registerTitle: "Реєстрація",
     noProfile: "Немає профілю?",

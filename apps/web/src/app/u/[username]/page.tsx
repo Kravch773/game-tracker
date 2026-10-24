@@ -23,13 +23,20 @@ export async function generateMetadata({
   });
 }
 
-export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ username: string }>;
+  searchParams: Promise<{ list?: string }>;
+}) {
   await applyLocale();
   const { username } = await params;
+  const { list } = await searchParams;
   const [library, me] = await Promise.all([getLibrary(username), getMe()]);
   if (!library) notFound();
 
   const mine = me?.username.toLowerCase() === library.user.username.toLowerCase();
 
-  return <ProfileBoard library={library} email={mine && me ? me.email : null} />;
+  return <ProfileBoard library={library} email={mine && me ? me.email : null} initialTab={list} />;
 }

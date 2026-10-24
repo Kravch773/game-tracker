@@ -24,7 +24,7 @@ export function AccountNav({ user, variant }: { user: AuthUser | null; variant: 
           <Icon name="user" />
           <span className="hidden md:inline">{t("nav.login")}</span>
         </a>
-        <a href="/register" className={`${primaryClass} gap-1.5 px-3 md:px-5`} aria-label={t("nav.register")}>
+        <a href="/register" className={`${primaryClass} gap-1.5 px-3 max-sm:hidden md:px-5`} aria-label={t("nav.register")}>
           <Icon name="spark" />
           <span className="hidden md:inline">{t("nav.register")}</span>
         </a>

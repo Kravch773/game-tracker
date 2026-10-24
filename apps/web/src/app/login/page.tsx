@@ -1,7 +1,7 @@
 import { t } from "@gametracker/shared";
 import type { Metadata } from "next";
+import { AuthFrame } from "@/components/AuthFrame";
 import { redirect } from "next/navigation";
-import { IconBadge } from "@/components/Icon";
 import { LoginForm } from "@/components/LoginForm";
 import { getMe } from "@/lib/api";
 import { safeNext } from "@/lib/config";
@@ -27,20 +27,19 @@ export default async function LoginPage({
   if (me) redirect(next ?? `/u/${encodeURIComponent(me.username)}`);
 
   return (
-    <main className="mx-auto max-w-md rounded-3xl border border-line bg-panel/80 p-6 shadow-2xl sm:p-8">
-      <p className="text-sm font-medium tracking-[0.16em] text-accent-fg uppercase">{t("auth.eyebrow")}</p>
-      <h1 className="mt-3 flex items-center gap-3 font-display text-4xl tracking-tight">
-        <IconBadge name="user" size="lg" />
-        {t("auth.loginTitle")}
-      </h1>
+    <AuthFrame mode="login" loginHref={loginHref(next)} registerHref={registerHref(next)}>
       <LoginForm next={next} />
       <p className="mt-5 text-sm text-muted">
-        {t("auth.noProfile")} <a href={registerHref(next)} className="text-ink hover:text-accent-fg">{t("nav.register")}</a>
+        {t("auth.noProfile")} <a href={registerHref(next)} className="font-semibold text-ink hover:text-accent-fg">{t("nav.register")}</a>
       </p>
-    </main>
+    </AuthFrame>
   );
 }
 
 function registerHref(next: string | null): string {
   return next ? `/register?next=${encodeURIComponent(next)}` : "/register";
+}
+
+function loginHref(next: string | null): string {
+  return next ? `/login?next=${encodeURIComponent(next)}` : "/login";
 }

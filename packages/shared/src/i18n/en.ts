@@ -319,6 +319,10 @@ export const en = {
   },
   auth: {
     eyebrow: "Account",
+    pointLists: "Playing, want to play, finished, dropped",
+    pointScores: "Scores from 0 to 10, and 11 for the very best",
+    pointSteam: "Hours and wishlist from Steam",
+    pointFeed: "A friends feed and a release calendar",
     loginTitle: "Log in",
     registerTitle: "Sign up",
     noProfile: "No profile yet?",

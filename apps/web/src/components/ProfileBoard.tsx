@@ -25,6 +25,10 @@ const SCALES = [
 type Tab = (typeof TABS)[number] | "steamWishlist";
 type Sort = "added" | "release" | "rating" | "metacritic";
 
+function isTab(value: string | undefined): value is Tab {
+  return value === "steamWishlist" || (TABS as readonly string[]).includes(value ?? "");
+}
+
 const SORT_LABEL = {
   added: "profile.sortAdded",
   release: "profile.sortRelease",
@@ -32,8 +36,8 @@ const SORT_LABEL = {
   metacritic: "profile.sortMetacritic",
 } as const;
 
-export function ProfileBoard({ library, email }: { library: UserLibrary; email: string | null }) {
-  const [tab, setTab] = useState<Tab>("playing");
+export function ProfileBoard({ library, email, initialTab }: { library: UserLibrary; email: string | null; initialTab?: string }) {
+  const [tab, setTab] = useState<Tab>(isTab(initialTab) ? initialTab : "playing");
   const [sort, setSort] = useState<Sort>("added");
   const [scale, setScale] = useState(0);
   const [bucket, setBucket] = useState<number | null>(null);

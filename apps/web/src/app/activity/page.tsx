@@ -1,9 +1,9 @@
 import { t } from "@gametracker/shared";
 import type { Metadata } from "next";
 import { IconBadge } from "@/components/Icon";
-import { STATUS_MARK } from "@/lib/marks";
 import { getActivity, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { getLook } from "@/lib/look";
 import { formatDate } from "@/lib/format";
 import { ratingLabel } from "@/lib/library";
 import { pageMetadata } from "@/lib/site";
@@ -35,7 +35,8 @@ export default async function ActivityPage({
   const { following } = await searchParams;
   const me = await getMe();
   const onlyFollowing = following === "1" && me != null;
-  const { events } = await getActivity(onlyFollowing);
+  const [{ events }, { design }] = await Promise.all([getActivity(onlyFollowing), getLook()]);
+  const shelf = design === "shelf";
 
   return (
     <main>
@@ -45,11 +46,11 @@ export default async function ActivityPage({
           {t("activity.title")}
         </h1>
         {me ? (
-          <div className="flex gap-2 text-sm">
-            <a href="/activity" className={onlyFollowing ? "text-muted" : "text-accent-fg"}>
+          <div role="group" aria-label={t("activity.title")} className="flex rounded-full bg-panel p-1 ring-1 ring-line">
+            <a href="/activity" aria-current={!onlyFollowing ? "true" : undefined} className={segment(!onlyFollowing)}>
               {t("activity.everyone")}
             </a>
-            <a href="/activity?following=1" className={onlyFollowing ? "text-accent-fg" : "text-muted"}>
+            <a href="/activity?following=1" aria-current={onlyFollowing ? "true" : undefined} className={segment(onlyFollowing)}>
               {t("activity.following")}
             </a>
           </div>
@@ -62,23 +63,45 @@ export default async function ActivityPage({
       ) : (
         <ul className="mt-8 flex flex-col gap-3">
           {events.map((event) => (
-            <li key={`${event.username}-${event.game.id}-${event.at}`} className="flex gap-3 rounded-3xl border border-line bg-panel/80 p-4">
-              <IconBadge name={STATUS_MARK[event.status].icon} tone={`bg-ink/5 ${STATUS_MARK[event.status].tone}`} />
-              <div className="min-w-0">
-              <p>
-                <a href={`/u/${encodeURIComponent(event.username)}`} className="font-medium hover:text-accent-fg">
-                  {event.username}
-                </a>
-                <span className="text-muted"> · {t(`status.${event.status}`)} · </span>
-                <a href={`/games/${encodeURIComponent(event.game.slug)}`} className="hover:text-accent-fg">
-                  {event.game.title}
-                </a>
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                {event.rating != null ? `${ratingLabel(event.rating)} · ` : ""}
-                {formatDate(event.at)}
-              </p>
-              {event.review ? <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted">{event.review}</p> : null}
+            <li
+              key={`${event.username}-${event.game.id}-${event.at}`}
+              className={
+                shelf
+                  ? `flex gap-4 rounded-[28px] p-5 text-[#1b1530] ${event.status === "finished" ? "bg-tile-sun" : "bg-tile-coral"}`
+                  : "flex gap-4 rounded-3xl border border-line bg-panel p-4"
+              }
+            >
+              <a
+                href={`/u/${encodeURIComponent(event.username)}`}
+                aria-label={event.username}
+                className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display font-bold ${
+                  shelf ? "bg-[#1b1530] text-white" : "bg-raised text-ink"
+                }`}
+              >
+                {event.username.slice(0, 1).toUpperCase()}
+              </a>
+              <div className="min-w-0 flex-1">
+                <p className="leading-snug">
+                  <a href={`/u/${encodeURIComponent(event.username)}`} className="font-bold hover:underline">
+                    {event.username}
+                  </a>
+                  <span className={shelf ? "opacity-70" : "text-muted"}> · {t(`status.${event.status}`)} · </span>
+                  <a href={`/games/${encodeURIComponent(event.game.slug)}`} className="font-semibold hover:underline">
+                    {event.game.title}
+                  </a>
+                </p>
+                <p className={`mt-1 text-sm ${shelf ? "opacity-70" : "text-muted"}`}>{formatDate(event.at)}</p>
+                {event.review ? (
+                  <p className={`mt-3 line-clamp-3 rounded-2xl p-3 text-sm leading-6 ${shelf ? "bg-white/55" : "bg-bg text-ink/85"}`}>{event.review}</p>
+                ) : null}
+              </div>
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                {event.game.coverUrl ? <img src={event.game.coverUrl} alt="" className="h-20 w-15 rounded-xl object-cover" /> : null}
+                {event.rating != null ? (
+                  <span className={`rounded-lg px-2 py-0.5 font-display text-sm font-bold ${shelf ? "bg-[#1b1530] text-white" : "bg-accent text-accent-ink"}`}>
+                    {ratingLabel(event.rating)}
+                  </span>
+                ) : null}
               </div>
             </li>
           ))}
@@ -86,4 +109,8 @@ export default async function ActivityPage({
       )}
     </main>
   );
+}
+
+function segment(active: boolean): string {
+  return `inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold ${active ? "bg-strong text-strong-ink" : "text-muted hover:text-ink"}`;
 }

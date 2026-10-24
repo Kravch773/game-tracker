@@ -119,9 +119,7 @@ export function ShelfShell({ user, design, theme, children }: ShellProps) {
         <SearchSlot className="order-last flex w-full empty:hidden lg:order-none lg:w-auto lg:min-w-0 lg:flex-1" />
         <span className="flex-1 lg:hidden" />
         <LookSwitchPill design={design} theme={theme} />
-        <div className="hidden sm:block">
-          <LanguageSwitch />
-        </div>
+        <LanguageSwitch />
         <AccountNav user={user} variant="compact" />
       </header>
       <div className="mx-auto w-full max-w-[1320px] px-4 pt-6 pb-28 md:px-8 md:pb-16">{children}</div>

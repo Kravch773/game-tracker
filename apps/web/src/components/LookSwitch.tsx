@@ -104,7 +104,7 @@ export function LookSwitchPill({ design, theme: initial }: { design: Design; the
             role="radio"
             aria-checked={design === item.id}
             onClick={() => chooseDesign(item.id, design)}
-            className={`inline-flex h-10 items-center gap-2 rounded-full px-3 text-[13px] font-bold ${
+            className={`inline-flex h-10 items-center gap-2 rounded-full px-2.5 text-[13px] font-bold sm:px-3 ${
               design === item.id ? "bg-strong text-strong-ink" : "text-muted hover:text-ink"
             }`}
           >
