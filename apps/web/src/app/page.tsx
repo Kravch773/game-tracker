@@ -181,13 +181,14 @@ const COLLECTION_TITLES: Record<HomeCollectionId, MessageKey> = {
   racing: "collections.racing",
 };
 
+// Solid pastel tiles in light; in dark the colour moves to a tint, the text and the edge.
 const GENRE_TILE: Record<CatalogGenreId, string> = {
-  rpg: "bg-tile-coral",
-  shooter: "bg-tile-sun",
-  adventure: "bg-tile-mint",
-  strategy: "bg-tile-lilac",
-  indie: "bg-tile-rose",
-  racing: "bg-tile-sky",
+  rpg: "bg-tile-coral dark:bg-tile-coral/12 dark:text-tile-coral dark:ring-tile-coral/30",
+  shooter: "bg-tile-sun dark:bg-tile-sun/12 dark:text-tile-sun dark:ring-tile-sun/30",
+  adventure: "bg-tile-mint dark:bg-tile-mint/12 dark:text-tile-mint dark:ring-tile-mint/30",
+  strategy: "bg-tile-lilac dark:bg-tile-lilac/12 dark:text-tile-lilac dark:ring-tile-lilac/30",
+  indie: "bg-tile-rose dark:bg-tile-rose/12 dark:text-tile-rose dark:ring-tile-rose/30",
+  racing: "bg-tile-sky dark:bg-tile-sky/12 dark:text-tile-sky dark:ring-tile-sky/30",
 };
 
 async function HomeTop({ design }: { design: Design }) {
@@ -212,14 +213,17 @@ function ShelfLinks({ design }: { design: Design }) {
   if (design === "shelf") {
     return (
       <div className="mt-5 flex flex-col gap-3">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
           {CATALOG_GENRES.map((genre) => (
             <a
               key={genre.id}
               href={`/genres/${genre.id}`}
-              className={`flex h-20 items-end rounded-3xl p-4 font-display text-lg font-extrabold text-[#1b1530] transition hover:-translate-y-0.5 ${GENRE_TILE[genre.id]}`}
+              className={`flex h-16 items-center gap-2.5 rounded-2xl px-3 text-[#1b1530] ring-1 ring-transparent transition hover:-translate-y-0.5 ${GENRE_TILE[genre.id]}`}
             >
-              {t(GENRE_LABEL[genre.id])}
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/55 dark:bg-white/10">
+                <Icon name={GENRE_MARK[genre.id].icon} className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 truncate font-display text-base font-bold">{t(GENRE_LABEL[genre.id])}</span>
             </a>
           ))}
         </div>
