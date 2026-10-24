@@ -112,6 +112,7 @@ export const en = {
     about: "Overview",
     screenshots: "Screenshots",
     videos: "Videos",
+    media: "Screenshots and trailers",
     watchOnYoutube: "Watch on YouTube",
     collapse: "Collapse",
     watch: "Watch",

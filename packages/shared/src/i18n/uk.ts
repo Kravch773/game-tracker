@@ -110,6 +110,7 @@ export const uk = {
     about: "Огляд",
     screenshots: "Скріншоти",
     videos: "Відео",
+    media: "Скріншоти та трейлери",
     watchOnYoutube: "Дивитися на YouTube",
     collapse: "Згорнути",
     watch: "Дивитися",

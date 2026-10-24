@@ -12,6 +12,8 @@ import { formatHours, formatReleaseDate } from "@/lib/format";
 import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import type { Design } from "@/lib/look-cookie";
+import { youtubeIdOf } from "@/lib/video";
 import { getLook } from "@/lib/look";
 import { absoluteUrl, pageMetadata, textSnippet } from "@/lib/site";
 
@@ -56,7 +58,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const [me, { design }] = await Promise.all([getMe(), getLook()]);
   const entry = me ? await getGameEntry(slug) : null;
   const saved: GameEntry = entry ?? { status: null, rating: null, review: null, favorite: false, steamMinutes: null };
-  const scores = <Scores game={game} saved={saved} />;
+  const scores = <Scores game={game} saved={saved} design={design} />;
   const panel = <LibraryPanel slug={game.slug} loggedIn={me != null} entry={saved} design={design} />;
   const facts = (
     <>
@@ -104,14 +106,8 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <div className="flex flex-wrap gap-5">
           {game.screenshots.length > 0 || game.videos.length > 0 ? (
             <section className="min-w-0 flex-[7_1_560px] rounded-[32px] bg-panel p-6">
-              <h2 className="font-display text-xl font-extrabold">{t("game.screenshots")}</h2>
-              <Screens shots={game.screenshots} />
-              {game.videos.length > 0 ? (
-                <div className="mt-6">
-                  <h2 className="font-display text-xl font-extrabold">{t("game.videos")}</h2>
-                  <VideoList videos={game.videos} />
-                </div>
-              ) : null}
+              <h2 className="font-display text-xl font-extrabold">{t("game.media")}</h2>
+              <Media shots={game.screenshots} videos={game.videos} />
             </section>
           ) : null}
           {game.storyline ? (
@@ -136,8 +132,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const backdrop = game.screenshots[0]?.url ?? game.coverUrl;
   const sections = [
     game.storyline ? { id: "story", label: t("game.story") } : null,
-    game.screenshots.length > 0 ? { id: "screens", label: t("game.screenshots") } : null,
-    game.videos.length > 0 ? { id: "videos", label: t("game.videos") } : null,
+    game.screenshots.length > 0 || game.videos.length > 0 ? { id: "media", label: t("game.media") } : null,
     (game.reviews ?? []).length > 0 ? { id: "reviews", label: t("game.reviews") } : null,
     (game.similar ?? []).length > 0 ? { id: "similar", label: t("game.similar") } : null,
   ].filter((item) => item != null);
@@ -197,20 +192,12 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               <p className="mt-3 leading-8 text-muted">{game.storyline}</p>
             </section>
           ) : null}
-          {game.screenshots.length > 0 ? (
-            <section id="screens" className="mt-12 scroll-mt-24">
+          {game.screenshots.length > 0 || game.videos.length > 0 ? (
+            <section id="media" className="mt-12 scroll-mt-24">
               <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300">
-                {t("game.screenshots")}
+                {t("game.media")}
               </SectionTitle>
-              <Screens shots={game.screenshots} />
-            </section>
-          ) : null}
-          {game.videos.length > 0 ? (
-            <section id="videos" className="mt-12 scroll-mt-24">
-              <SectionTitle icon="film" tone="bg-rose-300/10 text-rose-700 dark:text-rose-300">
-                {t("game.videos")}
-              </SectionTitle>
-              <VideoList videos={game.videos} />
+              <Media shots={game.screenshots} videos={game.videos} />
             </section>
           ) : null}
           <div id="reviews" className="scroll-mt-24">
@@ -227,36 +214,77 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   );
 }
 
-function Scores({ game, saved }: { game: GameDetails; saved: GameEntry }) {
+function Scores({ game, saved, design }: { game: GameDetails; saved: GameEntry; design: Design }) {
+  const enough = (game.community?.count ?? 0) > 5 && game.community?.average != null;
+  const cards: { key: string; label: string; value: string; icon: IconName; tile: string; hint?: boolean }[] = [
+    {
+      key: "gt",
+      label: "GameTracker",
+      value: enough ? (game.community.average as number).toFixed(1) : "—",
+      icon: "gamepad",
+      tile: "bg-tile-mint",
+      hint: !enough,
+    },
+  ];
+  if (saved.steamMinutes != null) {
+    cards.push({
+      key: "steam",
+      label: "Steam",
+      value: t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) }),
+      icon: "steam",
+      tile: "bg-tile-sky",
+    });
+  }
+  if (game.metacriticScore != null) cards.push({ key: "meta", label: "Metacritic", value: String(game.metacriticScore), icon: "meta", tile: "bg-tile-lilac" });
+  if (game.igdbRating != null) cards.push({ key: "igdb", label: "IGDB", value: game.igdbRating.toFixed(1), icon: "chart", tile: "bg-tile-sun" });
+  const shelf = design === "shelf";
+
   return (
-    <div className="mt-5 flex flex-wrap gap-2">
-      <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
-      {saved.steamMinutes != null ? (
-        <Score
-          label="Steam"
-          value={t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) })}
-          icon="steam"
-          tone="bg-sky-300 text-sky-950"
-        />
-      ) : null}
-      {game.metacriticScore != null ? (
-        <Score label="Metacritic" value={String(game.metacriticScore)} icon="meta" tone="bg-emerald-300 text-emerald-950" />
-      ) : null}
-      {game.igdbRating != null ? <Score label="IGDB" value={game.igdbRating.toFixed(1)} icon="chart" tone="bg-sky-300 text-sky-950" /> : null}
+    <div className="flex flex-wrap gap-3">
+      {cards.map((card) => (
+        <div
+          key={card.key}
+          className={`min-w-36 flex-1 rounded-2xl px-4 py-3 sm:flex-none ${shelf ? `${card.tile} text-[#1b1530]` : "border border-line bg-panel"}`}
+        >
+          <p className={`inline-flex items-center gap-1.5 text-xs ${shelf ? "opacity-75" : "text-muted"}`}>
+            <Icon name={card.icon} className="h-3.5 w-3.5" />
+            {card.label}
+            {card.hint ? <FewRatingsHint /> : null}
+          </p>
+          <p className="mt-1 font-display text-2xl leading-tight">{card.value}</p>
+        </div>
+      ))}
     </div>
   );
 }
 
-// First screenshot large, the rest in a grid beside and below it.
-function Screens({ shots }: { shots: GameDetails["screenshots"] }) {
+// The first YouTube video plays inline as the big tile; screenshots fill the grid around it.
+function Media({ shots, videos }: { shots: GameDetails["screenshots"]; videos: GameDetails["videos"] }) {
+  const lead = videos.find((video) => youtubeIdOf(video.url));
+  const leadId = lead ? youtubeIdOf(lead.url) : null;
+  const rest = videos.filter((video) => video !== lead);
   return (
-    <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {shots.map((shot, index) => (
-        <li key={shot.url} className={`overflow-hidden rounded-2xl border border-line ${index === 0 ? "col-span-2 row-span-2" : ""}`}>
-          <img src={shot.url} alt="" className="aspect-video h-full w-full object-cover" />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {lead && leadId ? (
+          <li className="col-span-2 row-span-2 overflow-hidden rounded-2xl border border-line bg-black">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${leadId}?rel=0`}
+              title={lead.name || t("game.watchOnYoutube")}
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="aspect-video h-full w-full border-0"
+            />
+          </li>
+        ) : null}
+        {shots.map((shot, index) => (
+          <li key={shot.url} className={`overflow-hidden rounded-2xl border border-line ${!lead && index === 0 ? "col-span-2 row-span-2" : ""}`}>
+            <img src={shot.url} alt="" className="aspect-video h-full w-full object-cover" />
+          </li>
+        ))}
+      </ul>
+      {rest.length > 0 ? <VideoList videos={rest} /> : null}
+    </>
   );
 }
 
@@ -351,7 +379,7 @@ function Credits({
 }) {
   if (developers.length === 0 && publishers.length === 0 && !series) return null;
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+    <div className="mt-4 flex flex-wrap items-center gap-2">
       {series ? <CompanyLinks role="series" label={t("game.series")} names={[series]} /> : null}
       <CompanyLinks role="developer" label={t("game.developers")} names={developers} marked={russianDevelopers} tip={t("game.russianDeveloper")} />
       <CompanyLinks role="publisher" label={t("game.publishers")} names={publishers} marked={russianPublishers} tip={t("game.russianPublisher")} />
@@ -376,9 +404,9 @@ function CompanyLinks({
   const param = role === "series" ? "series" : role;
   const markedNames = new Set(marked);
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{label}</span>
-      {names.map((name) => {
+    <div className="inline-flex min-h-11 flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-raised px-3 py-1.5 text-sm sm:min-h-9">
+      <span className="text-muted">{label}</span>
+      {names.map((name, index) => {
         const russian = markedNames.has(name);
         return (
           <span key={name} className="inline-flex items-center gap-1">
@@ -386,13 +414,14 @@ function CompanyLinks({
               href={`/?${param}=${encodeURIComponent(name)}`}
               className={
                 russian
-                  ? "inline-flex h-11 items-center rounded-lg sm:h-8 border border-red-500/50 bg-red-500/15 px-2.5 text-sm font-medium text-red-700 dark:text-red-300 transition hover:border-red-400 hover:bg-red-500/25 hover:text-red-800 dark:hover:text-red-200"
-                  : "inline-flex h-11 items-center rounded-lg sm:h-8 border border-line bg-ink/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent-fg"
+                  ? "font-semibold text-red-700 underline decoration-red-500/50 underline-offset-4 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
+                  : "font-semibold text-ink hover:text-accent-fg"
               }
             >
               {name}
             </a>
             {russian ? <OriginTip label={tip} /> : null}
+            {index < names.length - 1 ? <span className="text-muted">,</span> : null}
           </span>
         );
       })}
@@ -478,18 +507,6 @@ function SectionTitle({ icon, tone, children }: { icon: IconName; tone: string; 
   );
 }
 
-function CommunityScore({ count, average }: { count: number; average: number | null }) {
-  const enough = count > 5 && average != null;
-  return (
-    <span className="inline-flex h-9 items-center gap-2 rounded-full bg-accent px-2.5 pr-3 text-sm font-semibold text-accent-ink">
-      <Icon name="gamepad" className="h-3.5 w-3.5" />
-      <span className="font-medium opacity-70">GameTracker</span>
-      {enough ? average.toFixed(1) : "—"}
-      {enough ? null : <FewRatingsHint />}
-    </span>
-  );
-}
-
 function FewRatingsHint() {
   const text = t("game.fewRatings");
   return (
@@ -538,12 +555,3 @@ function gameJsonLd(game: GameDetails) {
   };
 }
 
-function Score({ label, value, icon, tone }: { label: string; value: string; icon: IconName; tone: string }) {
-  return (
-    <span className={`inline-flex h-9 items-center gap-2 rounded-full px-2.5 pr-3 text-sm font-semibold ${tone}`}>
-      <Icon name={icon} className="h-3.5 w-3.5" />
-      <span className="font-medium opacity-70">{label}</span>
-      {value}
-    </span>
-  );
-}
