@@ -1,5 +1,10 @@
 import { cookies } from "next/headers";
-import { DEFAULT_DESIGN, DEFAULT_THEME, DESIGN_COOKIE, THEME_COOKIE, isDesign, isTheme, type Design, type Theme } from "./look-cookie";
+import { DEFAULT_DESIGN, DEFAULT_THEME, DESIGN_COOKIE, HOME_TOP_COOKIE, THEME_COOKIE, isDesign, isTheme, type Design, type Theme } from "./look-cookie";
+
+export async function homeTopOpen(): Promise<boolean> {
+  const jar = await cookies();
+  return jar.get(HOME_TOP_COOKIE)?.value !== "hidden";
+}
 
 export async function getLook(): Promise<{ design: Design; theme: Theme }> {
   const jar = await cookies();

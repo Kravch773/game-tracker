@@ -17,10 +17,11 @@ import { CatalogSide } from "@/components/CatalogSide";
 import { SearchForm } from "@/components/SearchForm";
 import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
-import { ConsoleHero, ShelfBento } from "@/components/HomeTop";
+import { ConsoleHero, ShelfBento, homeTopSummary } from "@/components/HomeTop";
+import { HomeTopFold } from "@/components/HomeTopFold";
 import { getActivity, getCollections, getMe, searchGames } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
-import { getLook } from "@/lib/look";
+import { getLook, homeTopOpen } from "@/lib/look";
 import type { Design } from "@/lib/look-cookie";
 import { absoluteUrl, pageMetadata } from "@/lib/site";
 
@@ -88,11 +89,7 @@ export default async function HomePage({
           },
         }}
       />
-      {browsing ? (
-        <div className="mb-12">
-          <HomeTop design={design} />
-        </div>
-      ) : null}
+      {browsing ? <HomeTop design={design} /> : null}
       <p className="text-sm font-medium tracking-[0.18em] text-accent-fg uppercase">{t("home.eyebrow")}</p>
       <h1 className={`mt-3 max-w-2xl font-display tracking-tight ${browsing ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"}`}>
         {t("home.title")}
@@ -194,10 +191,21 @@ const GENRE_TILE: Record<CatalogGenreId, string> = {
 };
 
 async function HomeTop({ design }: { design: Design }) {
-  const [home, me] = await Promise.all([getCollections(), getMe()]);
-  if (design === "console") return <ConsoleHero home={home} user={me} />;
-  const { events } = await getActivity(me != null).catch(() => ({ events: [] }));
-  return <ShelfBento home={home} user={me} events={events} />;
+  const [home, me, open] = await Promise.all([getCollections(), getMe(), homeTopOpen()]);
+  const summary = homeTopSummary(home, me);
+  if (design === "console") {
+    return (
+      <HomeTopFold initialOpen={open} summary={summary}>
+        <ConsoleHero home={home} user={me} />
+      </HomeTopFold>
+    );
+  }
+  const { events } = open ? await getActivity(me != null).catch(() => ({ events: [] })) : { events: [] };
+  return (
+    <HomeTopFold initialOpen={open} summary={summary}>
+      <ShelfBento home={home} user={me} events={events} />
+    </HomeTopFold>
+  );
 }
 
 function ShelfLinks({ design }: { design: Design }) {

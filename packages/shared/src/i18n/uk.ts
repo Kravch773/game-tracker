@@ -164,6 +164,8 @@ export const uk = {
     soon: "Скоро",
     calendarLead: "Що виходить цього місяця",
     open: "Відкрити гру",
+    hide: "Сховати",
+    show: "Показати",
     catalog: "Каталог",
   },
   look: {

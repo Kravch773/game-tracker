@@ -19,6 +19,14 @@ function Cover({ game, className }: { game: GameSummary; className: string }) {
   );
 }
 
+// One line that stands in for the folded block.
+export function homeTopSummary(home: HomeResponse, user: AuthUser | null): string {
+  const mine = user ? (home.upcomingBacklog ?? []) : [];
+  const lead = mine[0] ?? home.collections.find((section) => section.id === "upcoming")?.games[0];
+  const label = mine.length > 0 ? t("collections.fromYourList") : t("dash.soon");
+  return lead ? `${label} · ${lead.title} · ${when(lead)}` : label;
+}
+
 // Console: one big "coming from your list" card with the next two beside it.
 export function ConsoleHero({ home, user }: { home: HomeResponse; user: AuthUser | null }) {
   const mine = user ? (home.upcomingBacklog ?? []) : [];

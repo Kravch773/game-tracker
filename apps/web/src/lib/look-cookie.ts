@@ -5,6 +5,7 @@ export type Theme = (typeof THEMES)[number];
 
 export const DESIGN_COOKIE = "design";
 export const THEME_COOKIE = "theme";
+export const HOME_TOP_COOKIE = "home_top";
 export const DEFAULT_DESIGN: Design = "console";
 export const DEFAULT_THEME: Theme = "dark";
 const YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -17,6 +18,6 @@ export function isTheme(value: unknown): value is Theme {
   return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
-export function lookCookie(name: typeof DESIGN_COOKIE | typeof THEME_COOKIE, value: string): string {
+export function lookCookie(name: typeof DESIGN_COOKIE | typeof THEME_COOKIE | typeof HOME_TOP_COOKIE, value: string): string {
   return `${name}=${value}; Path=/; Max-Age=${YEAR_SECONDS}; SameSite=Lax`;
 }

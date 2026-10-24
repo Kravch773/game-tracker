@@ -166,6 +166,8 @@ export const en = {
     soon: "Coming soon",
     calendarLead: "What comes out this month",
     open: "Open game",
+    hide: "Hide",
+    show: "Show",
     catalog: "Catalog",
   },
   look: {
