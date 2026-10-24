@@ -401,6 +401,10 @@ export const uk = {
     mine: "Мої релізи",
     released: "Вже вийшла",
     soon: "Скоро",
+    sizeHint: "чим популярніша гра, тим більша обкладинка",
+    allPlatforms: "Усі платформи",
+    count: "релізів: {count}",
+    inList: "У списку",
   },
   locale: {
     label: "Мова",

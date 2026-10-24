@@ -4,11 +4,13 @@ import { formatMonth, formatReleaseDate, weekdayLabels } from "@/lib/format";
 export function CalendarSide({
   month,
   marked,
+  mineDates,
   today,
   mine,
 }: {
   month: string;
   marked: Set<string>;
+  mineDates: Set<string>;
   today: string;
   mine: GameSummary[];
 }) {
@@ -48,7 +50,11 @@ export function CalendarSide({
             const body = (
               <>
                 {day}
-                <span className={`h-1 w-1 rounded-full ${hasGames && !isToday ? "bg-accent" : "bg-transparent"}`} />
+                <span
+                  className={`h-1 w-1 rounded-full ${
+                    isToday || !hasGames ? "bg-transparent" : mineDates.has(date) ? "bg-accent-fg" : "bg-muted/60"
+                  }`}
+                />
               </>
             );
             return hasGames ? (

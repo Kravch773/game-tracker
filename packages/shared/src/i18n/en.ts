@@ -403,6 +403,10 @@ export const en = {
     mine: "My releases",
     released: "Released",
     soon: "Soon",
+    sizeHint: "the more popular the game, the bigger the cover",
+    allPlatforms: "All platforms",
+    count: "releases: {count}",
+    inList: "In my list",
   },
   locale: {
     label: "Language",
