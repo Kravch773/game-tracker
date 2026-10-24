@@ -29,6 +29,7 @@ export const en = {
     news: "News",
     guide: "Guide",
     settings: "Settings",
+    menu: "Sections",
   },
   home: {
     eyebrow: "Catalog",

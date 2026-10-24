@@ -27,6 +27,7 @@ export const uk = {
     news: "Новини",
     guide: "Огляд",
     settings: "Налаштування",
+    menu: "Розділи",
   },
   home: {
     eyebrow: "Каталог",

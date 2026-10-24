@@ -3,7 +3,8 @@ import { Icon } from "@/components/Icon";
 import { LogoutButton } from "./LogoutButton";
 import { primaryClass, quietClass } from "@/lib/ui";
 
-const linkClass = "inline-flex h-11 items-center gap-1.5 rounded-full px-2 text-sm text-muted hover:text-ink sm:px-3";
+// On phones these links live in MobileNav's bottom bar.
+const linkClass = "hidden h-11 items-center sm:inline-flex gap-1.5 rounded-full px-2 text-sm text-muted hover:text-ink sm:px-3";
 
 export function AccountNav({ user }: { user: AuthUser | null }) {
   if (!user) {

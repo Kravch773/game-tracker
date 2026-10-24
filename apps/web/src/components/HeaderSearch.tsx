@@ -2,11 +2,12 @@
 
 import { t, type GameSummary } from "@gametracker/shared";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { apiUrl } from "@/lib/config";
 
 export function HeaderSearch() {
+  const pathname = usePathname();
   const params = useSearchParams();
   const query = params.get("q") ?? "";
   const [text, setText] = useState(query);
@@ -45,6 +46,9 @@ export function HeaderSearch() {
     };
   }, [query, text]);
 
+  // The home page has its own big search field.
+  if (pathname === "/") return null;
+
   return (
     <form action="/" method="get" role="search" className="relative w-full max-w-md">
       <label className="sr-only" htmlFor="header-query">
@@ -61,17 +65,17 @@ export function HeaderSearch() {
         placeholder={t("home.queryLabel")}
         maxLength={80}
         autoComplete="off"
-        className="h-10 w-full rounded-full border border-line bg-panel/90 pr-4 pl-10 text-sm text-ink outline-none placeholder:text-muted focus:border-accent"
+        className="h-11 w-full rounded-full border border-line bg-panel/90 pr-4 pl-11 text-sm text-ink outline-none placeholder:text-muted focus:border-accent"
       />
       <button
         type="submit"
         aria-label={t("home.search")}
-        className="absolute top-1 left-1 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted hover:text-ink"
+        className="absolute top-0 left-0 inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-ink"
       >
         <Icon name="search" />
       </button>
       {open && hints.length > 0 ? (
-        <ul className="absolute top-12 z-30 w-full overflow-hidden rounded-3xl border border-line bg-panel shadow-2xl">
+        <ul className="absolute top-13 z-30 w-full overflow-hidden rounded-3xl border border-line bg-panel shadow-2xl">
           {hints.map((game) => (
             <li key={game.id}>
               <a

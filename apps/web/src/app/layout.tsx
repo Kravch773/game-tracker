@@ -6,6 +6,7 @@ import { AccountNav } from "@/components/AccountNav";
 import { HeaderSearch } from "@/components/HeaderSearch";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { LocaleSync } from "@/components/LocaleSync";
+import { MobileNav } from "@/components/MobileNav";
 import { getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 import { isPreviewDeployment, siteUrl } from "@/lib/site";
@@ -50,7 +51,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <LocaleSync locale={locale}>
           <header className="sticky top-0 z-40 border-b border-line bg-bg/75 backdrop-blur-xl">
             <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:h-16 sm:flex-nowrap sm:py-0">
-              <a href="/" className="order-1 inline-flex shrink-0 items-center">
+              <a href="/" className="order-1 inline-flex h-11 shrink-0 items-center">
                 <picture>
                   <source media="(min-width: 640px)" srcSet="/brand-logo.png" />
                   <img src="/brand-mark.png" alt="GameTracker" className="h-9 w-auto" />
@@ -60,14 +61,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 <LanguageSwitch />
                 <AccountNav user={me} />
               </div>
-              <div className="order-3 flex w-full justify-center sm:order-2 sm:w-auto sm:min-w-0 sm:flex-1">
-                <Suspense fallback={<div className="h-10 w-full max-w-md rounded-full border border-line bg-panel/50" />}>
+              <div className="order-3 flex w-full justify-center max-sm:empty:hidden sm:order-2 sm:w-auto sm:min-w-0 sm:flex-1">
+                <Suspense fallback={<div className="h-11 w-full max-w-md rounded-full border border-line bg-panel/50" />}>
                   <HeaderSearch />
                 </Suspense>
               </div>
             </div>
           </header>
-          <div className="mx-auto w-full max-w-6xl px-4 py-8">{children}</div>
+          <div className="mx-auto w-full max-w-6xl px-4 pt-8 pb-24 sm:pb-8">{children}</div>
+          <MobileNav />
         </LocaleSync>
       </body>
     </html>

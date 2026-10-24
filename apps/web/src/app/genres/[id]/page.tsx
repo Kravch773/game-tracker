@@ -53,7 +53,7 @@ function Shelf({
 }) {
   return (
     <main>
-      <a href="/" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+      <a href="/" className="-my-3 inline-flex h-11 items-center gap-1.5 text-sm text-muted hover:text-ink">
         <Icon name="arrow" />
         {t("common.backToSearch")}
       </a>

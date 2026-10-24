@@ -68,55 +68,80 @@ type SideState = {
 };
 
 export function CatalogSide(props: SideState) {
+  // On phones the panel starts folded so the games come first.
+  const [open, setOpen] = useState(false);
+  const active = [props.genre, props.platform, props.year, props.developer, props.publisher, props.series, props.origin].filter(
+    Boolean,
+  ).length;
+
   return (
     <aside className="w-full shrink-0 rounded-3xl border border-line bg-panel/80 p-4 md:sticky md:top-24 md:w-72">
-      <p className="px-1 text-sm font-semibold">{t("home.filters")}</p>
-      <Section title={t("home.sort")} initialOpen>
-        <ul className="flex flex-col">
-          {SORTS.map((item) => (
-            <li key={item.id}>
-              <a href={href(props, { sort: item.id })} className={rowClass(props.sort === item.id)}>
-                {t(item.label)}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </Section>
-      <a
-        href={href(props, {
-          origin: props.origin === "ua" ? "" : "ua",
-          genre: props.origin === "ua" ? props.genre : "",
-          developer: props.origin === "ua" ? props.developer : "",
-          publisher: props.origin === "ua" ? props.publisher : "",
-          series: props.origin === "ua" ? props.series : "",
-        })}
-        className="mt-2 flex items-center justify-between gap-3 rounded-2xl px-3 py-3 hover:bg-white/5"
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="catalog-filters"
+        onClick={() => setOpen((value) => !value)}
+        className="-m-4 flex h-14 w-[calc(100%+2rem)] items-center justify-between gap-3 px-5 text-left text-sm font-semibold md:hidden"
       >
-        <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("home.ukrainianGames")}</span>
-        <span className={`relative h-6 w-11 shrink-0 rounded-full ${props.origin === "ua" ? "bg-accent" : "bg-white/15"}`}>
-          <span
-            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${props.origin === "ua" ? "right-0.5" : "left-0.5"}`}
-          />
+        <span className="inline-flex items-center gap-2">
+          {t("home.filters")}
+          {active > 0 ? (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs text-accent-ink">
+              {active}
+            </span>
+          ) : null}
         </span>
-      </a>
-      <Section title={t("home.genre")} initialOpen>
-        <OptionList
-          selected={props.genre}
-          options={SEARCH_GENRES.map((item) => ({ id: item.id, label: t(GENRE_LABEL[item.id]), icon: SEARCH_GENRE_ICON[item.id] }))}
-          hrefFor={(id) => href(props, { genre: props.genre === id ? "" : id, origin: id && props.genre !== id ? "" : props.origin })}
-        />
-      </Section>
-      <Section title={t("home.platform")} initialOpen>
-        <OptionList
-          selected={props.platform}
-          options={CATALOG_PLATFORMS.map((item) => ({ id: item.id, label: t(PLATFORM_LABEL[item.id]) }))}
-          hrefFor={(id) => href(props, { platform: props.platform === id ? "" : id })}
-        />
-      </Section>
-      <TextFilter {...props} field="series" label={t("game.series")} />
-      <TextFilter {...props} field="developer" label={t("game.developers")} />
-      <TextFilter {...props} field="publisher" label={t("game.publishers")} />
-      <YearField {...props} />
+        <span className={`h-2 w-2 border-r-2 border-b-2 border-muted ${open ? "-translate-y-0.5 rotate-45" : "translate-y-0.5 -rotate-45"}`} />
+      </button>
+      <p className="hidden px-1 text-sm font-semibold md:block">{t("home.filters")}</p>
+      <div id="catalog-filters" className={`${open ? "mt-6 block" : "hidden"} md:mt-0 md:block`}>
+        <Section title={t("home.sort")} initialOpen>
+          <ul className="flex flex-col">
+            {SORTS.map((item) => (
+              <li key={item.id}>
+                <a href={href(props, { sort: item.id })} className={rowClass(props.sort === item.id)}>
+                  {t(item.label)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Section>
+        <a
+          href={href(props, {
+            origin: props.origin === "ua" ? "" : "ua",
+            genre: props.origin === "ua" ? props.genre : "",
+            developer: props.origin === "ua" ? props.developer : "",
+            publisher: props.origin === "ua" ? props.publisher : "",
+            series: props.origin === "ua" ? props.series : "",
+          })}
+          className="mt-2 flex items-center justify-between gap-3 rounded-2xl px-3 py-3 hover:bg-white/5"
+        >
+          <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("home.ukrainianGames")}</span>
+          <span className={`relative h-6 w-11 shrink-0 rounded-full ${props.origin === "ua" ? "bg-accent" : "bg-white/15"}`}>
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${props.origin === "ua" ? "right-0.5" : "left-0.5"}`}
+            />
+          </span>
+        </a>
+        <Section title={t("home.genre")} initialOpen>
+          <OptionList
+            selected={props.genre}
+            options={SEARCH_GENRES.map((item) => ({ id: item.id, label: t(GENRE_LABEL[item.id]), icon: SEARCH_GENRE_ICON[item.id] }))}
+            hrefFor={(id) => href(props, { genre: props.genre === id ? "" : id, origin: id && props.genre !== id ? "" : props.origin })}
+          />
+        </Section>
+        <Section title={t("home.platform")} initialOpen>
+          <OptionList
+            selected={props.platform}
+            options={CATALOG_PLATFORMS.map((item) => ({ id: item.id, label: t(PLATFORM_LABEL[item.id]) }))}
+            hrefFor={(id) => href(props, { platform: props.platform === id ? "" : id })}
+          />
+        </Section>
+        <TextFilter {...props} field="series" label={t("game.series")} />
+        <TextFilter {...props} field="developer" label={t("game.developers")} />
+        <TextFilter {...props} field="publisher" label={t("game.publishers")} />
+        <YearField {...props} />
+      </div>
     </aside>
   );
 }

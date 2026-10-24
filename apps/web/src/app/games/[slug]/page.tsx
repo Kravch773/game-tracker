@@ -58,7 +58,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 
   return (
     <main>
-      <a href="/" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+      <a href="/" className="-my-3 inline-flex h-11 items-center gap-1.5 text-sm text-muted hover:text-ink">
         <Icon name="arrow" />
         {t("common.backToSearch")}
       </a>
@@ -122,7 +122,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
                         href={link.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-white/5 pr-3 pl-1.5 text-sm hover:border-accent"
+                        className="inline-flex h-11 items-center sm:h-9 gap-2 rounded-lg border border-line bg-white/5 pr-3 pl-1.5 text-sm hover:border-accent"
                       >
                         <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${LINK_MARK[link.kind].tone}`}>
                           <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
@@ -264,8 +264,8 @@ function CompanyLinks({
               href={`/?${param}=${encodeURIComponent(name)}`}
               className={
                 russian
-                  ? "inline-flex h-8 items-center rounded-lg border border-red-500/50 bg-red-500/15 px-2.5 text-sm font-medium text-red-300 transition hover:border-red-400 hover:bg-red-500/25 hover:text-red-200"
-                  : "inline-flex h-8 items-center rounded-lg border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+                  ? "inline-flex h-11 items-center rounded-lg sm:h-8 border border-red-500/50 bg-red-500/15 px-2.5 text-sm font-medium text-red-300 transition hover:border-red-400 hover:bg-red-500/25 hover:text-red-200"
+                  : "inline-flex h-11 items-center rounded-lg sm:h-8 border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
               }
             >
               {name}
