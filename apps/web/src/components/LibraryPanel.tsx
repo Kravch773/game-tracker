@@ -1,7 +1,7 @@
 "use client";
 
 import { REVIEW_MAX_LENGTH, t, type GameEntry, type LibraryStatus } from "@gametracker/shared";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog } from "@/components/Dialog";
 import { Icon } from "@/components/Icon";
 import { LoginForm } from "@/components/LoginForm";
@@ -35,13 +35,13 @@ export function LibraryPanel({
   entry: GameEntry;
   design?: Design;
 }) {
-  const [open, setOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [status, setStatus] = useState(entry.status);
   const [rating, setRating] = useState<number | null>(entry.rating);
   const [review, setReview] = useState(entry.review ?? "");
   const [favorite, setFavorite] = useState(entry.favorite);
   const [draftRating, setDraftRating] = useState<number | null>(entry.rating);
+  const saveTimer = useRef<number | undefined>(undefined);
   const [draftReview, setDraftReview] = useState(entry.review ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +50,20 @@ export function LibraryPanel({
   const nextPath = `/games/${encodeURIComponent(slug)}`;
   const registerHref = `/register?next=${encodeURIComponent(nextPath)}`;
 
-  function openRating() {
-    setDraftRating(rating);
-    setDraftReview(review);
-    setError(null);
-    setOpen(true);
+  // The slider saves on its own a moment after the last move; 11 sits past 10 as the extra mark.
+  function slide(value: number) {
+    const next = value > 10 ? 11 : Math.round(value * 10) / 10;
+    setDraftRating(next);
+    window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      if (status) void persist(status, next, review.trim() || null);
+    }, 450);
+  }
+
+  function clearRating() {
+    window.clearTimeout(saveTimer.current);
+    setDraftRating(null);
+    if (status) void persist(status, null, review.trim() || null);
   }
 
   async function persist(nextStatus: LibraryStatus, nextRating: number | null, nextReview: string | null) {
@@ -91,25 +100,13 @@ export function LibraryPanel({
       await clearEntry();
       return;
     }
-    const saved = await persist(next, rating, review.trim() || null);
-    if (saved && isScoredStatus(next)) {
-      setDraftRating(rating);
-      setDraftReview(review);
-      setError(null);
-      setOpen(true);
-    }
+    await persist(next, rating, review.trim() || null);
   }
 
   function openReview() {
     setDraftReview(review);
     setError(null);
     setReviewOpen(true);
-  }
-
-  async function saveRating() {
-    if (!status || !isScoredStatus(status)) return;
-    const saved = await persist(status, draftRating, draftReview.trim() || null);
-    if (saved) setOpen(false);
   }
 
   async function saveReview() {
@@ -136,7 +133,6 @@ export function LibraryPanel({
       setReview("");
       setDraftRating(null);
       setDraftReview("");
-      setOpen(false);
     } catch {
       setError(t("library.removeFailed"));
     } finally {
@@ -226,20 +222,39 @@ export function LibraryPanel({
           })}
         </div>
 
-        <div className={`mt-3 flex items-center gap-3 rounded-2xl p-3 ${shelf ? "bg-strong-ink/10" : "bg-raised"}`}>
-          <div className="min-w-0 flex-1">
-            <p className={`text-xs ${shelf ? "text-strong-ink/70" : "text-muted"}`}>{t("library.rate")}</p>
-            <p className={`font-display text-3xl leading-tight ${shelf ? "text-tile-sun" : "text-accent-fg"}`}>
-              {rating == null ? "—" : rating === 11 ? "11" : rating.toFixed(1)}
-            </p>
+        {scored ? (
+          <div className={`mt-3 rounded-2xl p-3 ${shelf ? "bg-strong-ink/10" : "bg-raised"}`}>
+            <div className="flex items-baseline justify-between gap-3">
+              <label htmlFor={`rating-${slug}`} className={`text-sm ${shelf ? "text-strong-ink/75" : "text-muted"}`}>
+                {t("library.rate")}
+              </label>
+              <span className={`font-display text-3xl leading-none ${shelf ? "text-tile-sun" : "text-accent-fg"}`}>
+                {draftRating == null ? "—" : draftRating === 11 ? "11" : draftRating.toFixed(1)}
+              </span>
+            </div>
+            <input
+              id={`rating-${slug}`}
+              type="range"
+              min={0}
+              max={11}
+              step={0.1}
+              value={draftRating ?? 0}
+              aria-valuetext={draftRating == null ? t("library.noRating") : draftRating === 11 ? t("library.extra") : draftRating.toFixed(1)}
+              onChange={(event) => slide(Number(event.target.value))}
+              className={`mt-2 h-7 w-full cursor-pointer ${shelf ? "accent-tile-sun" : "accent-accent"} ${draftRating == null ? "opacity-50" : ""}`}
+            />
+            <div className={`flex items-center justify-between text-[11px] ${shelf ? "text-strong-ink/70" : "text-muted"}`}>
+              <span>0</span>
+              <span>10</span>
+              <span>{t("library.extra")}</span>
+            </div>
+            {draftRating != null && status !== "finished" ? (
+              <button type="button" onClick={clearRating} className={`mt-2 text-xs font-semibold underline ${shelf ? "text-strong-ink/75" : "text-muted"}`}>
+                {t("library.noRating")}
+              </button>
+            ) : null}
           </div>
-          {scored ? (
-            <button type="button" disabled={pending} onClick={openRating} className={`${primaryClass} gap-1.5 px-4`}>
-              <Icon name="star" className="text-accent-ink" />
-              {t("library.rate")}
-            </button>
-          ) : null}
-        </div>
+        ) : null}
 
         <div className="mt-3 flex gap-2">
           {scored ? (
@@ -272,72 +287,8 @@ export function LibraryPanel({
           </button>
         </div>
         {review ? <p className={`mt-3 line-clamp-3 text-sm leading-6 ${shelf ? "text-strong-ink/80" : "text-muted"}`}>{review}</p> : null}
-        {error && !open && !reviewOpen ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+        {error && !reviewOpen ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
       </section>
-      <Dialog open={open} title={t("library.rate")} onClose={() => setOpen(false)}>
-        <p className="text-sm text-muted">{t("library.ratingHint")}</p>
-        <p className="mt-3 font-display text-3xl text-accent-fg">
-          {draftRating == null ? t("library.noRating") : draftRating === 11 ? t("library.extra") : draftRating.toFixed(1)}
-        </p>
-        <input
-          type="range"
-          min={0}
-          max={10}
-          step={0.1}
-          value={draftRating != null && draftRating <= 10 ? draftRating : 0}
-          disabled={pending}
-          aria-label={t("library.rate")}
-          onChange={(event) => setDraftRating(Number(event.target.value))}
-          className="mt-3 w-full accent-accent"
-        />
-        <button
-          type="button"
-          disabled={pending}
-          aria-pressed={draftRating === 11}
-          onClick={() => setDraftRating(draftRating === 11 ? null : 11)}
-          className={`mt-3 h-11 w-full rounded-xl border text-sm font-semibold ${
-            draftRating === 11
-              ? "border-accent bg-accent text-accent-ink!"
-              : "border-accent/50 text-accent-fg hover:bg-accent hover:text-accent-ink!"
-          }`}
-        >
-          {t("library.extra")}
-        </button>
-        {status === "dropped" || status === "playing" ? (
-          <button
-            type="button"
-            disabled={pending}
-            aria-pressed={draftRating == null}
-            onClick={() => setDraftRating(null)}
-            className={`mt-2 h-11 w-full rounded-xl border text-sm font-semibold ${
-              draftRating == null ? "border-accent bg-accent text-accent-ink!" : "border-line bg-bg/50 hover:border-ink/25"
-            }`}
-          >
-            {t("library.noRating")}
-          </button>
-        ) : null}
-        <label className="mt-4 block text-sm">
-          {t("library.review")}
-          <textarea
-            value={draftReview}
-            onChange={(event) => onReview(event.target.value)}
-            rows={5}
-            className="mt-2 w-full resize-none rounded-2xl border border-line bg-bg/50 px-3 py-3 text-ink outline-none focus:border-accent"
-          />
-        </label>
-        <p className="mt-1 text-right text-xs text-muted">
-          {[...draftReview].length}/{REVIEW_MAX_LENGTH}
-        </p>
-        {error ? <p className="mt-4 text-sm text-accent-fg">{error}</p> : null}
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <button type="button" disabled={pending} onClick={() => void saveRating()} className={primaryClass}>
-            {pending ? t("common.saving") : t("common.save")}
-          </button>
-          <button type="button" disabled={pending} onClick={() => setOpen(false)} className={quietClass}>
-            {t("common.close")}
-          </button>
-        </div>
-      </Dialog>
       <Dialog open={reviewOpen} title={t("library.editReview")} onClose={() => setReviewOpen(false)}>
         <label className="block text-sm">
           {t("library.review")}
