@@ -42,6 +42,10 @@ export function LibraryPanel({
   const [favorite, setFavorite] = useState(entry.favorite);
   const [draftRating, setDraftRating] = useState<number | null>(entry.rating);
   const saveTimer = useRef<number | undefined>(undefined);
+  const draftRef = useRef<number | null>(entry.rating);
+  draftRef.current = draftRating;
+  const savingRef = useRef(false);
+  const queuedRef = useRef<{ value: number | null } | null>(null);
   const [draftReview, setDraftReview] = useState(entry.review ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,28 +54,52 @@ export function LibraryPanel({
   const nextPath = `/games/${encodeURIComponent(slug)}`;
   const registerHref = `/register?next=${encodeURIComponent(nextPath)}`;
 
-  // The slider covers 0–10 and saves on its own a moment after the last move.
-  // 11 is a separate button, so dragging to 10 can never slip into it.
-  function saveRating(next: number | null, delay: number) {
+  // The slider covers 0–10 and only moves the number while it is dragged; the score is saved
+  // once, when the thumb is let go (or shortly after the last arrow key). 11 is a separate
+  // button, so dragging to 10 can never slip into it.
+  function slide(value: number) {
+    const next = Math.min(10, Math.round(value * 10) / 10);
+    draftRef.current = next;
     setDraftRating(next);
+  }
+
+  function commitSlide(delay = 0) {
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
-      if (status) void persist(status, next, review.trim() || null);
+      if (draftRef.current !== rating) void saveRating(draftRef.current);
     }, delay);
   }
 
-  function slide(value: number) {
-    saveRating(Math.min(10, Math.round(value * 10) / 10), 450);
-  }
-
   function toggleExtra() {
-    saveRating(draftRating === 11 ? 10 : 11, 0);
+    const next = draftRating === 11 ? 10 : 11;
+    setDraftRating(next);
+    void saveRating(next);
   }
 
   function clearRating() {
     window.clearTimeout(saveTimer.current);
     setDraftRating(null);
-    if (status) void persist(status, null, review.trim() || null);
+    void saveRating(null);
+  }
+
+  // One request at a time: a score picked while one is in flight waits and goes next,
+  // so an older answer can never land after a newer one.
+  async function saveRating(next: number | null) {
+    if (!status) return;
+    if (savingRef.current) {
+      queuedRef.current = { value: next };
+      return;
+    }
+    savingRef.current = true;
+    let value = next;
+    for (;;) {
+      await persist(status, value, review.trim() || null);
+      const queued = queuedRef.current;
+      if (!queued) break;
+      queuedRef.current = null;
+      value = queued.value;
+    }
+    savingRef.current = false;
   }
 
   async function persist(nextStatus: LibraryStatus, nextRating: number | null, nextReview: string | null) {
@@ -249,6 +277,9 @@ export function LibraryPanel({
               value={draftRating == null ? 0 : Math.min(draftRating, 10)}
               aria-valuetext={draftRating == null ? t("library.noRating") : draftRating === 11 ? t("library.extra") : draftRating.toFixed(1)}
               onChange={(event) => slide(Number(event.target.value))}
+              onPointerUp={() => commitSlide()}
+              onKeyUp={() => commitSlide(600)}
+              onBlur={() => commitSlide()}
               className={`mt-2 h-7 w-full cursor-pointer ${shelf ? "accent-tile-sun" : "accent-accent"} ${
                 draftRating == null || draftRating === 11 ? "opacity-50" : ""
               }`}
