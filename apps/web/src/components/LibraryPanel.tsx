@@ -203,9 +203,9 @@ export function LibraryPanel({
 
   return (
     <>
-      <section className={card}>
+      <section className={`@container ${card}`}>
         <p className={label}>{t("library.list")}</p>
-        <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label={t("library.section")}>
+        <div className="mt-3 grid grid-cols-1 gap-2 @xs:grid-cols-2" role="group" aria-label={t("library.section")}>
           {PROFILE_SECTIONS.map((item) => {
             const active = status === item;
             return (
@@ -215,12 +215,12 @@ export function LibraryPanel({
                 disabled={pending}
                 aria-pressed={active}
                 onClick={() => void chooseStatus(item)}
-                className={`inline-flex h-12 items-center gap-2 rounded-2xl px-3 text-left text-sm font-semibold transition ${
+                className={`inline-flex min-h-12 items-center gap-2 rounded-2xl px-3 py-2 text-left text-sm leading-tight font-semibold transition ${
                   active ? (shelf ? `${SHELF_FILL[item]} text-[#1b1530]` : "bg-raised ring-1 ring-accent-fg") : soft
                 }`}
               >
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${shelf ? (active ? "bg-[#1b1530]" : SHELF_FILL[item]) : STATUS_DOT[item]}`} />
-                <span className="truncate">{STATUS_LABELS[item]}</span>
+                <span className="min-w-0">{STATUS_LABELS[item]}</span>
               </button>
             );
           })}
