@@ -5,31 +5,7 @@ import { useState } from "react";
 import { GameResult } from "@/components/GameResult";
 import { apiUrl } from "@/lib/config";
 
-export function SearchResults({
-  query,
-  genre,
-  platform,
-  year,
-  sort = "",
-  developer = "",
-  publisher = "",
-  series = "",
-  origin = "",
-  games,
-  hasMore,
-}: {
-  query: string;
-  genre: string;
-  platform: string;
-  year: string;
-  sort?: string;
-  developer?: string;
-  publisher?: string;
-  series?: string;
-  origin?: string;
-  games: GameSummary[];
-  hasMore: boolean;
-}) {
+export function SearchResults({ params, games, hasMore }: { params: string; games: GameSummary[]; hasMore: boolean }) {
   const [items, setItems] = useState(games);
   const [more, setMore] = useState(hasMore);
   const [pending, setPending] = useState(false);
@@ -38,27 +14,18 @@ export function SearchResults({
   async function loadMore() {
     setPending(true);
     setFailed(false);
-    const params = new URLSearchParams();
-    if (query) params.set("q", query);
-    if (genre) params.set("genre", genre);
-    if (platform) params.set("platform", platform);
-    if (year) params.set("year", year);
-    if (sort && sort !== "popular") params.set("sort", sort);
-    if (developer) params.set("developer", developer);
-    if (publisher) params.set("publisher", publisher);
-    if (series) params.set("series", series);
-    if (origin) params.set("origin", origin);
-    params.set("offset", String(items.length));
+    const next = new URLSearchParams(params);
+    next.set("offset", String(items.length));
     try {
-      const response = await fetch(`${apiUrl}/games?${params}`);
+      const response = await fetch(`${apiUrl}/games?${next}`);
       if (!response.ok) throw new Error("load");
       const payload = (await response.json()) as { games?: GameSummary[]; hasMore?: boolean };
-      const next = payload.games ?? [];
+      const added = payload.games ?? [];
       setItems((current) => {
         const seen = new Set(current.map((game) => game.id));
-        return [...current, ...next.filter((game) => !seen.has(game.id))];
+        return [...current, ...added.filter((game) => !seen.has(game.id))];
       });
-      setMore(Boolean(payload.hasMore) && next.length > 0);
+      setMore(Boolean(payload.hasMore) && added.length > 0);
     } catch {
       setFailed(true);
     } finally {

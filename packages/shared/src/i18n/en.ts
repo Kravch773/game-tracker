@@ -51,6 +51,8 @@ export const en = {
     ukrainianGames: "Ukrainian games",
     russianGames: "Caution: Russian games",
     filters: "Filters",
+    clearFilters: "Clear all",
+    removeFilter: "Remove filter {name}",
     filterSearch: "Search",
     sort: "Sort",
     sortPopular: "Popularity",

@@ -10,7 +10,8 @@ import {
   type SearchSort,
 } from "@gametracker/shared";
 import { useEffect, useState, type ReactNode } from "react";
-import { Icon } from "@/components/Icon";
+import { Icon, type IconName } from "@/components/Icon";
+import { LIST_FIELDS, catalogHref, toggleValue, type CatalogQuery } from "@/lib/catalog-query";
 import { apiUrl } from "@/lib/config";
 import { SEARCH_GENRE_ICON } from "@/lib/marks";
 
@@ -55,24 +56,11 @@ const SORTS: { id: SearchSort; label: MessageKey }[] = [
   { id: "title", label: "home.sortTitle" },
 ];
 
-type SideState = {
-  q: string;
-  genre: string;
-  platform: string;
-  year: string;
-  developer: string;
-  publisher: string;
-  series: string;
-  origin: "" | "ua" | "ru";
-  sort: SearchSort;
-};
-
-export function CatalogSide(props: SideState) {
+export function CatalogSide({ catalog }: { catalog: CatalogQuery }) {
   // On phones the panel starts folded so the games come first.
   const [open, setOpen] = useState(false);
-  const active = [props.genre, props.platform, props.year, props.developer, props.publisher, props.series, props.origin].filter(
-    Boolean,
-  ).length;
+  const active = LIST_FIELDS.reduce((sum, field) => sum + catalog[field].length, 0) + (catalog.year ? 1 : 0) + (catalog.origin ? 1 : 0);
+  const ukrainian = catalog.origin === "ua";
 
   return (
     <aside className="w-full shrink-0 rounded-3xl border border-line bg-panel/80 p-4 md:sticky md:top-24 md:w-72">
@@ -99,7 +87,7 @@ export function CatalogSide(props: SideState) {
           <ul className="flex flex-col">
             {SORTS.map((item) => (
               <li key={item.id}>
-                <a href={href(props, { sort: item.id })} className={rowClass(props.sort === item.id)}>
+                <a href={catalogHref(catalog, { sort: item.id })} className={rowClass(catalog.sort === item.id)}>
                   {t(item.label)}
                 </a>
               </li>
@@ -107,46 +95,40 @@ export function CatalogSide(props: SideState) {
           </ul>
         </Section>
         <a
-          href={href(props, {
-            origin: props.origin === "ua" ? "" : "ua",
-            genre: props.origin === "ua" ? props.genre : "",
-            developer: props.origin === "ua" ? props.developer : "",
-            publisher: props.origin === "ua" ? props.publisher : "",
-            series: props.origin === "ua" ? props.series : "",
-          })}
+          href={catalogHref(catalog, ukrainian ? { origin: "" } : { origin: "ua", genre: [], developer: [], publisher: [], series: [] })}
+          role="switch"
+          aria-checked={ukrainian}
           className="mt-2 flex items-center justify-between gap-3 rounded-2xl px-3 py-3 hover:bg-ink/5"
         >
           <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("home.ukrainianGames")}</span>
-          <span className={`relative h-6 w-11 shrink-0 rounded-full ${props.origin === "ua" ? "bg-accent" : "bg-ink/15"}`}>
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${props.origin === "ua" ? "right-0.5" : "left-0.5"}`}
-            />
+          <span className={`relative h-6 w-11 shrink-0 rounded-full ${ukrainian ? "bg-accent" : "bg-ink/15"}`}>
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${ukrainian ? "right-0.5" : "left-0.5"}`} />
           </span>
         </a>
-        <Section title={t("home.genre")} initialOpen>
-          <OptionList
-            selected={props.genre}
+        <Section title={t("home.genre")} count={catalog.genre.length} initialOpen>
+          <CheckList
+            catalog={catalog}
+            field="genre"
             options={SEARCH_GENRES.map((item) => ({ id: item.id, label: t(GENRE_LABEL[item.id]), icon: SEARCH_GENRE_ICON[item.id] }))}
-            hrefFor={(id) => href(props, { genre: props.genre === id ? "" : id, origin: id && props.genre !== id ? "" : props.origin })}
           />
         </Section>
-        <Section title={t("home.platform")} initialOpen>
-          <OptionList
-            selected={props.platform}
+        <Section title={t("home.platform")} count={catalog.platform.length} initialOpen>
+          <CheckList
+            catalog={catalog}
+            field="platform"
             options={CATALOG_PLATFORMS.map((item) => ({ id: item.id, label: t(PLATFORM_LABEL[item.id]) }))}
-            hrefFor={(id) => href(props, { platform: props.platform === id ? "" : id })}
           />
         </Section>
-        <TextFilter {...props} field="series" label={t("game.series")} />
-        <TextFilter {...props} field="developer" label={t("game.developers")} />
-        <TextFilter {...props} field="publisher" label={t("game.publishers")} />
-        <YearField {...props} />
+        <TextFilter catalog={catalog} field="series" label={t("game.series")} />
+        <TextFilter catalog={catalog} field="developer" label={t("game.developers")} />
+        <TextFilter catalog={catalog} field="publisher" label={t("game.publishers")} />
+        <YearField catalog={catalog} />
       </div>
     </aside>
   );
 }
 
-function Section({ title, initialOpen, children }: { title: string; initialOpen?: boolean; children: ReactNode }) {
+function Section({ title, count = 0, initialOpen, children }: { title: string; count?: number; initialOpen?: boolean; children: ReactNode }) {
   const [open, setOpen] = useState(initialOpen === true);
   return (
     <div className="border-b border-line">
@@ -156,7 +138,14 @@ function Section({ title, initialOpen, children }: { title: string; initialOpen?
         onClick={() => setOpen((current) => !current)}
         className="flex w-full items-center justify-between py-3 text-left text-xs font-semibold tracking-[0.14em] text-muted uppercase"
       >
-        {title}
+        <span className="inline-flex items-center gap-2">
+          {title}
+          {count > 0 ? (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] tracking-normal text-accent-ink">
+              {count}
+            </span>
+          ) : null}
+        </span>
         <span className={`h-2 w-2 border-r-2 border-b-2 border-current ${open ? "-translate-y-0.5 rotate-45" : "translate-y-0.5 -rotate-45"}`} />
       </button>
       {open ? <div className="pb-3">{children}</div> : null}
@@ -164,18 +153,45 @@ function Section({ title, initialOpen, children }: { title: string; initialOpen?
   );
 }
 
-function OptionList({
+// One row of a multi-choice list: a link that adds or removes the value, drawn as a checkbox.
+function CheckRow({ href, checked, icon, label }: { href: string; checked: boolean; icon?: IconName; label: string }) {
+  return (
+    <a href={href} role="checkbox" aria-checked={checked} className={rowClass(checked)}>
+      <span
+        aria-hidden="true"
+        className={`inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border ${
+          checked ? "border-accent-fg bg-accent-fg text-bg" : "border-ink/30"
+        }`}
+      >
+        {checked ? (
+          <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m3.5 8.5 3 3 6-7" />
+          </svg>
+        ) : null}
+      </span>
+      {icon ? <Icon name={icon} className="h-4 w-4" /> : null}
+      <span className="truncate">{label}</span>
+    </a>
+  );
+}
+
+function CheckList({
+  catalog,
+  field,
   options,
-  selected,
-  hrefFor,
 }: {
-  options: { id: string; label: string; icon?: (typeof SEARCH_GENRE_ICON)[SearchGenreId] }[];
-  selected: string;
-  hrefFor: (id: string) => string;
+  catalog: CatalogQuery;
+  field: "genre" | "platform";
+  options: { id: string; label: string; icon?: IconName }[];
 }) {
   const [needle, setNeedle] = useState("");
   const term = needle.trim().toLowerCase();
   const shown = term ? options.filter((item) => item.label.toLowerCase().includes(term)) : options;
+  const hrefFor = (id: string) => {
+    const patch = toggleValue(catalog, field, id);
+    // Genres and the Ukrainian list do not combine, so picking a genre leaves that list.
+    return catalogHref(catalog, field === "genre" && !catalog.genre.includes(id) ? { ...patch, origin: "" } : patch);
+  };
 
   return (
     <div>
@@ -189,13 +205,10 @@ function OptionList({
         />
         <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" />
       </label>
-      <ul className="mt-2 max-h-52 overflow-auto">
+      <ul className="mt-2 max-h-56 overflow-auto">
         {shown.map((item) => (
           <li key={item.id}>
-            <a href={hrefFor(item.id)} className={rowClass(item.id === selected)}>
-              {item.icon ? <Icon name={item.icon} className="h-4 w-4" /> : null}
-              <span className="truncate">{item.label}</span>
-            </a>
+            <CheckRow href={hrefFor(item.id)} checked={catalog[field].includes(item.id)} icon={item.icon} label={item.label} />
           </li>
         ))}
         {shown.length === 0 ? <li className="px-3 py-2 text-sm text-muted">{t("home.nothing")}</li> : null}
@@ -204,13 +217,9 @@ function OptionList({
   );
 }
 
-function TextFilter({
-  field,
-  label,
-  ...props
-}: SideState & { field: "developer" | "publisher" | "series"; label: string }) {
-  const current = props[field];
-  const [value, setValue] = useState(current);
+function TextFilter({ catalog, field, label }: { catalog: CatalogQuery; field: "developer" | "publisher" | "series"; label: string }) {
+  const chosen = catalog[field];
+  const [value, setValue] = useState("");
   const [top, setTop] = useState<string[]>([]);
   const [matches, setMatches] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -251,22 +260,28 @@ function TextFilter({
     };
   }, [field, value]);
 
-  function apply(next = value) {
-    const name = next.trim();
-    if (name === current) return;
-    window.location.href = href(props, { [field]: name, origin: "" });
+  const hrefFor = (name: string) => {
+    const patch = toggleValue(catalog, field, name);
+    return catalogHref(catalog, chosen.includes(name) ? patch : { ...patch, origin: "" });
+  };
+
+  function add() {
+    const name = value.trim();
+    if (name.length < 2 || chosen.includes(name)) return;
+    window.location.href = hrefFor(name);
   }
 
   const query = value.trim();
   const pool = matches ?? top.filter((name) => query.length === 0 || partialName(name, query));
-  const shown = current && !pool.includes(current) ? [current, ...pool].slice(0, 10) : pool.slice(0, 10);
+  // Chosen names stay at the top so they can be unticked; suggestions follow.
+  const shown = [...chosen, ...pool.filter((name) => !chosen.includes(name))].slice(0, Math.max(10, chosen.length));
 
   return (
-    <Section title={label} initialOpen={current.length > 0}>
+    <Section title={label} count={chosen.length} initialOpen={chosen.length > 0}>
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          apply();
+          add();
         }}
       >
         <label className="relative block">
@@ -274,7 +289,6 @@ function TextFilter({
           <input
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            onBlur={() => apply()}
             placeholder={t("home.filterSearch")}
             maxLength={80}
             className="h-10 w-full rounded-xl border border-line bg-bg/70 pr-3 pl-9 text-sm outline-none placeholder:text-muted focus:border-accent"
@@ -282,16 +296,10 @@ function TextFilter({
           <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" />
         </label>
       </form>
-      <ul className="mt-2 max-h-52 overflow-auto">
+      <ul className="mt-2 max-h-56 overflow-auto">
         {shown.map((name) => (
           <li key={name}>
-            <a
-              href={href(props, { [field]: current === name ? "" : name, origin: current === name ? props.origin : "" })}
-              onMouseDown={(event) => event.preventDefault()}
-              className={rowClass(name === current)}
-            >
-              <span className="truncate">{name}</span>
-            </a>
+            <CheckRow href={hrefFor(name)} checked={chosen.includes(name)} label={name} />
           </li>
         ))}
         {!loading && shown.length === 0 ? <li className="px-3 py-2 text-sm text-muted">{t("home.nothing")}</li> : null}
@@ -303,19 +311,19 @@ function TextFilter({
 function partialName(name: string, query: string): boolean {
   const term = query.trim().toLowerCase();
   if (name.toLowerCase().includes(term)) return true;
-  const folded = term.replace(/[^a-z0-9\u0400-\u04ff]+/gi, "");
-  return folded.length > 0 && name.toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]+/gi, "").includes(folded);
+  const folded = term.replace(/[^a-z0-9Ѐ-ӿ]+/gi, "");
+  return folded.length > 0 && name.toLowerCase().replace(/[^a-z0-9Ѐ-ӿ]+/gi, "").includes(folded);
 }
 
-function YearField(props: SideState) {
-  const [value, setValue] = useState(props.year);
+function YearField({ catalog }: { catalog: CatalogQuery }) {
+  const [value, setValue] = useState(catalog.year);
 
   return (
     <form
       className="pt-3"
       onSubmit={(event) => {
         event.preventDefault();
-        window.location.href = href(props, { year: value.trim() });
+        window.location.href = catalogHref(catalog, { year: value.trim() });
       }}
     >
       <label className="block text-xs font-semibold tracking-[0.14em] text-muted uppercase" htmlFor="filter-year">
@@ -326,7 +334,7 @@ function YearField(props: SideState) {
         value={value}
         onChange={(event) => setValue(event.target.value.replace(/\D/g, "").slice(0, 4))}
         onBlur={() => {
-          if (value.trim() !== props.year) window.location.href = href(props, { year: value.trim() });
+          if (value.trim() !== catalog.year) window.location.href = catalogHref(catalog, { year: value.trim() });
         }}
         inputMode="numeric"
         placeholder={t("home.year")}
@@ -336,22 +344,55 @@ function YearField(props: SideState) {
   );
 }
 
-function href(current: SideState, patch: Partial<SideState>): string {
-  const next = { ...current, ...patch };
-  const params = new URLSearchParams();
-  if (next.q) params.set("q", next.q);
-  if (next.genre) params.set("genre", next.genre);
-  if (next.platform) params.set("platform", next.platform);
-  if (next.year) params.set("year", next.year);
-  if (next.developer) params.set("developer", next.developer);
-  if (next.publisher) params.set("publisher", next.publisher);
-  if (next.series) params.set("series", next.series);
-  if (next.origin) params.set("origin", next.origin);
-  if (next.sort !== "popular") params.set("sort", next.sort);
-  const query = params.toString();
-  return query ? `/?${query}` : "/";
+function rowClass(active: boolean): string {
+  return `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm hover:bg-ink/5 ${active ? "font-semibold text-ink" : "text-ink/85"}`;
 }
 
-function rowClass(active: boolean): string {
-  return `flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-ink/5 ${active ? "bg-ink/10 font-semibold text-accent-fg" : "text-ink/85"}`;
+// The chosen filters as chips above the results; each one removes itself, the last link clears them all.
+export function ActiveFilters({ catalog }: { catalog: CatalogQuery }) {
+  const labelOf = (field: (typeof LIST_FIELDS)[number], value: string) => {
+    if (field === "genre") {
+      const id = value as SearchGenreId;
+      return GENRE_LABEL[id] ? t(GENRE_LABEL[id]) : value;
+    }
+    if (field === "platform") {
+      const id = value as CatalogPlatformId;
+      return PLATFORM_LABEL[id] ? t(PLATFORM_LABEL[id]) : value;
+    }
+    return value;
+  };
+  const chips = [
+    ...LIST_FIELDS.flatMap((field) =>
+      catalog[field].map((value) => ({ key: `${field}:${value}`, label: labelOf(field, value), href: catalogHref(catalog, toggleValue(catalog, field, value)) })),
+    ),
+    ...(catalog.year ? [{ key: "year", label: catalog.year, href: catalogHref(catalog, { year: "" }) }] : []),
+    ...(catalog.origin === "ua" ? [{ key: "origin", label: t("home.ukrainianGames"), href: catalogHref(catalog, { origin: "" }) }] : []),
+  ];
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="mb-6 flex flex-wrap items-center gap-2">
+      {chips.length > 1 ? (
+        <a
+          href={catalogHref(catalog, { genre: [], platform: [], developer: [], publisher: [], series: [], year: "", origin: "" })}
+          className="inline-flex h-9 items-center rounded-full border border-line px-4 text-sm font-semibold hover:border-ink/30"
+        >
+          {t("home.clearFilters")}
+        </a>
+      ) : null}
+      {chips.map((chip) => (
+        <a
+          key={chip.key}
+          href={chip.href}
+          aria-label={t("home.removeFilter", { name: chip.label })}
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-raised pr-2.5 pl-4 text-sm font-semibold hover:bg-ink/10"
+        >
+          {chip.label}
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3.5 w-3.5 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M4 4l8 8M12 4l-8 8" />
+          </svg>
+        </a>
+      ))}
+    </div>
+  );
 }

@@ -1,19 +1,17 @@
 import {
   CATALOG_GENRES,
   CATALOG_PLATFORMS,
-  SEARCH_GENRES,
   t,
   type CatalogGenreId,
   type CatalogPlatformId,
   type HomeCollectionId,
   type MessageKey,
-  type SearchFilters,
 } from "@gametracker/shared";
 import type { Metadata } from "next";
 import { CollectionRow } from "@/components/CollectionRow";
 import { JsonLd } from "@/components/JsonLd";
 import { Icon } from "@/components/Icon";
-import { CatalogSide } from "@/components/CatalogSide";
+import { ActiveFilters, CatalogSide } from "@/components/CatalogSide";
 import { SearchForm } from "@/components/SearchForm";
 import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
@@ -22,6 +20,7 @@ import { HomeTopFold } from "@/components/HomeTopFold";
 import { GenreGlyph } from "@/components/GenreGlyph";
 import { getActivity, getCollections, getMe, searchGames } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { catalogParams, hasCatalogFilters, readCatalogQuery, toSearchFilters, type CatalogQuery, type RawParams } from "@/lib/catalog-query";
 import { getLook, homeTopOpen } from "@/lib/look";
 import type { Design } from "@/lib/look-cookie";
 import { absoluteUrl, pageMetadata } from "@/lib/site";
@@ -31,27 +30,18 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string; developer?: string; publisher?: string; series?: string }>;
+  searchParams: Promise<RawParams>;
 }): Promise<Metadata> {
   await applyLocale();
-  const params = await searchParams;
-  const query = (params.q ?? "").trim();
-  const origin = params.origin === "ua" ? "ua" : params.origin === "ru" ? "ru" : "";
-  const searching = query.length > 0 || Boolean(params.genre || params.platform || params.year || params.sort || params.developer || params.publisher || params.series);
+  const catalog = readCatalogQuery(await searchParams);
+  const query = catalog.q;
+  const origin = catalog.origin;
+  const searching = query.length > 0 || hasCatalogFilters(catalog) || catalog.sort !== "popular";
   return pageMetadata({
     title: origin === "ua" ? t("home.ukrainianGames") : origin === "ru" ? t("home.russianGames") : searching && query ? query : t("home.title"),
     description: origin === "ua" ? t("news.ukrainianLead") : origin === "ru" ? t("news.russianLead") : t("meta.description"),
     path: origin === "ua" ? "/?origin=ua" : origin === "ru" ? "/?origin=ru" : "/",
-    index:
-      (Boolean(origin) || !searching) &&
-      !params.genre &&
-      !params.platform &&
-      !params.year &&
-      !params.sort &&
-      !params.developer &&
-      !params.publisher &&
-      !params.series &&
-      !query,
+    index: (Boolean(origin) || !searching) && !hasCatalogFilters(catalog) && catalog.sort === "popular" && !query,
     follow: true,
     absolute: true,
   });
@@ -60,15 +50,13 @@ export async function generateMetadata({
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; genre?: string; platform?: string; year?: string; origin?: string; sort?: string; developer?: string; publisher?: string; series?: string }>;
+  searchParams: Promise<RawParams>;
 }) {
   await applyLocale();
-  const params = await searchParams;
-  const query = (params.q ?? "").trim();
-  const origin = params.origin === "ua" ? "ua" : params.origin === "ru" ? "ru" : "";
-  const filters = readFilters(params);
-  const sort = filters.sort ?? "popular";
-  const browsing = !(origin || query || hasFilters(filters) || sort !== "popular");
+  const catalog = readCatalogQuery(await searchParams);
+  const query = catalog.q;
+  const origin = catalog.origin;
+  const browsing = !(origin || query || hasCatalogFilters(catalog) || catalog.sort !== "popular");
   const { design } = await getLook();
 
   return (
@@ -97,34 +85,17 @@ export default async function HomePage({
       </h1>
       <p className="mt-3 max-w-xl text-muted">{t("home.lead")}</p>
       <div className="mt-8">
-        <SearchForm
-          query={query}
-          genre={filters.genre ?? ""}
-          platform={filters.platform ?? ""}
-          year={filters.year ? String(filters.year) : ""}
-          origin={origin}
-          sort={sort}
-          developer={filters.developer ?? ""}
-          publisher={filters.publisher ?? ""}
-          series={filters.series ?? ""}
-        />
+        <SearchForm catalog={catalog} />
       </div>
       <ShelfLinks design={design} />
       <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-start">
-        <CatalogSide
-          q={query}
-          genre={filters.genre ?? ""}
-          platform={filters.platform ?? ""}
-          year={filters.year ? String(filters.year) : ""}
-          origin={origin}
-          sort={sort}
-          developer={filters.developer ?? ""}
-          publisher={filters.publisher ?? ""}
-          series={filters.series ?? ""}
-        />
+        <CatalogSide catalog={catalog} />
         <div className="min-w-0 flex-1">
           {!browsing ? (
-            <Results query={query} filters={filters} origin={origin} />
+            <>
+              <ActiveFilters catalog={catalog} />
+              <Results catalog={catalog} />
+            </>
           ) : (
             <Collections />
           )}
@@ -134,16 +105,18 @@ export default async function HomePage({
   );
 }
 
-async function Results({ query, filters, origin }: { query: string; filters: SearchFilters; origin: "" | "ua" | "ru" }) {
-  if (query.length > 0 && query.length < 2 && !hasFilters(filters) && !origin) {
+async function Results({ catalog }: { catalog: CatalogQuery }) {
+  const { q: query, origin } = catalog;
+  if (query.length > 0 && query.length < 2 && !hasCatalogFilters(catalog) && !origin) {
     return <Empty text={t("home.tooShort")} />;
   }
 
   const typed = query.length >= 2 ? query : "";
-  const result = await searchGames(typed, filters, 0, origin || undefined);
+  const result = await searchGames(typed, toSearchFilters(catalog), 0, origin || undefined);
   if (result.games.length === 0) {
     return <Empty text={t("home.nothing")} />;
   }
+  const params = catalogParams({ ...catalog, q: typed }).toString();
 
   return (
     <div>
@@ -152,20 +125,7 @@ async function Results({ query, filters, origin }: { query: string; filters: Sea
           {t(origin === "ru" ? "home.russianGames" : "home.ukrainianGames")}
         </h2>
       ) : null}
-      <SearchResults
-        key={`${query}|${filters.genre ?? ""}|${filters.platform ?? ""}|${filters.year ?? ""}|${filters.sort ?? ""}|${filters.developer ?? ""}|${filters.publisher ?? ""}|${filters.series ?? ""}|${origin}`}
-        query={origin ? (query.length >= 2 ? query : "") : query}
-        genre={filters.genre ?? ""}
-        platform={filters.platform ?? ""}
-        year={filters.year ? String(filters.year) : ""}
-        sort={filters.sort ?? ""}
-        developer={filters.developer ?? ""}
-        publisher={filters.publisher ?? ""}
-        series={filters.series ?? ""}
-        origin={origin}
-        games={result.games}
-        hasMore={result.hasMore}
-      />
+      <SearchResults key={params} params={params} games={result.games} hasMore={result.hasMore} />
     </div>
   );
 }
@@ -277,39 +237,6 @@ const PLATFORM_LABEL: Record<CatalogPlatformId, MessageKey> = {
   "xbox-one": "platforms.xbox-one",
   switch: "platforms.switch",
 };
-
-function readFilters(params: {
-  genre?: string;
-  platform?: string;
-  year?: string;
-  sort?: string;
-  developer?: string;
-  publisher?: string;
-  series?: string;
-}): SearchFilters {
-  const genre = SEARCH_GENRES.find((item) => item.id === params.genre)?.id;
-  const platform = CATALOG_PLATFORMS.find((item) => item.id === params.platform)?.id;
-  const year = Number(params.year);
-  const sort = (["popular", "release", "title"] as const).find((item) => item === params.sort);
-  return {
-    genre,
-    platform,
-    year: Number.isInteger(year) && year >= 1970 && year <= 2035 ? year : undefined,
-    sort,
-    developer: textQuery(params.developer),
-    publisher: textQuery(params.publisher),
-    series: textQuery(params.series),
-  };
-}
-
-function textQuery(value: string | undefined): string | undefined {
-  const text = value?.trim() ?? "";
-  return text.length >= 2 ? text.slice(0, 80) : undefined;
-}
-
-function hasFilters(filters: SearchFilters): boolean {
-  return Boolean(filters.genre || filters.platform || filters.year || filters.developer || filters.publisher || filters.series);
-}
 
 async function Collections() {
   const [home, me] = await Promise.all([getCollections(), getMe()]);

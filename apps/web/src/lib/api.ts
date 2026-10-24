@@ -22,13 +22,11 @@ export async function searchGames(
 ): Promise<{ games: GameSummary[]; hasMore: boolean }> {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
-  if (filters.genre) params.set("genre", filters.genre);
-  if (filters.platform) params.set("platform", filters.platform);
+  for (const field of ["genre", "platform", "developer", "publisher", "series"] as const) {
+    for (const value of filters[field] ?? []) params.append(field, value);
+  }
   if (filters.year) params.set("year", String(filters.year));
   if (filters.sort && filters.sort !== "popular") params.set("sort", filters.sort);
-  if (filters.developer) params.set("developer", filters.developer);
-  if (filters.publisher) params.set("publisher", filters.publisher);
-  if (filters.series) params.set("series", filters.series);
   if (origin) params.set("origin", origin);
   if (offset > 0) params.set("offset", String(offset));
   const response = await fetch(`${apiUrl}/games?${params}`, {

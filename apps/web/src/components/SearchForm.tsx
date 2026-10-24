@@ -3,29 +3,12 @@
 import { t, type GameSummary } from "@gametracker/shared";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { catalogParams, type CatalogQuery } from "@/lib/catalog-query";
 import { apiUrl } from "@/lib/config";
 
-export function SearchForm({
-  query,
-  genre,
-  platform,
-  year,
-  origin,
-  sort,
-  developer,
-  publisher,
-  series,
-}: {
-  query: string;
-  genre: string;
-  platform: string;
-  year: string;
-  origin: string;
-  sort: string;
-  developer: string;
-  publisher: string;
-  series: string;
-}) {
+export function SearchForm({ catalog }: { catalog: CatalogQuery }) {
+  const query = catalog.q;
+  const hidden = [...catalogParams({ ...catalog, q: "" }).entries()];
   const [text, setText] = useState(query);
   const [hints, setHints] = useState<GameSummary[]>([]);
   const [open, setOpen] = useState(false);
@@ -61,14 +44,9 @@ export function SearchForm({
 
   return (
     <form action="/" method="get" role="search">
-      {genre ? <input type="hidden" name="genre" value={genre} /> : null}
-      {platform ? <input type="hidden" name="platform" value={platform} /> : null}
-      {year ? <input type="hidden" name="year" value={year} /> : null}
-      {origin ? <input type="hidden" name="origin" value={origin} /> : null}
-      {sort && sort !== "popular" ? <input type="hidden" name="sort" value={sort} /> : null}
-      {developer ? <input type="hidden" name="developer" value={developer} /> : null}
-      {publisher ? <input type="hidden" name="publisher" value={publisher} /> : null}
-      {series ? <input type="hidden" name="series" value={series} /> : null}
+      {hidden.map(([name, value]) => (
+        <input key={`${name}=${value}`} type="hidden" name={name} value={value} />
+      ))}
       <div className="relative">
         <label className="sr-only" htmlFor="game-query">
           {t("home.queryLabel")}

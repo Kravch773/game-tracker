@@ -49,6 +49,8 @@ export const uk = {
     ukrainianGames: "Українські ігри",
     russianGames: "Обережно: російські ігри",
     filters: "Фільтри",
+    clearFilters: "Очистити всі",
+    removeFilter: "Прибрати фільтр {name}",
     filterSearch: "Пошук",
     sort: "Сортування",
     sortPopular: "Популярність",
