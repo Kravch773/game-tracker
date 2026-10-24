@@ -19,6 +19,7 @@ import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
 import { ConsoleHero, ShelfBento, homeTopSummary } from "@/components/HomeTop";
 import { HomeTopFold } from "@/components/HomeTopFold";
+import { GenreGlyph } from "@/components/GenreGlyph";
 import { getActivity, getCollections, getMe, searchGames } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 import { getLook, homeTopOpen } from "@/lib/look";
@@ -220,8 +221,8 @@ function ShelfLinks({ design }: { design: Design }) {
               href={`/genres/${genre.id}`}
               className={`flex h-16 items-center gap-2.5 rounded-2xl px-3 text-[#1b1530] ring-1 ring-transparent transition hover:-translate-y-0.5 ${GENRE_TILE[genre.id]}`}
             >
-              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/55 dark:bg-white/10">
-                <Icon name={GENRE_MARK[genre.id].icon} className="h-5 w-5" />
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/45 dark:bg-current/10">
+                <GenreGlyph genre={genre.id} />
               </span>
               <span className="min-w-0 truncate font-display text-base font-bold">{t(GENRE_LABEL[genre.id])}</span>
             </a>
