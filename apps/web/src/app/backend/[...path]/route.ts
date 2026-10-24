@@ -12,6 +12,8 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const type = request.headers.get("content-type");
   if (cookie) headers.set("cookie", cookie);
   if (type) headers.set("content-type", type);
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) headers.set("x-forwarded-for", forwarded);
 
   const method = request.method;
   const response = await fetch(target, {
