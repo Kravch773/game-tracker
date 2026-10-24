@@ -6,18 +6,34 @@ import { Dialog } from "@/components/Dialog";
 import { Icon } from "@/components/Icon";
 import { LoginForm } from "@/components/LoginForm";
 import { apiUrl } from "@/lib/config";
-import { STATUS_MARK } from "@/lib/marks";
-import { PROFILE_SECTIONS, STATUS_LABELS, isScoredStatus, ratingLabel } from "@/lib/library";
+import { PROFILE_SECTIONS, STATUS_LABELS, isScoredStatus } from "@/lib/library";
+import type { Design } from "@/lib/look-cookie";
 import { primaryClass, quietClass } from "@/lib/ui";
+
+const STATUS_DOT: Record<LibraryStatus, string> = {
+  playing: "bg-emerald-400",
+  backlog: "bg-sky-400",
+  finished: "bg-lime-400",
+  dropped: "bg-orange-400",
+};
+
+const SHELF_FILL: Record<LibraryStatus, string> = {
+  playing: "bg-tile-mint",
+  backlog: "bg-tile-sky",
+  finished: "bg-tile-sun",
+  dropped: "bg-tile-coral",
+};
 
 export function LibraryPanel({
   slug,
   loggedIn,
   entry,
+  design = "console",
 }: {
   slug: string;
   loggedIn: boolean;
   entry: GameEntry;
+  design?: Design;
 }) {
   const [open, setOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -156,11 +172,17 @@ export function LibraryPanel({
     setDraftReview(chars.length > REVIEW_MAX_LENGTH ? chars.slice(0, REVIEW_MAX_LENGTH).join("") : value);
   }
 
+  const shelf = design === "shelf";
+  const card = shelf ? "rounded-[32px] bg-strong p-6 text-strong-ink" : "rounded-3xl border border-line bg-panel p-5";
+  const soft = shelf ? "bg-strong-ink/10 hover:bg-strong-ink/15" : "border border-line hover:border-ink/25";
+  const label = `text-[11px] font-bold tracking-[0.14em] uppercase ${shelf ? "text-strong-ink/70" : "text-muted"}`;
+
   if (!loggedIn) {
     return (
       <>
-        <section className="rounded-3xl border border-line bg-panel/80 p-5">
-          <p className="text-sm leading-6 text-muted">{t("library.signInToSave")}</p>
+        <section className={card}>
+          <p className={label}>{t("library.list")}</p>
+          <p className={`mt-3 text-sm leading-6 ${shelf ? "text-strong-ink/80" : "text-muted"}`}>{t("library.signInToSave")}</p>
           <button type="button" onClick={() => setLoginOpen(true)} className={`${primaryClass} mt-4 w-full gap-2`}>
             <Icon name="bookmark" className="text-accent-ink" />
             {t("library.addToLibrary")}
@@ -177,74 +199,80 @@ export function LibraryPanel({
     );
   }
 
+  const scored = status != null && isScoredStatus(status);
+
   return (
     <>
-      <section className="rounded-3xl border border-line bg-panel/80 p-5">
-        <p className="text-sm text-muted">{t("library.inProfile")}</p>
-        <p className="mt-1 font-medium">
-          {status ? STATUS_LABELS[status] : t("library.notInList")}
-          {favorite ? t("library.inFavoritesSuffix") : ""}
-        </p>
-        {rating != null ? <p className="mt-1 text-sm text-accent-fg">{ratingLabel(rating)}</p> : null}
-        {review ? <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">{review}</p> : null}
-        <div className="mt-4 flex flex-col gap-2" role="group" aria-label={t("library.section")}>
-          {PROFILE_SECTIONS.map((item) => (
+      <section className={card}>
+        <p className={label}>{t("library.list")}</p>
+        <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label={t("library.section")}>
+          {PROFILE_SECTIONS.map((item) => {
+            const active = status === item;
+            return (
+              <button
+                key={item}
+                type="button"
+                disabled={pending}
+                aria-pressed={active}
+                onClick={() => void chooseStatus(item)}
+                className={`inline-flex h-12 items-center gap-2 rounded-2xl px-3 text-left text-sm font-semibold transition ${
+                  active ? (shelf ? `${SHELF_FILL[item]} text-[#1b1530]` : "bg-raised ring-1 ring-accent-fg") : soft
+                }`}
+              >
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${shelf ? (active ? "bg-[#1b1530]" : SHELF_FILL[item]) : STATUS_DOT[item]}`} />
+                <span className="truncate">{STATUS_LABELS[item]}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={`mt-3 flex items-center gap-3 rounded-2xl p-3 ${shelf ? "bg-strong-ink/10" : "bg-raised"}`}>
+          <div className="min-w-0 flex-1">
+            <p className={`text-xs ${shelf ? "text-strong-ink/70" : "text-muted"}`}>{t("library.rate")}</p>
+            <p className={`font-display text-3xl leading-tight ${shelf ? "text-tile-sun" : "text-accent-fg"}`}>
+              {rating == null ? "—" : rating === 11 ? "11" : rating.toFixed(1)}
+            </p>
+          </div>
+          {scored ? (
+            <button type="button" disabled={pending} onClick={openRating} className={`${primaryClass} gap-1.5 px-4`}>
+              <Icon name="star" className="text-accent-ink" />
+              {t("library.rate")}
+            </button>
+          ) : null}
+        </div>
+
+        <div className="mt-3 flex gap-2">
+          {scored ? (
             <button
-              key={item}
               type="button"
               disabled={pending}
-              aria-pressed={status === item}
-              onClick={() => void chooseStatus(item)}
-              className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
-                status === item
-                  ? "border-accent bg-accent text-accent-ink hover:brightness-110"
-                  : "border-sky-300/40 bg-sky-300/15 text-sky-900 dark:text-sky-100 hover:border-sky-200 hover:bg-sky-300/25"
-              }`}
+              onClick={openReview}
+              className={`inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold ${soft}`}
             >
-              <Icon name={STATUS_MARK[item].icon} className={status === item ? "text-accent-ink" : STATUS_MARK[item].tone} />
-              {STATUS_LABELS[item]}
+              <Icon name="chat" />
+              {review ? t("library.editReview") : t("library.review")}
             </button>
-          ))}
-        </div>
-        <div className="mt-3 flex flex-col gap-2">
+          ) : (
+            <p className={`flex-1 self-center text-xs leading-5 ${shelf ? "text-strong-ink/70" : "text-muted"}`}>
+              {status ? STATUS_LABELS[status] : t("library.notInList")}
+            </p>
+          )}
           <button
             type="button"
             disabled={pending}
             aria-pressed={favorite}
+            aria-label={favorite ? t("library.favorited") : t("library.addFavorite")}
+            title={favorite ? t("library.favorited") : t("library.addFavorite")}
             onClick={() => void toggleFavorite()}
-            className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
-              favorite
-                ? "border-pink-300 bg-pink-300 text-pink-950! hover:brightness-110"
-                : "border-violet-300/40 bg-violet-300/15 text-violet-900 dark:text-violet-100 hover:border-violet-200 hover:bg-violet-300/25"
+            className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition ${
+              favorite ? "bg-pink-300 text-pink-950" : soft
             }`}
           >
-            <Icon name="heart" className={favorite ? "text-pink-950" : "text-pink-700 dark:text-pink-300"} />
-            {favorite ? t("library.favorited") : t("library.addFavorite")}
+            <Icon name="heart" />
           </button>
-          {status && isScoredStatus(status) ? (
-            <>
-              <button
-                type="button"
-                disabled={pending}
-                onClick={openRating}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-900 dark:text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
-              >
-                <Icon name="star" className="text-violet-800 dark:text-violet-200" />
-                {t("library.rate")}
-              </button>
-              <button
-                type="button"
-                disabled={pending}
-                onClick={openReview}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-900 dark:text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
-              >
-                <Icon name="chat" className="text-violet-800 dark:text-violet-200" />
-                {t("library.editReview")}
-              </button>
-            </>
-          ) : null}
         </div>
-        {error && !open && !reviewOpen ? <p className="mt-3 text-sm text-accent-fg">{error}</p> : null}
+        {review ? <p className={`mt-3 line-clamp-3 text-sm leading-6 ${shelf ? "text-strong-ink/80" : "text-muted"}`}>{review}</p> : null}
+        {error && !open && !reviewOpen ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
       </section>
       <Dialog open={open} title={t("library.rate")} onClose={() => setOpen(false)}>
         <p className="text-sm text-muted">{t("library.ratingHint")}</p>

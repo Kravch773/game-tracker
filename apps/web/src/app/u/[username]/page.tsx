@@ -4,6 +4,7 @@ import { ProfileBoard } from "@/components/ProfileBoard";
 import { t } from "@gametracker/shared";
 import { getLibrary, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { getLook } from "@/lib/look";
 import { pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -33,10 +34,10 @@ export default async function ProfilePage({
   await applyLocale();
   const { username } = await params;
   const { list } = await searchParams;
-  const [library, me] = await Promise.all([getLibrary(username), getMe()]);
+  const [library, me, { design }] = await Promise.all([getLibrary(username), getMe(), getLook()]);
   if (!library) notFound();
 
   const mine = me?.username.toLowerCase() === library.user.username.toLowerCase();
 
-  return <ProfileBoard library={library} email={mine && me ? me.email : null} initialTab={list} />;
+  return <ProfileBoard library={library} email={mine && me ? me.email : null} initialTab={list} design={design} />;
 }

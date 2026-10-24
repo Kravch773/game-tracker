@@ -1,7 +1,7 @@
 "use client";
 
 import { t, type LibraryGame, type UserLibrary } from "@gametracker/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { BacklogWheel } from "@/components/BacklogWheel";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
@@ -11,6 +11,7 @@ import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
 import { formatShortDate } from "@/lib/format";
 import { PROFILE_SECTIONS, STATUS_LABELS, ratingLabel } from "@/lib/library";
+import type { Design } from "@/lib/look-cookie";
 import { myGamesListCsv } from "@/lib/mygameslist";
 
 const TABS = [...PROFILE_SECTIONS, "favorites"] as const;
@@ -29,6 +30,14 @@ function isTab(value: string | undefined): value is Tab {
   return value === "steamWishlist" || (TABS as readonly string[]).includes(value ?? "");
 }
 
+const TAB_FILL: Record<(typeof TABS)[number], string> = {
+  playing: "bg-tile-mint",
+  backlog: "bg-tile-sky",
+  finished: "bg-tile-sun",
+  dropped: "bg-tile-coral",
+  favorites: "bg-tile-rose",
+};
+
 const SORT_LABEL = {
   added: "profile.sortAdded",
   release: "profile.sortRelease",
@@ -36,7 +45,17 @@ const SORT_LABEL = {
   metacritic: "profile.sortMetacritic",
 } as const;
 
-export function ProfileBoard({ library, email, initialTab }: { library: UserLibrary; email: string | null; initialTab?: string }) {
+export function ProfileBoard({
+  library,
+  email,
+  initialTab,
+  design = "console",
+}: {
+  library: UserLibrary;
+  email: string | null;
+  initialTab?: string;
+  design?: Design;
+}) {
   const [tab, setTab] = useState<Tab>(isTab(initialTab) ? initialTab : "playing");
   const [sort, setSort] = useState<Sort>("added");
   const [scale, setScale] = useState(0);
@@ -56,6 +75,8 @@ export function ProfileBoard({ library, email, initialTab }: { library: UserLibr
   const source = bucket == null ? library[tab] : rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket);
   const games = sortGames(source, activeSort);
   const initial = library.user.username.slice(0, 1).toUpperCase();
+  const average = rated.length > 0 ? rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length : null;
+  const shelf = design === "shelf";
 
   useEffect(() => {
     const saved = Number(window.localStorage.getItem(SCALE_KEY));
@@ -80,62 +101,28 @@ export function ProfileBoard({ library, email, initialTab }: { library: UserLibr
 
   return (
     <main>
-      <section className="flex flex-wrap items-center gap-4">
-        <span className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-accent font-display text-2xl text-accent-ink">
-          {initial}
-        </span>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-4xl tracking-tight">{library.user.username}</h1>
-          {email ? <p className="mt-1 text-sm text-muted">{email}</p> : null}
-          <div className="mt-1 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-            <button type="button" onClick={() => setList("followers")} className="inline-flex items-center gap-1 hover:text-ink">
-              <Icon name="users" className="text-sky-700 dark:text-sky-300" />
-              {followers} {t("profile.followers").toLowerCase()}
-            </button>
-            <button type="button" onClick={() => setList("following")} className="inline-flex items-center gap-1 hover:text-ink">
-              <Icon name="user" className="text-violet-700 dark:text-violet-300" />
-              {following} {t("profile.following").toLowerCase()}
-            </button>
-          </div>
-        </div>
-        {email ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <a
-              href="/settings"
-              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line px-4 text-sm font-medium hover:text-ink"
-            >
-              <Icon name="steam" className="h-4 w-4" />
-              {t("profile.steamAdd")}
-            </a>
-            <button
-              type="button"
-              onClick={() => setImportOpen(true)}
-              className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-4 text-sm font-semibold text-accent-ink!"
-            >
-              {t("profile.import")}
-            </button>
-            <button
-              type="button"
-              onClick={() => downloadLibrary(library)}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-line px-4 text-sm font-medium hover:text-ink"
-            >
-              {t("profile.export")}
-            </button>
-            <a
-              href="/settings"
-              className="inline-flex h-10 items-center justify-center rounded-full border border-line px-4 text-sm font-medium text-muted hover:text-ink"
-            >
-              {t("nav.settings")}
-            </a>
-          </div>
-        ) : (
+      <ProfileHead
+        design={design}
+        username={library.user.username}
+        initial={initial}
+        email={email}
+        followers={followers}
+        following={following}
+        average={average}
+        finished={library.finished.length}
+        wishlist={library.steamWishlist.length}
+        wishlistMissing={library.steamWishlistMissing}
+        onList={setList}
+        onImport={() => setImportOpen(true)}
+        onExport={() => downloadLibrary(library)}
+        follow={
           <FollowButton
             username={library.user.username}
             following={library.followedByMe}
             onChange={(next) => setFollowers((count) => Math.max(0, count + (next ? 1 : -1)))}
           />
-        )}
-      </section>
+        }
+      />
       <FollowList username={library.user.username} kind={list} onClose={() => setList(null)} />
       <SectionTotals library={library} tab={tab} bucket={bucket} onPick={chooseTab} />
       <Stats
@@ -155,11 +142,17 @@ export function ProfileBoard({ library, email, initialTab }: { library: UserLibr
               role="tab"
               aria-selected={selected}
               onClick={() => chooseTab(item)}
-              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-medium ${
-                selected ? "bg-accent text-accent-ink" : "border border-line bg-ink/5 text-muted hover:text-ink"
+              className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${
+                selected
+                  ? shelf
+                    ? `${TAB_FILL[item]} text-[#1b1530]`
+                    : "bg-strong text-strong-ink"
+                  : shelf
+                    ? "bg-panel hover:bg-raised"
+                    : "border border-line bg-panel text-muted hover:text-ink"
               }`}
             >
-              <Icon name={STATUS_MARK[item].icon} className={selected ? "text-accent-ink" : STATUS_MARK[item].tone} />
+              <Icon name={STATUS_MARK[item].icon} />
               {label} {count}
             </button>
           );
@@ -179,7 +172,7 @@ export function ProfileBoard({ library, email, initialTab }: { library: UserLibr
           </button>
         ) : null}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className={`mt-4 flex flex-wrap items-center gap-3 bg-panel p-2 pl-4 ${shelf ? "rounded-[28px]" : "rounded-2xl border border-line"}`}>
         <label className="flex items-center gap-3 text-sm text-muted">
           {t("profile.sort")}
           <select
@@ -331,17 +324,11 @@ function Stats({
   if (rated.length === 0) {
     return <p className="mt-6 text-sm text-muted">{t("profile.noRatings")}</p>;
   }
-  const average = rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length;
   const counts = Array.from({ length: 12 }, (_, index) => rated.filter((game) => scoreBucket(game.rating ?? -1) === index).length);
   const max = Math.max(...counts, 1);
   return (
     <section className="mt-8">
-      <p className="inline-flex items-center gap-1.5 text-sm text-muted">
-        <Icon name="star" className="text-accent-fg" />
-        {t("profile.average")}
-      </p>
-      <p className="mt-1 font-display text-3xl text-accent-fg">{average.toFixed(1)}</p>
-      <div className="mt-4 flex items-end gap-1">
+      <div className="flex items-end gap-1">
         {counts.map((count, index) => {
           const value = index;
           const selected = bucket === value;
@@ -477,5 +464,141 @@ function GameCard({
         </span>
       ) : null}
     </a>
+  );
+}
+
+// Name, follows and account actions, then average, finished and Steam as stat cards.
+function ProfileHead({
+  design,
+  username,
+  initial,
+  email,
+  followers,
+  following,
+  average,
+  finished,
+  wishlist,
+  wishlistMissing,
+  onList,
+  onImport,
+  onExport,
+  follow,
+}: {
+  design: Design;
+  username: string;
+  initial: string;
+  email: string | null;
+  followers: number;
+  following: number;
+  average: number | null;
+  finished: number;
+  wishlist: number;
+  wishlistMissing: number;
+  onList: (kind: "followers" | "following") => void;
+  onImport: () => void;
+  onExport: () => void;
+  follow: ReactNode;
+}) {
+  const shelf = design === "shelf";
+  const pill = shelf
+    ? "inline-flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold"
+    : "inline-flex h-11 items-center gap-1.5 rounded-xl border border-line px-4 text-sm font-semibold hover:border-ink/25";
+  const actions = email ? (
+    <div className="flex flex-wrap gap-2">
+      <button type="button" onClick={onImport} className={`${pill} ${shelf ? "bg-[#1b1530] text-white" : ""}`}>
+        {t("profile.import")}
+      </button>
+      <button type="button" onClick={onExport} className={`${pill} ${shelf ? "border-2 border-[#1b1530]" : ""}`}>
+        {t("profile.export")}
+      </button>
+      <a href="/settings" className={`${pill} ${shelf ? "border-2 border-[#1b1530]" : "text-muted"}`}>
+        {t("nav.settings")}
+      </a>
+    </div>
+  ) : (
+    follow
+  );
+  const people = (
+    <p className="flex flex-wrap gap-4 text-sm">
+      <button type="button" onClick={() => onList("followers")} className="hover:underline">
+        <b>{followers}</b> {t("profile.followers").toLowerCase()}
+      </button>
+      <button type="button" onClick={() => onList("following")} className="hover:underline">
+        <b>{following}</b> {t("profile.following").toLowerCase()}
+      </button>
+    </p>
+  );
+  const steam = email ? (
+    <div className={shelf ? "flex flex-[4_1_320px] flex-col gap-3 rounded-[32px] bg-strong p-6 text-strong-ink" : "flex flex-col gap-3 rounded-2xl border border-line bg-panel p-5 sm:col-span-2"}>
+      <p className="font-display text-lg font-bold">Steam</p>
+      <p className={`text-sm ${shelf ? "text-strong-ink/75" : "text-muted"}`}>
+        {t("profile.steamWishlist")}: {wishlist}
+        {wishlistMissing > 0 ? (
+          <>
+            {" · "}
+            <a href="/steam/wishlist" className={`font-semibold underline ${shelf ? "text-tile-sun" : "text-accent-fg"}`}>
+              {t("profile.steamWishlistMissingLink", { count: wishlistMissing })}
+            </a>
+          </>
+        ) : null}
+      </p>
+      <a href="/settings" className={`mt-auto self-start ${shelf ? "inline-flex h-11 items-center rounded-full bg-tile-sun px-5 text-sm font-bold text-[#1b1530]" : `${pill} bg-accent text-accent-ink border-transparent`}`}>
+        <Icon name="steam" />
+        {t("profile.steamSync")}
+      </a>
+    </div>
+  ) : null;
+  const averageText = average == null ? "—" : average.toFixed(1);
+
+  if (shelf) {
+    return (
+      <section className="flex flex-wrap gap-5">
+        <div className="flex flex-[5_1_420px] flex-wrap items-center gap-5 rounded-[32px] bg-tile-sun p-6 text-[#1b1530]">
+          <span className="inline-flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#1b1530] font-display text-4xl font-extrabold text-tile-sun">
+            {initial}
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <h1 className="truncate font-display text-4xl font-extrabold">{username}</h1>
+            {people}
+            {actions}
+          </div>
+        </div>
+        <div className="flex flex-[2_1_180px] flex-col justify-between gap-4 rounded-[32px] bg-tile-mint p-6 text-[#1b1530]">
+          <span className="text-sm font-bold">{t("profile.average")}</span>
+          <span className="font-display text-6xl leading-none font-extrabold">{averageText}</span>
+          <span className="text-sm font-semibold">
+            {STATUS_LABELS.finished}: {finished}
+          </span>
+        </div>
+        {steam}
+      </section>
+    );
+  }
+
+  return (
+    <section className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center gap-5">
+        <span className="inline-flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-accent font-display text-4xl text-accent-ink">
+          {initial}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <h1 className="truncate font-display text-4xl tracking-tight">{username}</h1>
+          {email ? <p className="text-sm text-muted">{email}</p> : null}
+          <div className="text-muted">{people}</div>
+        </div>
+        {actions}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-4">
+        <div className="rounded-2xl border border-line bg-panel p-5">
+          <p className="text-xs text-muted">{t("profile.average")}</p>
+          <p className="mt-1 font-display text-3xl text-accent-fg">{averageText}</p>
+        </div>
+        <div className="rounded-2xl border border-line bg-panel p-5">
+          <p className="text-xs text-muted">{STATUS_LABELS.finished}</p>
+          <p className="mt-1 font-display text-3xl">{finished}</p>
+        </div>
+        {steam}
+      </div>
+    </section>
   );
 }

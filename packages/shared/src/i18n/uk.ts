@@ -105,6 +105,7 @@ export const uk = {
     notFound: "Гру не знайдено",
     missingPage: "Такої сторінки немає в каталозі.",
     story: "Сюжет",
+    about: "Огляд",
     screenshots: "Скріншоти",
     videos: "Відео",
     watchOnYoutube: "Дивитися на YouTube",

@@ -12,6 +12,7 @@ import { formatHours, formatReleaseDate } from "@/lib/format";
 import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { getLook } from "@/lib/look";
 import { absoluteUrl, pageMetadata, textSnippet } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -52,136 +53,257 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const game = await getGame(slug);
   if (!game) notFound();
 
-  const me = await getMe();
+  const [me, { design }] = await Promise.all([getMe(), getLook()]);
   const entry = me ? await getGameEntry(slug) : null;
   const saved: GameEntry = entry ?? { status: null, rating: null, review: null, favorite: false, steamMinutes: null };
+  const scores = <Scores game={game} saved={saved} />;
+  const panel = <LibraryPanel slug={game.slug} loggedIn={me != null} entry={saved} design={design} />;
+  const facts = (
+    <>
+      <ChipGroup label={t("game.platforms")} items={game.platforms} />
+      <ChipGroup label={t("game.genres")} items={game.genres} iconFor={genreIcon} />
+      <ChipGroup label={t("game.themes")} items={game.themes} />
+      <ChipGroup label={t("game.age")} items={game.ageRatings} />
+      <TimeToBeat time={game.timeToBeat} />
+    </>
+  );
+  const credits = (
+    <Credits
+      developers={game.developers}
+      publishers={game.publishers}
+      russianDevelopers={game.russianDevelopers ?? []}
+      russianPublishers={game.russianPublishers ?? []}
+      series={game.series}
+    />
+  );
+  const date = game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate");
+
+  if (design === "shelf") {
+    return (
+      <main className="flex flex-col gap-5">
+        <JsonLd data={gameJsonLd(game)} />
+        <div className="flex flex-wrap gap-5">
+          <div className="flex-[3_1_260px] overflow-hidden rounded-[32px] bg-raised">
+            {game.coverUrl ? <img src={game.coverUrl} alt={game.title} className="h-full min-h-80 w-full object-cover" /> : null}
+          </div>
+          <article className="flex flex-[5_1_440px] flex-col gap-4 rounded-[32px] bg-panel p-6 sm:p-8">
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex h-8 items-center rounded-full bg-tile-sun px-3 text-sm font-bold text-[#1b1530]">{date}</span>
+              <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} inline />
+            </div>
+            <h1 className="font-display text-5xl leading-none font-extrabold tracking-tight sm:text-6xl">{game.title}</h1>
+            {credits}
+            {scores}
+            {game.summary ? <p className="text-[15px] leading-7 text-ink/80">{game.summary}</p> : null}
+            <div className="flex flex-col gap-4">{facts}</div>
+            <StoreLinks links={game.links} variant="pills" />
+            {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
+          </article>
+          <div className="flex-[3_1_280px]">{panel}</div>
+        </div>
+        <div className="flex flex-wrap gap-5">
+          {game.screenshots.length > 0 || game.videos.length > 0 ? (
+            <section className="min-w-0 flex-[7_1_560px] rounded-[32px] bg-panel p-6">
+              <h2 className="font-display text-xl font-extrabold">{t("game.screenshots")}</h2>
+              <Screens shots={game.screenshots} />
+              {game.videos.length > 0 ? (
+                <div className="mt-6">
+                  <h2 className="font-display text-xl font-extrabold">{t("game.videos")}</h2>
+                  <VideoList videos={game.videos} />
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+          {game.storyline ? (
+            <section className="flex-[5_1_380px] rounded-[32px] bg-tile-sun p-6 text-[#1b1530]">
+              <h2 className="font-display text-xl font-extrabold">{t("game.story")}</h2>
+              <p className="mt-3 leading-7">{game.storyline}</p>
+            </section>
+          ) : null}
+        </div>
+        <section className="rounded-[32px] bg-panel p-6">
+          <ReviewList reviews={game.reviews ?? []} />
+        </section>
+        {(game.similar ?? []).length > 0 ? (
+          <section className="rounded-[32px] bg-panel p-6">
+            <CollectionRow title={t("game.similar")} games={game.similar} mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }} />
+          </section>
+        ) : null}
+      </main>
+    );
+  }
+
+  const backdrop = game.screenshots[0]?.url ?? game.coverUrl;
+  const sections = [
+    game.storyline ? { id: "story", label: t("game.story") } : null,
+    game.screenshots.length > 0 ? { id: "screens", label: t("game.screenshots") } : null,
+    game.videos.length > 0 ? { id: "videos", label: t("game.videos") } : null,
+    (game.reviews ?? []).length > 0 ? { id: "reviews", label: t("game.reviews") } : null,
+    (game.similar ?? []).length > 0 ? { id: "similar", label: t("game.similar") } : null,
+  ].filter((item) => item != null);
 
   return (
     <main>
-      <a href="/" className="-my-3 inline-flex h-11 items-center gap-1.5 text-sm text-muted hover:text-ink">
-        <Icon name="arrow" />
-        {t("common.backToSearch")}
-      </a>
-      <article className="mt-5">
-        <JsonLd data={gameJsonLd(game)} />
-        <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
-        <h1 className="font-display text-4xl tracking-tight sm:text-5xl">{game.title}</h1>
-        <p className="mt-3 text-sm text-muted">{game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate")}</p>
-        <Credits
-          developers={game.developers}
-          publishers={game.publishers}
-          russianDevelopers={game.russianDevelopers ?? []}
-          russianPublishers={game.russianPublishers ?? []}
-          series={game.series}
-        />
-        <div className="mt-5 flex flex-wrap gap-2">
-          <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
-          {saved.steamMinutes != null ? (
-            <Score
-              label="Steam"
-              value={t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) })}
-              icon="steam"
-              tone="bg-sky-300 text-sky-950"
-            />
-          ) : null}
-          {game.metacriticScore != null ? (
-            <Score label="Metacritic" value={String(game.metacriticScore)} icon="meta" tone="bg-emerald-300 text-emerald-950" />
-          ) : null}
-          {game.igdbRating != null ? (
-            <Score label="IGDB" value={game.igdbRating.toFixed(1)} icon="chart" tone="bg-sky-300 text-sky-950" />
-          ) : null}
-        </div>
-        <div className="mt-6 grid items-start gap-8 md:grid-cols-[11rem_minmax(0,1fr)_17rem]">
+      <JsonLd data={gameJsonLd(game)} />
+      <div className="relative -mx-4 -mt-8 h-64 overflow-hidden sm:h-80 lg:-mx-10">
+        {backdrop ? <img src={backdrop} alt="" className="h-full w-full object-cover" /> : <div className="h-full w-full bg-raised" />}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-bg/40 to-bg" />
+        <a
+          href="/"
+          className="absolute top-4 left-4 inline-flex h-11 items-center gap-1.5 rounded-xl bg-black/55 px-3 text-sm font-semibold text-white backdrop-blur lg:left-10"
+        >
+          <Icon name="arrow" />
+          {t("common.backToSearch")}
+        </a>
+      </div>
+      <div className="relative -mt-28 grid items-start gap-8 md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <aside className="flex flex-col gap-4">
           {game.coverUrl ? (
-            <div className="w-full max-w-56 md:max-w-none">
-              <img
-                src={game.coverUrl}
-                alt={game.title}
-                className="aspect-[3/4] w-full rounded-3xl object-cover shadow-2xl ring-1 ring-ink/10"
-              />
-            </div>
+            <img src={game.coverUrl} alt={game.title} className="aspect-[3/4] w-44 rounded-3xl object-cover shadow-2xl ring-1 ring-ink/10 md:w-full" />
           ) : (
-            <div className="aspect-[3/4] w-full max-w-56 rounded-3xl bg-raised ring-1 ring-ink/10 md:max-w-none" />
+            <div className="aspect-[3/4] w-44 rounded-3xl bg-raised ring-1 ring-ink/10 md:w-full" />
           )}
-          <div className="order-3 min-w-0 md:order-none">
-            {game.summary ? <p className="max-w-3xl text-[15px] leading-7 text-ink/80">{game.summary}</p> : null}
-            <div className="mt-6 flex flex-col gap-5">
-              <ChipGroup label={t("game.platforms")} items={game.platforms} />
-              <ChipGroup label={t("game.genres")} items={game.genres} iconFor={genreIcon} />
-              <ChipGroup label={t("game.themes")} items={game.themes} />
-              <ChipGroup label={t("game.age")} items={game.ageRatings} />
-              <TimeToBeat time={game.timeToBeat} />
-            </div>
-            {game.links.length > 0 ? (
-              <div className="mt-5">
-                <h2 className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("game.stores")}</h2>
-                <ul className="mt-2.5 flex flex-wrap gap-2">
-                  {game.links.map((link) => (
-                    <li key={link.kind}>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex h-11 items-center sm:h-9 gap-2 rounded-lg border border-line bg-ink/5 pr-3 pl-1.5 text-sm hover:border-accent"
-                      >
-                        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${LINK_MARK[link.kind].tone}`}>
-                          <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
-                        </span>
-                        {linkLabel(link.kind)}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+          {panel}
+          <StoreLinks links={game.links} variant="list" />
+        </aside>
+        <article className="min-w-0 md:pt-32">
+          <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
+          <p className="text-sm text-muted">{date}</p>
+          <h1 className="mt-2 font-display text-4xl tracking-tight sm:text-6xl">{game.title}</h1>
+          {credits}
+          <div className="mt-5">{scores}</div>
+          {sections.length > 0 ? (
+            <nav aria-label={game.title} className="mt-8 flex gap-1 overflow-x-auto border-b border-line no-scrollbar">
+              <a href="#about" className="-mb-px inline-flex h-11 shrink-0 items-center border-b-2 border-accent-fg px-3 text-sm font-semibold">
+                {t("game.about")}
+              </a>
+              {sections.map((item) => (
+                <a key={item.id} href={`#${item.id}`} className="-mb-px inline-flex h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm font-semibold text-muted hover:text-ink">
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+          ) : null}
+          <div id="about" className="scroll-mt-24">
+            {game.summary ? <p className="mt-6 max-w-3xl text-[17px] leading-8 text-ink/85">{game.summary}</p> : null}
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">{facts}</div>
             {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
           </div>
-          <div className="order-2 md:order-none">
-            <LibraryPanel slug={game.slug} loggedIn={me != null} entry={saved} />
+          {game.storyline ? (
+            <section id="story" className="mt-12 max-w-3xl scroll-mt-24">
+              <SectionTitle icon="book" tone="bg-amber-300/10 text-amber-700 dark:text-amber-300">
+                {t("game.story")}
+              </SectionTitle>
+              <p className="mt-3 leading-8 text-muted">{game.storyline}</p>
+            </section>
+          ) : null}
+          {game.screenshots.length > 0 ? (
+            <section id="screens" className="mt-12 scroll-mt-24">
+              <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300">
+                {t("game.screenshots")}
+              </SectionTitle>
+              <Screens shots={game.screenshots} />
+            </section>
+          ) : null}
+          {game.videos.length > 0 ? (
+            <section id="videos" className="mt-12 scroll-mt-24">
+              <SectionTitle icon="film" tone="bg-rose-300/10 text-rose-700 dark:text-rose-300">
+                {t("game.videos")}
+              </SectionTitle>
+              <VideoList videos={game.videos} />
+            </section>
+          ) : null}
+          <div id="reviews" className="scroll-mt-24">
+            <ReviewList reviews={game.reviews ?? []} />
           </div>
-        </div>
-      </article>
+        </article>
+      </div>
       {(game.similar ?? []).length > 0 ? (
-        <div className="mt-12">
-          <CollectionRow
-            title={t("game.similar")}
-            games={game.similar}
-            mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }}
-          />
+        <div id="similar" className="mt-12 scroll-mt-24">
+          <CollectionRow title={t("game.similar")} games={game.similar} mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }} />
         </div>
       ) : null}
-      {game.storyline ? (
-        <section className="mt-12 max-w-3xl">
-          <SectionTitle icon="book" tone="bg-amber-300/10 text-amber-700 dark:text-amber-300">
-            {t("game.story")}
-          </SectionTitle>
-          <p className="mt-3 leading-8 text-muted">{game.storyline}</p>
-        </section>
-      ) : null}
-      {game.screenshots.length > 0 ? (
-        <section className="mt-12">
-          <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300">
-            {t("game.screenshots")}
-          </SectionTitle>
-          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {game.screenshots.map((shot) => (
-              <li key={shot.url} className="overflow-hidden rounded-2xl border border-line">
-                <img src={shot.url} alt="" className="aspect-video w-full object-cover" />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-      {game.videos.length > 0 ? (
-        <section className="mt-12">
-          <SectionTitle icon="film" tone="bg-rose-300/10 text-rose-700 dark:text-rose-300">
-            {t("game.videos")}
-          </SectionTitle>
-          <VideoList videos={game.videos} />
-        </section>
-      ) : null}
-      <ReviewList reviews={game.reviews ?? []} />
     </main>
+  );
+}
+
+function Scores({ game, saved }: { game: GameDetails; saved: GameEntry }) {
+  return (
+    <div className="mt-5 flex flex-wrap gap-2">
+      <CommunityScore count={game.community?.count ?? 0} average={game.community?.average ?? null} />
+      {saved.steamMinutes != null ? (
+        <Score
+          label="Steam"
+          value={t("game.hours", { hours: formatHours(Math.round((saved.steamMinutes / 60) * 10) / 10) })}
+          icon="steam"
+          tone="bg-sky-300 text-sky-950"
+        />
+      ) : null}
+      {game.metacriticScore != null ? (
+        <Score label="Metacritic" value={String(game.metacriticScore)} icon="meta" tone="bg-emerald-300 text-emerald-950" />
+      ) : null}
+      {game.igdbRating != null ? <Score label="IGDB" value={game.igdbRating.toFixed(1)} icon="chart" tone="bg-sky-300 text-sky-950" /> : null}
+    </div>
+  );
+}
+
+// First screenshot large, the rest in a grid beside and below it.
+function Screens({ shots }: { shots: GameDetails["screenshots"] }) {
+  return (
+    <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {shots.map((shot, index) => (
+        <li key={shot.url} className={`overflow-hidden rounded-2xl border border-line ${index === 0 ? "col-span-2 row-span-2" : ""}`}>
+          <img src={shot.url} alt="" className="aspect-video h-full w-full object-cover" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function StoreLinks({ links, variant }: { links: GameDetails["links"]; variant: "list" | "pills" }) {
+  if (links.length === 0) return null;
+  if (variant === "pills") {
+    return (
+      <ul className="flex flex-wrap gap-2">
+        {links.map((link) => (
+          <li key={link.kind}>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-11 items-center gap-2 rounded-full border-2 border-ink px-4 text-sm font-bold hover:bg-ink hover:text-bg"
+            >
+              {linkLabel(link.kind)} <span aria-hidden="true">↗</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <section className="rounded-3xl border border-line bg-panel p-4">
+      <h2 className="text-[11px] font-bold tracking-[0.14em] text-muted uppercase">{t("game.stores")}</h2>
+      <ul className="mt-3 flex flex-col gap-2">
+        {links.map((link) => (
+          <li key={link.kind}>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-11 items-center gap-2.5 rounded-xl bg-raised px-2 text-sm font-semibold hover:ring-1 hover:ring-accent-fg"
+            >
+              <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${LINK_MARK[link.kind].tone}`}>
+                <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
+              </span>
+              <span className="flex-1">{linkLabel(link.kind)}</span>
+              <span aria-hidden="true" className="text-muted">
+                ↗
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -194,7 +316,7 @@ const LINK_MARK: Record<GameLinkKind, { icon: IconName; tone: string }> = {
   official: { icon: "link", tone: "bg-accent text-accent-ink" },
 };
 
-function OriginTags({ origins, text, audio }: { origins: GameOrigin[]; text: boolean; audio: boolean }) {
+function OriginTags({ origins, text, audio, inline = false }: { origins: GameOrigin[]; text: boolean; audio: boolean; inline?: boolean }) {
   const tags: { key: string; label: string; tone: string }[] = [];
   if (origins.includes("ua")) tags.push({ key: "ua", label: t("game.ukrainianGame"), tone: "bg-yellow-300 text-yellow-950" });
   if (origins.includes("ru")) tags.push({ key: "ru", label: t("game.russianGame"), tone: "bg-red-500 text-white" });
@@ -204,7 +326,7 @@ function OriginTags({ origins, text, audio }: { origins: GameOrigin[]; text: boo
   }
   if (tags.length === 0) return null;
   return (
-    <div className="mb-4 flex flex-wrap gap-2">
+    <div className={inline ? "contents" : "mb-4 flex flex-wrap gap-2"}>
       {tags.map((tag) => (
         <span key={tag.key} className={`inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold ${tag.tone}`}>
           {tag.label}

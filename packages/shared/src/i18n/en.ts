@@ -107,6 +107,7 @@ export const en = {
     notFound: "Game not found",
     missingPage: "This page is not in the catalog.",
     story: "Story",
+    about: "Overview",
     screenshots: "Screenshots",
     videos: "Videos",
     watchOnYoutube: "Watch on YouTube",
