@@ -97,11 +97,11 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               <img
                 src={game.coverUrl}
                 alt={game.title}
-                className="aspect-[3/4] w-full rounded-3xl object-cover shadow-2xl ring-1 ring-white/10"
+                className="aspect-[3/4] w-full rounded-3xl object-cover shadow-2xl ring-1 ring-ink/10"
               />
             </div>
           ) : (
-            <div className="aspect-[3/4] w-full max-w-56 rounded-3xl bg-raised ring-1 ring-white/10 md:max-w-none" />
+            <div className="aspect-[3/4] w-full max-w-56 rounded-3xl bg-raised ring-1 ring-ink/10 md:max-w-none" />
           )}
           <div className="order-3 min-w-0 md:order-none">
             {game.summary ? <p className="max-w-3xl text-[15px] leading-7 text-ink/80">{game.summary}</p> : null}
@@ -122,7 +122,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
                         href={link.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-11 items-center sm:h-9 gap-2 rounded-lg border border-line bg-white/5 pr-3 pl-1.5 text-sm hover:border-accent"
+                        className="inline-flex h-11 items-center sm:h-9 gap-2 rounded-lg border border-line bg-ink/5 pr-3 pl-1.5 text-sm hover:border-accent"
                       >
                         <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${LINK_MARK[link.kind].tone}`}>
                           <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
@@ -146,13 +146,13 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
           <CollectionRow
             title={t("game.similar")}
             games={game.similar}
-            mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-300" }}
+            mark={{ icon: "layers", tone: "bg-violet-300/10 text-violet-700 dark:text-violet-300" }}
           />
         </div>
       ) : null}
       {game.storyline ? (
         <section className="mt-12 max-w-3xl">
-          <SectionTitle icon="book" tone="bg-amber-300/10 text-amber-300">
+          <SectionTitle icon="book" tone="bg-amber-300/10 text-amber-700 dark:text-amber-300">
             {t("game.story")}
           </SectionTitle>
           <p className="mt-3 leading-8 text-muted">{game.storyline}</p>
@@ -160,7 +160,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       ) : null}
       {game.screenshots.length > 0 ? (
         <section className="mt-12">
-          <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-300">
+          <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300">
             {t("game.screenshots")}
           </SectionTitle>
           <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -174,7 +174,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
       ) : null}
       {game.videos.length > 0 ? (
         <section className="mt-12">
-          <SectionTitle icon="film" tone="bg-rose-300/10 text-rose-300">
+          <SectionTitle icon="film" tone="bg-rose-300/10 text-rose-700 dark:text-rose-300">
             {t("game.videos")}
           </SectionTitle>
           <VideoList videos={game.videos} />
@@ -264,8 +264,8 @@ function CompanyLinks({
               href={`/?${param}=${encodeURIComponent(name)}`}
               className={
                 russian
-                  ? "inline-flex h-11 items-center rounded-lg sm:h-8 border border-red-500/50 bg-red-500/15 px-2.5 text-sm font-medium text-red-300 transition hover:border-red-400 hover:bg-red-500/25 hover:text-red-200"
-                  : "inline-flex h-11 items-center rounded-lg sm:h-8 border border-line bg-white/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent"
+                  ? "inline-flex h-11 items-center rounded-lg sm:h-8 border border-red-500/50 bg-red-500/15 px-2.5 text-sm font-medium text-red-700 dark:text-red-300 transition hover:border-red-400 hover:bg-red-500/25 hover:text-red-800 dark:hover:text-red-200"
+                  : "inline-flex h-11 items-center rounded-lg sm:h-8 border border-line bg-ink/10 px-2.5 text-sm font-medium text-ink transition hover:border-accent hover:bg-accent/15 hover:text-accent-fg"
               }
             >
               {name}
@@ -281,14 +281,14 @@ function CompanyLinks({
 function OriginTip({ label }: { label: string }) {
   return (
     <span className="group/tip relative inline-flex" tabIndex={0} aria-label={label}>
-      <svg viewBox="0 0 16 16" className="h-4 w-4 text-red-300" aria-hidden="true">
+      <svg viewBox="0 0 16 16" className="h-4 w-4 text-red-700 dark:text-red-300" aria-hidden="true">
         <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
         <circle cx="8" cy="4.9" r="0.8" fill="currentColor" />
         <path d="M8 7.15v4.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
       <span
         role="tooltip"
-        className="pointer-events-none absolute top-[calc(100%+8px)] left-1/2 z-30 hidden -translate-x-1/2 rounded-lg border border-red-500/40 bg-bg px-2.5 py-1 text-xs font-medium whitespace-nowrap text-red-200 shadow-lg group-hover/tip:block group-focus/tip:block"
+        className="pointer-events-none absolute top-[calc(100%+8px)] left-1/2 z-30 hidden -translate-x-1/2 rounded-lg border border-red-500/40 bg-bg px-2.5 py-1 text-xs font-medium whitespace-nowrap text-red-800 dark:text-red-200 shadow-lg group-hover/tip:block group-focus/tip:block"
       >
         {label}
       </span>
@@ -313,7 +313,7 @@ function ChipGroup({
         {items.map((item) => {
           const icon = iconFor?.(item);
           return (
-            <li key={item} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-white/5 px-2.5 text-sm">
+            <li key={item} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-ink/5 px-2.5 text-sm">
               {icon ? <Icon name={icon} className="h-3.5 w-3.5 text-muted" /> : null}
               {item}
             </li>

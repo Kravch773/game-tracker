@@ -25,7 +25,7 @@ export default async function NewsPage() {
   return (
     <main>
       <h1 className="flex items-center gap-3 font-display text-4xl tracking-tight">
-        <IconBadge name="book" tone="bg-accent/10 text-accent" size="lg" />
+        <IconBadge name="book" tone="bg-accent/10 text-accent-fg" size="lg" />
         {t("news.title")}
       </h1>
       <article className="mt-8 max-w-3xl rounded-3xl border border-line bg-panel/80 p-6 sm:p-8">

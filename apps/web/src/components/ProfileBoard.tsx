@@ -85,11 +85,11 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
           {email ? <p className="mt-1 text-sm text-muted">{email}</p> : null}
           <div className="mt-1 inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
             <button type="button" onClick={() => setList("followers")} className="inline-flex items-center gap-1 hover:text-ink">
-              <Icon name="users" className="text-sky-300" />
+              <Icon name="users" className="text-sky-700 dark:text-sky-300" />
               {followers} {t("profile.followers").toLowerCase()}
             </button>
             <button type="button" onClick={() => setList("following")} className="inline-flex items-center gap-1 hover:text-ink">
-              <Icon name="user" className="text-violet-300" />
+              <Icon name="user" className="text-violet-700 dark:text-violet-300" />
               {following} {t("profile.following").toLowerCase()}
             </button>
           </div>
@@ -152,7 +152,7 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
               aria-selected={selected}
               onClick={() => chooseTab(item)}
               className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-medium ${
-                selected ? "bg-accent text-accent-ink" : "border border-line bg-white/5 text-muted hover:text-ink"
+                selected ? "bg-accent text-accent-ink" : "border border-line bg-ink/5 text-muted hover:text-ink"
               }`}
             >
               <Icon name={STATUS_MARK[item].icon} className={selected ? "text-accent-ink" : STATUS_MARK[item].tone} />
@@ -167,10 +167,10 @@ export function ProfileBoard({ library, email }: { library: UserLibrary; email: 
             aria-selected={tab === "steamWishlist" && bucket == null}
             onClick={() => chooseTab("steamWishlist")}
             className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-medium ${
-              tab === "steamWishlist" && bucket == null ? "bg-accent text-accent-ink" : "border border-line bg-white/5 text-muted hover:text-ink"
+              tab === "steamWishlist" && bucket == null ? "bg-accent text-accent-ink" : "border border-line bg-ink/5 text-muted hover:text-ink"
             }`}
           >
-            <Icon name="steam" className={tab === "steamWishlist" && bucket == null ? "text-accent-ink" : "text-sky-300"} />
+            <Icon name="steam" className={tab === "steamWishlist" && bucket == null ? "text-accent-ink" : "text-sky-700 dark:text-sky-300"} />
             {t("profile.steamWishlist")} {library.steamWishlist.length}
           </button>
         ) : null}
@@ -306,7 +306,7 @@ function SectionTotals({
         }
         const selected = bucket == null && tab === id;
         return (
-          <button key={id} type="button" onClick={() => onPick(id)} className={`min-w-16 text-left ${selected ? "text-ink" : "hover:text-accent"}`}>
+          <button key={id} type="button" onClick={() => onPick(id)} className={`min-w-16 text-left ${selected ? "text-ink" : "hover:text-accent-fg"}`}>
             {body}
           </button>
         );
@@ -333,10 +333,10 @@ function Stats({
   return (
     <section className="mt-8">
       <p className="inline-flex items-center gap-1.5 text-sm text-muted">
-        <Icon name="star" className="text-accent" />
+        <Icon name="star" className="text-accent-fg" />
         {t("profile.average")}
       </p>
-      <p className="mt-1 font-display text-3xl text-accent">{average.toFixed(1)}</p>
+      <p className="mt-1 font-display text-3xl text-accent-fg">{average.toFixed(1)}</p>
       <div className="mt-4 flex items-end gap-1">
         {counts.map((count, index) => {
           const value = index;
@@ -352,10 +352,10 @@ function Stats({
               className="flex min-w-0 flex-1 flex-col items-center gap-1"
             >
               <span
-                className={`w-full rounded-t-md ${extra ? "bg-amber-300" : "bg-accent/80"} ${selected ? "ring-2 ring-white" : bucket == null ? "" : "opacity-40"}`}
+                className={`w-full rounded-t-md ${extra ? "bg-amber-300" : "bg-accent/80"} ${selected ? "ring-2 ring-ink" : bucket == null ? "" : "opacity-40"}`}
                 style={{ height: `${count === 0 ? 0 : 40 + (count / max) * 100}px` }}
               />
-              <span className={`text-[10px] ${extra ? "text-amber-300" : "text-muted"}`}>{value}</span>
+              <span className={`text-[10px] ${extra ? "text-amber-700 dark:text-amber-300" : "text-muted"}`}>{value}</span>
             </button>
           );
         })}
@@ -458,7 +458,7 @@ function GameCard({
           </span>
         ) : null}
       </span>
-      <span className={`mt-3 block font-medium group-hover:text-accent ${compact ? "line-clamp-2 text-sm" : ""}`}>{game.title}</span>
+      <span className={`mt-3 block font-medium group-hover:text-accent-fg ${compact ? "line-clamp-2 text-sm" : ""}`}>{game.title}</span>
       {when ? <span className="mt-1 block text-sm text-muted">{when}</span> : null}
       {game.review && !compact ? <span className="mt-1 line-clamp-3 block text-sm leading-5 text-muted">{game.review}</span> : null}
       {showMetacritic ? (

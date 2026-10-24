@@ -28,7 +28,7 @@ export function CalendarSide({
             ›
           </a>
         </div>
-        <a href="/calendar" className={`mt-3 inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold ${current ? "bg-white/5 text-muted" : "bg-accent text-accent-ink!"}`}>
+        <a href="/calendar" className={`mt-3 inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold ${current ? "bg-ink/5 text-muted" : "bg-accent text-accent-ink!"}`}>
           {t("calendar.today")}
         </a>
         <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs text-muted">
@@ -43,7 +43,7 @@ export function CalendarSide({
             const hasGames = marked.has(date);
             const isToday = date === today;
             const className = `flex h-9 flex-col items-center justify-center rounded-xl text-sm ${
-              isToday ? "bg-accent font-semibold text-accent-ink!" : hasGames ? "text-ink hover:bg-white/5" : "text-muted"
+              isToday ? "bg-accent font-semibold text-accent-ink!" : hasGames ? "text-ink hover:bg-ink/5" : "text-muted"
             }`;
             const body = (
               <>
@@ -71,7 +71,7 @@ export function CalendarSide({
               const released = game.releaseDate != null && game.releaseDate <= today;
               return (
                 <li key={game.id}>
-                  <a href={`/games/${game.slug}`} className="flex items-center gap-3 rounded-2xl px-1 py-1 hover:bg-white/5">
+                  <a href={`/games/${game.slug}`} className="flex items-center gap-3 rounded-2xl px-1 py-1 hover:bg-ink/5">
                     {game.coverUrl ? (
                       <img src={game.coverUrl} alt="" className="h-[4.55rem] w-[3.25rem] rounded-md object-cover" />
                     ) : (
@@ -81,7 +81,7 @@ export function CalendarSide({
                       <span className="block truncate text-sm font-medium">{game.title}</span>
                       <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted">
                         {game.releaseDate ? formatReleaseDate(game.releaseDate) : t("common.unknownDate")}
-                        <span className={`rounded-full px-2 py-0.5 ${released ? "bg-white/10" : "bg-sky-300/15 text-sky-200"}`}>
+                        <span className={`rounded-full px-2 py-0.5 ${released ? "bg-ink/10" : "bg-sky-300/15 text-sky-800 dark:text-sky-200"}`}>
                           {released ? t("calendar.released") : t("calendar.soon")}
                         </span>
                       </span>

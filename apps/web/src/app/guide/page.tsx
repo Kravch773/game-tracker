@@ -25,7 +25,7 @@ export default async function GuidePage() {
       <section className="relative overflow-hidden rounded-[2rem] border border-line bg-panel/80 px-6 py-10 sm:px-10 sm:py-14">
         <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-28 -left-10 h-56 w-56 rounded-full bg-sky-400/10 blur-3xl" />
-        <p className="relative text-xs font-semibold tracking-[0.18em] text-accent uppercase">{t("guide.eyebrow")}</p>
+        <p className="relative text-xs font-semibold tracking-[0.18em] text-accent-fg uppercase">{t("guide.eyebrow")}</p>
         <h1 className="relative mt-3 max-w-3xl font-display text-4xl tracking-tight sm:text-6xl">{t("guide.title")}</h1>
         <p className="relative mt-4 max-w-2xl text-base leading-7 text-muted sm:text-lg">{t("guide.lead")}</p>
         <div className="relative mt-8 flex flex-wrap gap-3">
@@ -48,10 +48,10 @@ export default async function GuidePage() {
       <section className="grid gap-3 lg:grid-cols-6">
         <Feature className="lg:col-span-4" icon="search" title={t("guide.searchTitle")} body={t("guide.searchBody")}>
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-line bg-bg/70 px-3 py-1.5 font-mono text-sm text-accent">stalker</span>
+            <span className="rounded-full border border-line bg-bg/70 px-3 py-1.5 font-mono text-sm text-accent-fg">stalker</span>
             <Icon name="arrow" className="h-4 w-4 text-muted" />
-            <span className="rounded-full bg-white/10 px-3 py-1.5 text-sm">S.T.A.L.K.E.R. 2</span>
-            <span className="rounded-full bg-white/10 px-3 py-1.5 text-sm">Shadow of Chernobyl</span>
+            <span className="rounded-full bg-ink/10 px-3 py-1.5 text-sm">S.T.A.L.K.E.R. 2</span>
+            <span className="rounded-full bg-ink/10 px-3 py-1.5 text-sm">Shadow of Chernobyl</span>
           </div>
         </Feature>
         <Feature className="lg:col-span-2" icon="layers" title={t("guide.filterTitle")} body={t("guide.filterBody")}>
@@ -66,8 +66,8 @@ export default async function GuidePage() {
             <Status label={t("status.playing")} tone="bg-accent text-accent-ink" />
             <Status label={t("status.finished")} tone="bg-sky-300 text-sky-950" />
             <Status label={t("status.dropped")} tone="bg-rose-300 text-rose-950" />
-            <Status label={t("status.backlog")} tone="bg-white/15 text-ink" />
-            <Status label={t("guide.favorite")} tone="bg-white/10 text-ink" />
+            <Status label={t("status.backlog")} tone="bg-ink/15 text-ink" />
+            <Status label={t("guide.favorite")} tone="bg-ink/10 text-ink" />
           </div>
         </Feature>
         <Feature className="lg:col-span-3" icon="flag" title={t("guide.tagTitle")} body={t("guide.tagBody")}>
@@ -79,10 +79,10 @@ export default async function GuidePage() {
         </Feature>
         <Feature className="lg:col-span-2" icon="building" title={t("guide.linkTitle")} body={t("guide.linkBody")}>
           <div className="mt-5 flex flex-wrap gap-2 text-sm">
-            <a href="/?series=Metro" className="rounded-lg border border-line bg-white/10 px-2.5 py-1.5 hover:border-accent hover:text-accent">
+            <a href="/?series=Metro" className="rounded-lg border border-line bg-ink/10 px-2.5 py-1.5 hover:border-accent hover:text-accent-fg">
               Metro
             </a>
-            <a href="/?developer=4A%20Games" className="rounded-lg border border-line bg-white/10 px-2.5 py-1.5 hover:border-accent hover:text-accent">
+            <a href="/?developer=4A%20Games" className="rounded-lg border border-line bg-ink/10 px-2.5 py-1.5 hover:border-accent hover:text-accent-fg">
               4A Games
             </a>
           </div>
@@ -91,10 +91,10 @@ export default async function GuidePage() {
         <Feature className="lg:col-span-2" icon="calendar" title={t("guide.calendarTitle")} body={t("guide.calendarBody")}>
           <div className="mt-5 flex items-end gap-3">
             <div>
-              <p className="font-display text-4xl text-accent">{t("guide.sampleScore")}</p>
+              <p className="font-display text-4xl text-accent-fg">{t("guide.sampleScore")}</p>
               <p className="text-xs text-muted">{t("guide.samplePlayers")}</p>
             </div>
-            <a href="/calendar" className="mb-1 text-sm text-accent hover:underline">
+            <a href="/calendar" className="mb-1 text-sm text-accent-fg hover:underline">
               {t("nav.calendar")}
             </a>
           </div>
@@ -103,19 +103,19 @@ export default async function GuidePage() {
 
       <section className="grid items-center gap-8 overflow-hidden rounded-[2rem] border border-line bg-panel/70 px-6 py-8 sm:px-10 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
-          <p className="text-xs font-semibold tracking-[0.18em] text-accent uppercase">{t("profile.wheel")}</p>
+          <p className="text-xs font-semibold tracking-[0.18em] text-accent-fg uppercase">{t("profile.wheel")}</p>
           <h2 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl">{t("guide.wheelTitle")}</h2>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted sm:text-base sm:leading-7">{t("guide.wheelBody")}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Status label={t("status.backlog")} tone="bg-white/15 text-ink" />
+            <Status label={t("status.backlog")} tone="bg-ink/15 text-ink" />
             <Status label={t("wheel.elimination")} tone="bg-accent text-accent-ink" />
-            <Status label={t("wheel.instant")} tone="bg-white/10 text-ink" />
+            <Status label={t("wheel.instant")} tone="bg-ink/10 text-ink" />
           </div>
         </div>
         <WheelMock />
       </section>
 
-      <section className="flex flex-col items-start justify-between gap-4 rounded-[2rem] border border-line bg-white/5 px-6 py-8 sm:flex-row sm:items-center sm:px-10">
+      <section className="flex flex-col items-start justify-between gap-4 rounded-[2rem] border border-line bg-ink/5 px-6 py-8 sm:flex-row sm:items-center sm:px-10">
         <p className="max-w-xl text-base leading-7 text-ink/85">{t("guide.closing")}</p>
         <a href="/" className={`${primaryClass} text-accent-ink!`}>
           {t("guide.openCatalog")}
@@ -148,12 +148,12 @@ function WheelMock() {
 
 function SearchMock() {
   return (
-    <div className="relative mt-10 max-w-xl rounded-[1.6rem] border border-white/10 bg-bg/80 p-4 shadow-2xl">
+    <div className="relative mt-10 max-w-xl rounded-[1.6rem] border border-ink/10 bg-bg/80 p-4 shadow-2xl">
       <div className="flex h-12 items-center rounded-full border border-line bg-panel px-4 text-sm text-muted">
         <Icon name="search" className="mr-3 h-4 w-4" />
         stalker
       </div>
-      <div className="mt-3 flex items-center justify-between rounded-2xl bg-white/5 px-3 py-3">
+      <div className="mt-3 flex items-center justify-between rounded-2xl bg-ink/5 px-3 py-3">
         <div>
           <p className="text-sm font-semibold">S.T.A.L.K.E.R. 2: Heart of Chornobyl</p>
           <p className="text-xs text-muted">2024</p>
@@ -195,7 +195,7 @@ function Feature({
   return (
     <article className={`rounded-[1.6rem] border border-line bg-panel/70 p-5 ${className}`}>
       <div className="flex items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-ink/10">
           <Icon name={icon} className="h-5 w-5" />
         </span>
         <h2 className="font-display text-xl tracking-tight">{title}</h2>
@@ -210,7 +210,7 @@ function FilterRow({ label, value }: { label: string; value: string }) {
   return (
     <li className="flex items-center justify-between rounded-xl bg-bg/60 px-3 py-2">
       <span className="text-muted">{label}</span>
-      <span className="font-medium text-accent">{value}</span>
+      <span className="font-medium text-accent-fg">{value}</span>
     </li>
   );
 }

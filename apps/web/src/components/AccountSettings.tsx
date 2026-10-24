@@ -11,7 +11,7 @@ export function AccountSettings({ username, steamId }: { username: string; steam
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <h1 className="flex items-center gap-3 font-display text-4xl tracking-tight">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent ring-1 ring-white/10">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent-fg ring-1 ring-ink/10">
           <Icon name="gear" className="h-6 w-6" />
         </span>
         {t("settings.title")}
@@ -146,11 +146,11 @@ function AuthForm({
   return (
     <form onSubmit={(event) => void onSubmit(event)} className="rounded-3xl border border-line bg-panel/80 p-5">
       <h2 className="flex items-center gap-2.5 font-display text-2xl">
-        {icon ? <Icon name={icon} className={danger ? "h-5 w-5 text-rose-300" : "h-5 w-5 text-accent"} /> : null}
+        {icon ? <Icon name={icon} className={danger ? "h-5 w-5 text-rose-700 dark:text-rose-300" : "h-5 w-5 text-accent-fg"} /> : null}
         {title}
       </h2>
       <div className="mt-4 flex flex-col gap-3">{children}</div>
-      {error ? <p className="mt-3 text-sm text-accent">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-accent-fg">{error}</p> : null}
       {saved && !onDone ? <p className="mt-3 text-sm text-muted">{t("settings.saved")}</p> : null}
       <button type="submit" disabled={pending} className={`${danger ? quietDanger : primaryClass} mt-4`}>
         {submit}

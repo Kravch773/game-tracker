@@ -87,7 +87,7 @@ export function SteamSync({ initialProfile }: { initialProfile: string }) {
       }}
     >
       <h2 className="flex items-center gap-2.5 font-display text-2xl">
-        <Icon name="steam" className="h-5 w-5 text-accent" />
+        <Icon name="steam" className="h-5 w-5 text-accent-fg" />
         {t("settings.steamTitle")}
       </h2>
       <label className="mt-4 flex flex-col gap-2 text-sm text-muted" htmlFor="steam-profile">
@@ -103,7 +103,7 @@ export function SteamSync({ initialProfile }: { initialProfile: string }) {
           className={fieldClass}
         />
       </label>
-      {message ? <p className={`mt-3 text-sm ${failed ? "text-rose-300" : "text-muted"}`}>{message}</p> : null}
+      {message ? <p className={`mt-3 text-sm ${failed ? "text-rose-700 dark:text-rose-300" : "text-muted"}`}>{message}</p> : null}
       {!failed && missing > 0 ? (
         <a href="/steam/wishlist" className="mt-3 inline-block text-sm text-accent-ink!">
           {t("profile.steamWishlistMissingLink", { count: missing })}

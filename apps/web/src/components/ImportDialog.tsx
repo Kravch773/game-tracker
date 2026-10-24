@@ -99,7 +99,7 @@ export function ImportDialog({ open, onClose }: { open: boolean; onClose: () => 
           disabled={pending}
           onClick={() => setSource("mygameslist")}
           className={`h-12 rounded-2xl border px-4 text-left text-sm font-semibold ${
-            source === "mygameslist" ? "border-accent bg-accent text-accent-ink!" : "border-line bg-white/5 hover:border-accent"
+            source === "mygameslist" ? "border-accent bg-accent text-accent-ink!" : "border-line bg-ink/5 hover:border-accent"
           }`}
         >
           {t("profile.importMyGamesList")}
@@ -126,7 +126,7 @@ export function ImportDialog({ open, onClose }: { open: boolean; onClose: () => 
           </div>
         ) : null}
         {progress ? <p className="text-sm text-muted">{progress}</p> : null}
-        {error ? <p className="text-sm text-accent">{error}</p> : null}
+        {error ? <p className="text-sm text-accent-fg">{error}</p> : null}
       </div>
     </Dialog>
   );

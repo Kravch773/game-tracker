@@ -28,14 +28,14 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto max-w-md rounded-3xl border border-line bg-panel/80 p-6 shadow-2xl sm:p-8">
-      <p className="text-sm font-medium tracking-[0.16em] text-accent uppercase">{t("auth.eyebrow")}</p>
+      <p className="text-sm font-medium tracking-[0.16em] text-accent-fg uppercase">{t("auth.eyebrow")}</p>
       <h1 className="mt-3 flex items-center gap-3 font-display text-4xl tracking-tight">
         <IconBadge name="user" size="lg" />
         {t("auth.loginTitle")}
       </h1>
       <LoginForm next={next} />
       <p className="mt-5 text-sm text-muted">
-        {t("auth.noProfile")} <a href={registerHref(next)} className="text-ink hover:text-accent">{t("nav.register")}</a>
+        {t("auth.noProfile")} <a href={registerHref(next)} className="text-ink hover:text-accent-fg">{t("nav.register")}</a>
       </p>
     </main>
   );

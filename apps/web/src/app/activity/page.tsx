@@ -41,15 +41,15 @@ export default async function ActivityPage({
     <main>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="flex items-center gap-3 font-display text-4xl tracking-tight">
-          <IconBadge name="pulse" tone="bg-accent/10 text-accent" size="lg" />
+          <IconBadge name="pulse" tone="bg-accent/10 text-accent-fg" size="lg" />
           {t("activity.title")}
         </h1>
         {me ? (
           <div className="flex gap-2 text-sm">
-            <a href="/activity" className={onlyFollowing ? "text-muted" : "text-accent"}>
+            <a href="/activity" className={onlyFollowing ? "text-muted" : "text-accent-fg"}>
               {t("activity.everyone")}
             </a>
-            <a href="/activity?following=1" className={onlyFollowing ? "text-accent" : "text-muted"}>
+            <a href="/activity?following=1" className={onlyFollowing ? "text-accent-fg" : "text-muted"}>
               {t("activity.following")}
             </a>
           </div>
@@ -63,14 +63,14 @@ export default async function ActivityPage({
         <ul className="mt-8 flex flex-col gap-3">
           {events.map((event) => (
             <li key={`${event.username}-${event.game.id}-${event.at}`} className="flex gap-3 rounded-3xl border border-line bg-panel/80 p-4">
-              <IconBadge name={STATUS_MARK[event.status].icon} tone={`bg-white/5 ${STATUS_MARK[event.status].tone}`} />
+              <IconBadge name={STATUS_MARK[event.status].icon} tone={`bg-ink/5 ${STATUS_MARK[event.status].tone}`} />
               <div className="min-w-0">
               <p>
-                <a href={`/u/${encodeURIComponent(event.username)}`} className="font-medium hover:text-accent">
+                <a href={`/u/${encodeURIComponent(event.username)}`} className="font-medium hover:text-accent-fg">
                   {event.username}
                 </a>
                 <span className="text-muted"> · {t(`status.${event.status}`)} · </span>
-                <a href={`/games/${encodeURIComponent(event.game.slug)}`} className="hover:text-accent">
+                <a href={`/games/${encodeURIComponent(event.game.slug)}`} className="hover:text-accent-fg">
                   {event.game.title}
                 </a>
               </p>

@@ -59,7 +59,7 @@ export function LoginForm({ next }: { next: string | null }) {
           className={fieldClass}
         />
       </label>
-      {error ? <p className="text-sm text-accent">{error}</p> : null}
+      {error ? <p className="text-sm text-accent-fg">{error}</p> : null}
       <button type="submit" disabled={pending} className={`${primaryClass} mt-1 w-full`}>
         {pending ? t("auth.signingIn") : t("nav.login")}
       </button>

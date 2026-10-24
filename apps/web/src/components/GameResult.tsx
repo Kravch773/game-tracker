@@ -27,7 +27,7 @@ export function GameResult({
         <Cover url={game.coverUrl} />
       </span>
       <span className={`block min-w-0 ${compact ? "mt-2" : "mt-3"}`}>
-        <span className={`block truncate font-medium group-hover:text-accent ${compact ? "text-sm" : ""}`}>{game.title}</span>
+        <span className={`block truncate font-medium group-hover:text-accent-fg ${compact ? "text-sm" : ""}`}>{game.title}</span>
         <span
           className={`mt-1 block text-muted ${compact ? "text-xs" : "text-sm"} ${wrapDetail ? "" : "truncate"}`}
           title={detail?.trim() || undefined}

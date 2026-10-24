@@ -85,7 +85,7 @@ export function SearchResults({
           {t("home.loadMore")}
         </button>
       ) : null}
-      {failed ? <p className="mt-3 text-sm text-accent">{t("home.loadFailed")}</p> : null}
+      {failed ? <p className="mt-3 text-sm text-accent-fg">{t("home.loadFailed")}</p> : null}
     </div>
   );
 }

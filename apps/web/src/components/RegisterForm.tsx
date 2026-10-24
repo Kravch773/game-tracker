@@ -86,7 +86,7 @@ export function RegisterForm({ next }: { next: string | null }) {
         />
       </label>
       <p className="text-sm text-muted">{t("auth.noConfirm")}</p>
-      {error ? <p className="text-sm text-accent">{error}</p> : null}
+      {error ? <p className="text-sm text-accent-fg">{error}</p> : null}
       <button type="submit" disabled={pending} className={`${primaryClass} w-full`}>
         {pending ? t("auth.creating") : t("auth.create")}
       </button>

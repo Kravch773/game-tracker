@@ -49,7 +49,7 @@ export function FollowButton({
         <Icon name="user" className={on ? "text-muted" : "text-accent-ink"} />
         {on ? t("profile.unfollow") : t("profile.follow")}
       </button>
-      {error ? <p className="text-sm text-accent">{error}</p> : null}
+      {error ? <p className="text-sm text-accent-fg">{error}</p> : null}
     </div>
   );
 }

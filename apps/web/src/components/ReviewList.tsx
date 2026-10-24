@@ -7,7 +7,7 @@ export function ReviewList({ reviews }: { reviews: CommunityReview[] }) {
   return (
     <section className="mt-12 max-w-3xl">
       <h2 className="flex items-center gap-2.5 font-display text-2xl">
-        <IconBadge name="chat" tone="bg-accent/10 text-accent" />
+        <IconBadge name="chat" tone="bg-accent/10 text-accent-fg" />
         {t("game.reviews")}
       </h2>
       {reviews.length === 0 ? (
@@ -17,7 +17,7 @@ export function ReviewList({ reviews }: { reviews: CommunityReview[] }) {
           {reviews.map((review) => (
             <li key={`${review.username}-${review.at}`} className="rounded-3xl border border-line bg-panel/80 p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <a href={`/u/${encodeURIComponent(review.username)}`} className="inline-flex items-center gap-2 font-medium hover:text-accent">
+                <a href={`/u/${encodeURIComponent(review.username)}`} className="inline-flex items-center gap-2 font-medium hover:text-accent-fg">
                   <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent font-display text-xs text-accent-ink">
                     {review.username.slice(0, 1).toUpperCase()}
                   </span>

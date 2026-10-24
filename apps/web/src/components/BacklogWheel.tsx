@@ -142,7 +142,7 @@ export function BacklogWheel({
           <div>
             {eliminated ? <p className="text-sm text-muted">{t("wheel.out", { title: eliminated.title })}</p> : null}
             <p className="text-sm text-muted">{t("wheel.winner")}</p>
-            <a href={`/games/${encodeURIComponent(winner.slug)}`} className="mt-1 block font-display text-2xl hover:text-accent">
+            <a href={`/games/${encodeURIComponent(winner.slug)}`} className="mt-1 block font-display text-2xl hover:text-accent-fg">
               {winner.title}
             </a>
           </div>

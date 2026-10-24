@@ -114,10 +114,10 @@ export function CatalogSide(props: SideState) {
             publisher: props.origin === "ua" ? props.publisher : "",
             series: props.origin === "ua" ? props.series : "",
           })}
-          className="mt-2 flex items-center justify-between gap-3 rounded-2xl px-3 py-3 hover:bg-white/5"
+          className="mt-2 flex items-center justify-between gap-3 rounded-2xl px-3 py-3 hover:bg-ink/5"
         >
           <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{t("home.ukrainianGames")}</span>
-          <span className={`relative h-6 w-11 shrink-0 rounded-full ${props.origin === "ua" ? "bg-accent" : "bg-white/15"}`}>
+          <span className={`relative h-6 w-11 shrink-0 rounded-full ${props.origin === "ua" ? "bg-accent" : "bg-ink/15"}`}>
             <span
               className={`absolute top-0.5 h-5 w-5 rounded-full bg-white ${props.origin === "ua" ? "right-0.5" : "left-0.5"}`}
             />
@@ -353,5 +353,5 @@ function href(current: SideState, patch: Partial<SideState>): string {
 }
 
 function rowClass(active: boolean): string {
-  return `flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-white/5 ${active ? "bg-white/10 font-semibold text-accent" : "text-ink/85"}`;
+  return `flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-ink/5 ${active ? "bg-ink/10 font-semibold text-accent-fg" : "text-ink/85"}`;
 }

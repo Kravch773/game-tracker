@@ -101,7 +101,7 @@ export function SearchForm({
                   href={`/games/${encodeURIComponent(game.slug)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-3 px-4 py-2 hover:bg-white/5"
+                  className="flex items-center gap-3 px-4 py-2 hover:bg-ink/5"
                   onMouseDown={(event) => event.preventDefault()}
                 >
                   {game.coverUrl ? (

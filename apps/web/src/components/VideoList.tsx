@@ -34,7 +34,7 @@ export function VideoList({ videos }: { videos: GameVideo[] }) {
               type="button"
               aria-expanded={open}
               onClick={() => setOpenUrl(open ? null : video.url)}
-              className="flex h-14 w-full items-center justify-between gap-4 px-4 text-left text-sm hover:text-accent"
+              className="flex h-14 w-full items-center justify-between gap-4 px-4 text-left text-sm hover:text-accent-fg"
             >
               <span>{title}</span>
               <span className="shrink-0 text-xs text-muted">{open ? t("game.collapse") : t("game.watch")}</span>

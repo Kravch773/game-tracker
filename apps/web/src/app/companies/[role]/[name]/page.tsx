@@ -47,7 +47,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ role: 
         {role === "developer" ? t("game.developerGames") : t("game.publisherGames")}
       </p>
       <h1 className="mt-2 flex items-center gap-3 font-display text-4xl tracking-tight">
-        <IconBadge name={role === "developer" ? "building" : "users"} tone="bg-sky-300/10 text-sky-300" size="lg" />
+        <IconBadge name={role === "developer" ? "building" : "users"} tone="bg-sky-300/10 text-sky-700 dark:text-sky-300" size="lg" />
         {company}
       </h1>
       <GameGrid games={games} />

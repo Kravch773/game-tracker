@@ -77,7 +77,7 @@ export function Icon({ name, className = "" }: { name: IconName; className?: str
 
 export function IconBadge({
   name,
-  tone = "bg-accent/10 text-accent",
+  tone = "bg-accent/10 text-accent-fg",
   size = "md",
 }: {
   name: IconName;
@@ -87,7 +87,7 @@ export function IconBadge({
   const box = size === "lg" ? "h-12 w-12 rounded-2xl" : size === "sm" ? "h-8 w-8 rounded-lg" : "h-9 w-9 rounded-xl";
   const glyph = size === "lg" ? "h-7 w-7" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
   return (
-    <span className={`inline-flex shrink-0 items-center justify-center ring-1 ring-white/10 ${box} ${tone}`}>
+    <span className={`inline-flex shrink-0 items-center justify-center ring-1 ring-ink/10 ${box} ${tone}`}>
       <Icon name={name} className={glyph} />
     </span>
   );

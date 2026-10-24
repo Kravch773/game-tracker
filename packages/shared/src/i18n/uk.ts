@@ -28,6 +28,8 @@ export const uk = {
     guide: "Огляд",
     settings: "Налаштування",
     menu: "Розділи",
+    catalog: "Каталог",
+    library: "Моя бібліотека",
   },
   home: {
     eyebrow: "Каталог",
@@ -147,6 +149,17 @@ export const uk = {
     empty: "У цієї гри немає трейлерів.",
     unavailable: "Трейлери зараз недоступні",
     fetchFailed: "Не вдалося отримати трейлери",
+  },
+  look: {
+    title: "Вигляд",
+    design: "Дизайн сайту",
+    theme: "Тема",
+    console: "Консоль",
+    shelf: "Полиця",
+    dark: "Темна",
+    light: "Світла",
+    toLight: "Увімкнути світлу тему",
+    toDark: "Увімкнути темну тему",
   },
   status: {
     playing: "Граю",

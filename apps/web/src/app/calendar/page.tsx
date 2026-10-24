@@ -41,7 +41,7 @@ export default async function CalendarPage({
   return (
     <main>
       <h1 className="flex items-center gap-3 font-display text-4xl tracking-tight">
-        <IconBadge name="calendar" tone="bg-sky-300/10 text-sky-300" size="lg" />
+        <IconBadge name="calendar" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300" size="lg" />
         {t("calendar.title")}
       </h1>
       <p className="mt-2 text-muted capitalize">{formatMonth(calendar.month)}</p>
@@ -57,9 +57,9 @@ export default async function CalendarPage({
                 <section key={day.date} id={day.date === "unscheduled" ? undefined : `d-${day.date}`}>
                   <h2 className="flex items-center gap-3 font-display text-2xl tracking-tight">
                     {day.date === "unscheduled" ? (
-                      <IconBadge name="clock" tone="bg-amber-300/10 text-amber-300" />
+                      <IconBadge name="clock" tone="bg-amber-300/10 text-amber-700 dark:text-amber-300" />
                     ) : (
-                      <span className="inline-flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-panel text-accent ring-1 ring-white/10">
+                      <span className="inline-flex h-12 w-12 flex-col items-center justify-center rounded-2xl bg-panel text-accent-fg ring-1 ring-ink/10">
                         <span className="font-display text-lg leading-none">{day.date.slice(8, 10)}</span>
                       </span>
                     )}

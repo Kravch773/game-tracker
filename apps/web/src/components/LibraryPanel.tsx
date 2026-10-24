@@ -185,7 +185,7 @@ export function LibraryPanel({
           {status ? STATUS_LABELS[status] : t("library.notInList")}
           {favorite ? t("library.inFavoritesSuffix") : ""}
         </p>
-        {rating != null ? <p className="mt-1 text-sm text-accent">{ratingLabel(rating)}</p> : null}
+        {rating != null ? <p className="mt-1 text-sm text-accent-fg">{ratingLabel(rating)}</p> : null}
         {review ? <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">{review}</p> : null}
         <div className="mt-4 flex flex-col gap-2" role="group" aria-label={t("library.section")}>
           {PROFILE_SECTIONS.map((item) => (
@@ -198,7 +198,7 @@ export function LibraryPanel({
               className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
                 status === item
                   ? "border-accent bg-accent text-accent-ink hover:brightness-110"
-                  : "border-sky-300/40 bg-sky-300/15 text-sky-100 hover:border-sky-200 hover:bg-sky-300/25"
+                  : "border-sky-300/40 bg-sky-300/15 text-sky-900 dark:text-sky-100 hover:border-sky-200 hover:bg-sky-300/25"
               }`}
             >
               <Icon name={STATUS_MARK[item].icon} className={status === item ? "text-accent-ink" : STATUS_MARK[item].tone} />
@@ -215,10 +215,10 @@ export function LibraryPanel({
             className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition ${
               favorite
                 ? "border-pink-300 bg-pink-300 text-pink-950! hover:brightness-110"
-                : "border-violet-300/40 bg-violet-300/15 text-violet-100 hover:border-violet-200 hover:bg-violet-300/25"
+                : "border-violet-300/40 bg-violet-300/15 text-violet-900 dark:text-violet-100 hover:border-violet-200 hover:bg-violet-300/25"
             }`}
           >
-            <Icon name="heart" className={favorite ? "text-pink-950" : "text-pink-300"} />
+            <Icon name="heart" className={favorite ? "text-pink-950" : "text-pink-700 dark:text-pink-300"} />
             {favorite ? t("library.favorited") : t("library.addFavorite")}
           </button>
           {status && isScoredStatus(status) ? (
@@ -227,28 +227,28 @@ export function LibraryPanel({
                 type="button"
                 disabled={pending}
                 onClick={openRating}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-900 dark:text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
               >
-                <Icon name="star" className="text-violet-200" />
+                <Icon name="star" className="text-violet-800 dark:text-violet-200" />
                 {t("library.rate")}
               </button>
               <button
                 type="button"
                 disabled={pending}
                 onClick={openReview}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-300/40 bg-violet-300/15 px-3 text-sm font-medium whitespace-nowrap text-violet-900 dark:text-violet-100 transition hover:border-violet-200 hover:bg-violet-300/25"
               >
-                <Icon name="chat" className="text-violet-200" />
+                <Icon name="chat" className="text-violet-800 dark:text-violet-200" />
                 {t("library.editReview")}
               </button>
             </>
           ) : null}
         </div>
-        {error && !open && !reviewOpen ? <p className="mt-3 text-sm text-accent">{error}</p> : null}
+        {error && !open && !reviewOpen ? <p className="mt-3 text-sm text-accent-fg">{error}</p> : null}
       </section>
       <Dialog open={open} title={t("library.rate")} onClose={() => setOpen(false)}>
         <p className="text-sm text-muted">{t("library.ratingHint")}</p>
-        <p className="mt-3 font-display text-3xl text-accent">
+        <p className="mt-3 font-display text-3xl text-accent-fg">
           {draftRating == null ? t("library.noRating") : draftRating === 11 ? t("library.extra") : draftRating.toFixed(1)}
         </p>
         <input
@@ -270,7 +270,7 @@ export function LibraryPanel({
           className={`mt-3 h-11 w-full rounded-xl border text-sm font-semibold ${
             draftRating === 11
               ? "border-accent bg-accent text-accent-ink!"
-              : "border-accent/50 text-accent hover:bg-accent hover:text-accent-ink!"
+              : "border-accent/50 text-accent-fg hover:bg-accent hover:text-accent-ink!"
           }`}
         >
           {t("library.extra")}
@@ -282,7 +282,7 @@ export function LibraryPanel({
             aria-pressed={draftRating == null}
             onClick={() => setDraftRating(null)}
             className={`mt-2 h-11 w-full rounded-xl border text-sm font-semibold ${
-              draftRating == null ? "border-accent bg-accent text-accent-ink!" : "border-line bg-bg/50 hover:border-white/25"
+              draftRating == null ? "border-accent bg-accent text-accent-ink!" : "border-line bg-bg/50 hover:border-ink/25"
             }`}
           >
             {t("library.noRating")}
@@ -300,7 +300,7 @@ export function LibraryPanel({
         <p className="mt-1 text-right text-xs text-muted">
           {[...draftReview].length}/{REVIEW_MAX_LENGTH}
         </p>
-        {error ? <p className="mt-4 text-sm text-accent">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-accent-fg">{error}</p> : null}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <button type="button" disabled={pending} onClick={() => void saveRating()} className={primaryClass}>
             {pending ? t("common.saving") : t("common.save")}
@@ -323,7 +323,7 @@ export function LibraryPanel({
         <p className="mt-1 text-right text-xs text-muted">
           {[...draftReview].length}/{REVIEW_MAX_LENGTH}
         </p>
-        {error ? <p className="mt-4 text-sm text-accent">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-accent-fg">{error}</p> : null}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <button type="button" disabled={pending} onClick={() => void saveReview()} className={primaryClass}>
             {pending ? t("common.saving") : t("common.save")}

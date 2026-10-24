@@ -30,6 +30,8 @@ export const en = {
     guide: "Guide",
     settings: "Settings",
     menu: "Sections",
+    catalog: "Catalog",
+    library: "My library",
   },
   home: {
     eyebrow: "Catalog",
@@ -149,6 +151,17 @@ export const en = {
     empty: "This game has no trailers.",
     unavailable: "Trailers are unavailable",
     fetchFailed: "Could not fetch trailers",
+  },
+  look: {
+    title: "Look",
+    design: "Site design",
+    theme: "Theme",
+    console: "Console",
+    shelf: "Shelf",
+    dark: "Dark",
+    light: "Light",
+    toLight: "Switch to light theme",
+    toDark: "Switch to dark theme",
   },
   status: {
     playing: "Playing",

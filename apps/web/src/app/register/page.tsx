@@ -28,14 +28,14 @@ export default async function RegisterPage({
 
   return (
     <main className="mx-auto max-w-md rounded-3xl border border-line bg-panel/80 p-6 shadow-2xl sm:p-8">
-      <p className="text-sm font-medium tracking-[0.16em] text-accent uppercase">{t("auth.eyebrow")}</p>
+      <p className="text-sm font-medium tracking-[0.16em] text-accent-fg uppercase">{t("auth.eyebrow")}</p>
       <h1 className="mt-3 flex items-center gap-3 font-display text-4xl tracking-tight">
-        <IconBadge name="spark" tone="bg-violet-300/10 text-violet-300" size="lg" />
+        <IconBadge name="spark" tone="bg-violet-300/10 text-violet-700 dark:text-violet-300" size="lg" />
         {t("auth.registerTitle")}
       </h1>
       <RegisterForm next={next} />
       <p className="mt-5 text-sm text-muted">
-        {t("auth.hasProfile")} <a href={loginHref(next)} className="text-ink hover:text-accent">{t("nav.login")}</a>
+        {t("auth.hasProfile")} <a href={loginHref(next)} className="text-ink hover:text-accent-fg">{t("nav.login")}</a>
       </p>
     </main>
   );

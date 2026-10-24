@@ -83,7 +83,7 @@ export default async function HomePage({
           },
         }}
       />
-      <p className="text-sm font-medium tracking-[0.18em] text-accent uppercase">{t("home.eyebrow")}</p>
+      <p className="text-sm font-medium tracking-[0.18em] text-accent-fg uppercase">{t("home.eyebrow")}</p>
       <h1 className="mt-3 max-w-2xl font-display text-4xl tracking-tight sm:text-5xl">
         {t("home.title")}
       </h1>
@@ -259,7 +259,7 @@ async function Collections() {
           href={(home.backlog ?? []).length > 0 ? profile : undefined}
           startsCollapsed
           rows={1}
-          mark={{ icon: "bookmark", tone: "bg-amber-300/10 text-amber-300" }}
+          mark={{ icon: "bookmark", tone: "bg-amber-300/10 text-amber-700 dark:text-amber-300" }}
         />
       ) : null}
       {profile && (home.upcomingBacklog ?? []).length > 0 ? (
@@ -268,7 +268,7 @@ async function Collections() {
           games={home.upcomingBacklog ?? []}
           rows={1}
           showReleaseDate
-          mark={{ icon: "calendar", tone: "bg-sky-300/10 text-sky-300" }}
+          mark={{ icon: "calendar", tone: "bg-sky-300/10 text-sky-700 dark:text-sky-300" }}
         />
       ) : null}
       {profile && (home.favorites ?? []).length > 0 ? (
@@ -276,7 +276,7 @@ async function Collections() {
           title={t("library.favorites")}
           games={home.favorites ?? []}
           href={profile}
-          mark={{ icon: "heart", tone: "bg-pink-300/10 text-pink-300" }}
+          mark={{ icon: "heart", tone: "bg-pink-300/10 text-pink-700 dark:text-pink-300" }}
         />
       ) : null}
       {home.collections.map((section) => (
