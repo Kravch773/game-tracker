@@ -17,8 +17,11 @@ import { CatalogSide } from "@/components/CatalogSide";
 import { SearchForm } from "@/components/SearchForm";
 import { SearchResults } from "@/components/SearchResults";
 import { COLLECTION_MARK, GENRE_MARK, PLATFORM_MARK } from "@/lib/marks";
-import { getCollections, getMe, searchGames } from "@/lib/api";
+import { ConsoleHero, ShelfBento } from "@/components/HomeTop";
+import { getActivity, getCollections, getMe, searchGames } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
+import { getLook } from "@/lib/look";
+import type { Design } from "@/lib/look-cookie";
 import { absoluteUrl, pageMetadata } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +66,8 @@ export default async function HomePage({
   const origin = params.origin === "ua" ? "ua" : params.origin === "ru" ? "ru" : "";
   const filters = readFilters(params);
   const sort = filters.sort ?? "popular";
+  const browsing = !(origin || query || hasFilters(filters) || sort !== "popular");
+  const { design } = await getLook();
 
   return (
     <main>
@@ -83,8 +88,13 @@ export default async function HomePage({
           },
         }}
       />
+      {browsing ? (
+        <div className="mb-12">
+          <HomeTop design={design} />
+        </div>
+      ) : null}
       <p className="text-sm font-medium tracking-[0.18em] text-accent-fg uppercase">{t("home.eyebrow")}</p>
-      <h1 className="mt-3 max-w-2xl font-display text-4xl tracking-tight sm:text-5xl">
+      <h1 className={`mt-3 max-w-2xl font-display tracking-tight ${browsing ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"}`}>
         {t("home.title")}
       </h1>
       <p className="mt-3 max-w-xl text-muted">{t("home.lead")}</p>
@@ -101,7 +111,7 @@ export default async function HomePage({
           series={filters.series ?? ""}
         />
       </div>
-      <ShelfLinks />
+      <ShelfLinks design={design} />
       <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-start">
         <CatalogSide
           q={query}
@@ -115,7 +125,7 @@ export default async function HomePage({
           series={filters.series ?? ""}
         />
         <div className="min-w-0 flex-1">
-          {origin || query || hasFilters(filters) || sort !== "popular" ? (
+          {!browsing ? (
             <Results query={query} filters={filters} origin={origin} />
           ) : (
             <Collections />
@@ -174,7 +184,49 @@ const COLLECTION_TITLES: Record<HomeCollectionId, MessageKey> = {
   racing: "collections.racing",
 };
 
-function ShelfLinks() {
+const GENRE_TILE: Record<CatalogGenreId, string> = {
+  rpg: "bg-tile-coral",
+  shooter: "bg-tile-sun",
+  adventure: "bg-tile-mint",
+  strategy: "bg-tile-lilac",
+  indie: "bg-tile-rose",
+  racing: "bg-tile-sky",
+};
+
+async function HomeTop({ design }: { design: Design }) {
+  const [home, me] = await Promise.all([getCollections(), getMe()]);
+  if (design === "console") return <ConsoleHero home={home} user={me} />;
+  const { events } = await getActivity(me != null).catch(() => ({ events: [] }));
+  return <ShelfBento home={home} user={me} events={events} />;
+}
+
+function ShelfLinks({ design }: { design: Design }) {
+  if (design === "shelf") {
+    return (
+      <div className="mt-5 flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {CATALOG_GENRES.map((genre) => (
+            <a
+              key={genre.id}
+              href={`/genres/${genre.id}`}
+              className={`flex h-20 items-end rounded-3xl p-4 font-display text-lg font-extrabold text-[#1b1530] transition hover:-translate-y-0.5 ${GENRE_TILE[genre.id]}`}
+            >
+              {t(GENRE_LABEL[genre.id])}
+            </a>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {CATALOG_PLATFORMS.map((platform) => (
+            <a key={platform.id} href={`/platforms/${platform.id}`} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-panel px-4 text-sm font-semibold hover:bg-raised">
+              <Icon name={PLATFORM_MARK[platform.id].icon} className="h-3.5 w-3.5" />
+              {t(PLATFORM_LABEL[platform.id])}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {CATALOG_GENRES.map((genre) => (

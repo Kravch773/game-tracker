@@ -19,6 +19,12 @@
   --color-strong: #eef1f6;
   --color-strong-ink: #0b0d12;
   --color-danger: #ff8a7a;
+  --color-tile-mint: #7be0c3;
+  --color-tile-sun: #ffd84d;
+  --color-tile-coral: #ff6b4a;
+  --color-tile-lilac: #b9a7ff;
+  --color-tile-sky: #8fd3ff;
+  --color-tile-rose: #ffb3c7;
 }
 
 /* Console, light */
@@ -42,12 +48,6 @@ html[data-design="shelf"] {
   --font-display: var(--font-rubik), var(--font-onest), sans-serif;
   --color-accent: #ffd84d;
   --color-accent-ink: #1b1530;
-  --color-tile-mint: #7be0c3;
-  --color-tile-sun: #ffd84d;
-  --color-tile-coral: #ff6b4a;
-  --color-tile-lilac: #b9a7ff;
-  --color-tile-sky: #8fd3ff;
-  --color-tile-rose: #ffb3c7;
 }
 
 html[data-design="shelf"][data-theme="light"] {
