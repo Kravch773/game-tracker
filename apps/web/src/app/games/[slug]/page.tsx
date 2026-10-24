@@ -13,7 +13,7 @@ import { genreIcon } from "@/lib/marks";
 import { getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 import type { Design } from "@/lib/look-cookie";
-import { sharpCover } from "@/lib/images";
+import { screenshotAt, sharpCover } from "@/lib/images";
 import { youtubeIdOf } from "@/lib/video";
 import { getLook } from "@/lib/look";
 import { absoluteUrl, pageMetadata, textSnippet } from "@/lib/site";
@@ -135,7 +135,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
     );
   }
 
-  const backdrop = game.screenshots[0]?.url ?? game.coverUrl;
+  const backdrop = game.screenshots[0] ? screenshotAt(game.screenshots[0].url, "t_1080p") : game.coverUrl ? sharpCover(game.coverUrl) : null;
   const sections = [
     game.storyline ? { id: "story", label: t("game.story") } : null,
     game.screenshots.length > 0 || game.videos.length > 0 ? { id: "media", label: t("game.media") } : null,
@@ -285,7 +285,12 @@ function Media({ shots, videos }: { shots: GameDetails["screenshots"]; videos: G
         ) : null}
         {shots.map((shot, index) => (
           <li key={shot.url} className={`overflow-hidden rounded-2xl border border-line ${!lead && index === 0 ? "col-span-2 row-span-2" : ""}`}>
-            <img src={shot.url} alt="" className="aspect-video h-full w-full object-cover" />
+            <img
+              src={!lead && index === 0 ? screenshotAt(shot.url, "t_screenshot_huge") : shot.url}
+              alt=""
+              loading="lazy"
+              className="aspect-video h-full w-full object-cover"
+            />
           </li>
         ))}
       </ul>

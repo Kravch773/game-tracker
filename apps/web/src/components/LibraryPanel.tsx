@@ -50,14 +50,22 @@ export function LibraryPanel({
   const nextPath = `/games/${encodeURIComponent(slug)}`;
   const registerHref = `/register?next=${encodeURIComponent(nextPath)}`;
 
-  // The slider saves on its own a moment after the last move; 11 sits past 10 as the extra mark.
-  function slide(value: number) {
-    const next = value > 10 ? 11 : Math.round(value * 10) / 10;
+  // The slider covers 0–10 and saves on its own a moment after the last move.
+  // 11 is a separate button, so dragging to 10 can never slip into it.
+  function saveRating(next: number | null, delay: number) {
     setDraftRating(next);
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       if (status) void persist(status, next, review.trim() || null);
-    }, 450);
+    }, delay);
+  }
+
+  function slide(value: number) {
+    saveRating(Math.min(10, Math.round(value * 10) / 10), 450);
+  }
+
+  function toggleExtra() {
+    saveRating(draftRating === 11 ? 10 : 11, 0);
   }
 
   function clearRating() {
@@ -236,18 +244,36 @@ export function LibraryPanel({
               id={`rating-${slug}`}
               type="range"
               min={0}
-              max={11}
+              max={10}
               step={0.1}
-              value={draftRating ?? 0}
+              value={draftRating == null ? 0 : Math.min(draftRating, 10)}
               aria-valuetext={draftRating == null ? t("library.noRating") : draftRating === 11 ? t("library.extra") : draftRating.toFixed(1)}
               onChange={(event) => slide(Number(event.target.value))}
-              className={`mt-2 h-7 w-full cursor-pointer ${shelf ? "accent-tile-sun" : "accent-accent"} ${draftRating == null ? "opacity-50" : ""}`}
+              className={`mt-2 h-7 w-full cursor-pointer ${shelf ? "accent-tile-sun" : "accent-accent"} ${
+                draftRating == null || draftRating === 11 ? "opacity-50" : ""
+              }`}
             />
             <div className={`flex items-center justify-between text-[11px] ${shelf ? "text-strong-ink/70" : "text-muted"}`}>
               <span>0</span>
               <span>10</span>
-              <span>{t("library.extra")}</span>
             </div>
+            <button
+              type="button"
+              aria-pressed={draftRating === 11}
+              onClick={toggleExtra}
+              className={`mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition ${
+                draftRating === 11
+                  ? shelf
+                    ? "bg-tile-sun text-[#1b1530]"
+                    : "bg-accent text-accent-ink"
+                  : shelf
+                    ? "border border-strong-ink/25 hover:bg-strong-ink/10"
+                    : "border border-line hover:border-accent-fg"
+              }`}
+            >
+              <span aria-hidden="true">★</span>
+              {t("library.extra")}
+            </button>
             {draftRating != null && status !== "finished" ? (
               <button type="button" onClick={clearRating} className={`mt-2 text-xs font-semibold underline ${shelf ? "text-strong-ink/75" : "text-muted"}`}>
                 {t("library.noRating")}
