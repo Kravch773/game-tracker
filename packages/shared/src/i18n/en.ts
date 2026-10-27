@@ -224,6 +224,10 @@ export const en = {
     empty: "Nothing here yet.",
   },
   profile: {
+    seriesUpcoming: "Not out yet",
+    seriesUpcomingHint: "Announced parts do not count toward progress or completing the series.",
+    seriesMetaUpcoming: "announced: {count}",
+    seriesOpen: "Open the {name} series",
     series: "Series",
     seriesLoading: "Gathering series…",
     seriesError: "Could not load series",

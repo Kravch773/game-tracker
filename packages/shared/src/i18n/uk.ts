@@ -222,6 +222,10 @@ export const uk = {
     empty: "Поки що порожньо.",
   },
   profile: {
+    seriesUpcoming: "Ще не вийшли",
+    seriesUpcomingHint: "Анонсовані частини не впливають на прогрес і закриття серії.",
+    seriesMetaUpcoming: "анонсовано: {count}",
+    seriesOpen: "Відкрити серію «{name}»",
     series: "Серії",
     seriesLoading: "Збираємо серії…",
     seriesError: "Не вдалося завантажити серії",
