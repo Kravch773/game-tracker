@@ -7,6 +7,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
 import { Icon } from "@/components/Icon";
 import { ImportDialog } from "@/components/ImportDialog";
+import { SeriesBoard } from "@/components/SeriesBoard";
 import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
 import { formatShortDate } from "@/lib/format";
@@ -23,11 +24,11 @@ const SCALES = [
   "grid-cols-5 gap-x-2 gap-y-4 sm:grid-cols-7 lg:grid-cols-10",
 ] as const;
 
-type Tab = (typeof TABS)[number] | "steamWishlist";
+type Tab = (typeof TABS)[number] | "steamWishlist" | "series";
 type Sort = "added" | "release" | "rating" | "metacritic";
 
 function isTab(value: string | undefined): value is Tab {
-  return value === "steamWishlist" || (TABS as readonly string[]).includes(value ?? "");
+  return value === "steamWishlist" || value === "series" || (TABS as readonly string[]).includes(value ?? "");
 }
 
 const TAB_FILL: Record<(typeof TABS)[number], string> = {
@@ -72,7 +73,7 @@ export function ProfileBoard({
     tab === "backlog" || tab === "steamWishlist" ? ["added", "release", "metacritic"] : ["added", "release", "rating", "metacritic"];
   const activeSort = sorts.includes(sort) ? sort : "added";
   const rated = [...library.finished, ...library.dropped].filter((game) => game.rating != null);
-  const source = bucket == null ? library[tab] : rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket);
+  const source = tab === "series" ? [] : bucket == null ? library[tab] : rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket);
   const games = sortGames(source, activeSort);
   const initial = library.user.username.slice(0, 1).toUpperCase();
   const average = rated.length > 0 ? rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length : null;
@@ -157,6 +158,24 @@ export function ProfileBoard({
             </button>
           );
         })}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "series" && bucket == null}
+          onClick={() => chooseTab("series")}
+          className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${
+            tab === "series" && bucket == null
+              ? shelf
+                ? "bg-tile-lilac text-[#1b1530]"
+                : "bg-strong text-strong-ink"
+              : shelf
+                ? "bg-panel hover:bg-raised"
+                : "border border-line bg-panel text-muted hover:text-ink"
+          }`}
+        >
+          <Icon name="layers" />
+          {t("profile.series")}
+        </button>
         {email ? (
           <button
             type="button"
@@ -172,71 +191,77 @@ export function ProfileBoard({
           </button>
         ) : null}
       </div>
-      <div className={`mt-4 flex flex-wrap items-center gap-3 bg-panel p-2 pl-4 ${shelf ? "rounded-[28px]" : "rounded-2xl border border-line"}`}>
-        <label className="flex items-center gap-3 text-sm text-muted">
-          {t("profile.sort")}
-          <select
-            value={activeSort}
-            onChange={(event) => setSort(event.target.value as Sort)}
-            className="h-10 rounded-full border border-line bg-panel px-3 text-ink"
-          >
-            {sorts.map((item) => (
-              <option key={item} value={item}>
-                {t(SORT_LABEL[item])}
-              </option>
-            ))}
-          </select>
-        </label>
-        {email && tab === "steamWishlist" ? (
-          <a href="/steam/wishlist" className="text-sm text-accent-ink!">
-            {t("profile.steamWishlistMissingLink", { count: library.steamWishlistMissing })}
-          </a>
-        ) : null}
-        <DisplayToggle label={t("profile.showDate")} checked={showDate} onChange={setShowDate} />
-        <DisplayToggle label={t("profile.showRating")} checked={showRating} onChange={setShowRating} />
-        <DisplayToggle label={t("profile.showMetacritic")} checked={showMetacritic} onChange={setShowMetacritic} />
-        <label className="flex items-center gap-3 text-sm text-muted">
-          {t("profile.cardSize")}
-          <input
-            type="range"
-            min={0}
-            max={SCALES.length - 1}
-            step={1}
-            value={scale}
-            aria-label={t("profile.cardSize")}
-            onChange={(event) => chooseScale(Number(event.target.value))}
-          />
-        </label>
-        {email && tab === "backlog" && library.backlog.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => setWheelOpen(true)}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-semibold text-accent-ink!"
-          >
-            <Icon name="wheel" />
-            {t("profile.wheel")}
-          </button>
-        ) : null}
-      </div>
-      <BacklogWheel open={wheelOpen} games={library.backlog} onClose={() => setWheelOpen(false)} />
-      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
-      {games.length === 0 ? (
-        <p className="mt-6 rounded-3xl border border-dashed border-line px-5 py-12 text-center text-muted">{t("library.empty")}</p>
+      {tab === "series" && bucket == null ? (
+        <SeriesBoard username={library.user.username} design={design} />
       ) : (
-        <ul className={`mt-6 grid ${SCALES[scale]}`}>
-          {games.map((game) => (
-            <li key={`${tab}-${bucket ?? "all"}-${game.id}`}>
-              <GameCard
-                game={game}
-                sort={activeSort}
-                showDate={showDate}
-                showRating={showRating}
-                showMetacritic={showMetacritic}
-                compact={scale >= 2}
+        <>
+          <div className={`mt-4 flex flex-wrap items-center gap-3 bg-panel p-2 pl-4 ${shelf ? "rounded-[28px]" : "rounded-2xl border border-line"}`}>
+            <label className="flex items-center gap-3 text-sm text-muted">
+              {t("profile.sort")}
+              <select
+                value={activeSort}
+                onChange={(event) => setSort(event.target.value as Sort)}
+                className="h-10 rounded-full border border-line bg-panel px-3 text-ink"
+              >
+                {sorts.map((item) => (
+                  <option key={item} value={item}>
+                    {t(SORT_LABEL[item])}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {email && tab === "steamWishlist" ? (
+              <a href="/steam/wishlist" className="text-sm text-accent-ink!">
+                {t("profile.steamWishlistMissingLink", { count: library.steamWishlistMissing })}
+              </a>
+            ) : null}
+            <DisplayToggle label={t("profile.showDate")} checked={showDate} onChange={setShowDate} />
+            <DisplayToggle label={t("profile.showRating")} checked={showRating} onChange={setShowRating} />
+            <DisplayToggle label={t("profile.showMetacritic")} checked={showMetacritic} onChange={setShowMetacritic} />
+            <label className="flex items-center gap-3 text-sm text-muted">
+              {t("profile.cardSize")}
+              <input
+                type="range"
+                min={0}
+                max={SCALES.length - 1}
+                step={1}
+                value={scale}
+                aria-label={t("profile.cardSize")}
+                onChange={(event) => chooseScale(Number(event.target.value))}
               />
-            </li>
-          ))}
-        </ul>
+            </label>
+            {email && tab === "backlog" && library.backlog.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setWheelOpen(true)}
+                className="inline-flex h-10 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-semibold text-accent-ink!"
+              >
+                <Icon name="wheel" />
+                {t("profile.wheel")}
+              </button>
+            ) : null}
+          </div>
+          <BacklogWheel open={wheelOpen} games={library.backlog} onClose={() => setWheelOpen(false)} />
+          <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+          {games.length === 0 ? (
+            <p className="mt-6 rounded-3xl border border-dashed border-line px-5 py-12 text-center text-muted">{t("library.empty")}</p>
+          ) : (
+            <ul className={`mt-6 grid ${SCALES[scale]}`}>
+              {games.map((game) => (
+                <li key={`${tab}-${bucket ?? "all"}-${game.id}`}>
+                  <GameCard
+                    game={game}
+                    sort={activeSort}
+                    showDate={showDate}
+                    showRating={showRating}
+                    showMetacritic={showMetacritic}
+                    compact={scale >= 2}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </main>
   );
