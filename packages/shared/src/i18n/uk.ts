@@ -104,6 +104,9 @@ export const uk = {
     switch: "Nintendo Switch",
   },
   game: {
+    followedRatings: "Оцінки підписок",
+    followedAverage: "Середня",
+    followedCount: "{count} з ваших підписок оцінили гру",
     notFound: "Гру не знайдено",
     missingPage: "Такої сторінки немає в каталозі.",
     story: "Сюжет",

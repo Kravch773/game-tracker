@@ -106,6 +106,9 @@ export const en = {
     switch: "Nintendo Switch",
   },
   game: {
+    followedRatings: "Ratings from people you follow",
+    followedAverage: "Average",
+    followedCount: "{count} people you follow rated this game",
     notFound: "Game not found",
     missingPage: "This page is not in the catalog.",
     story: "Story",

@@ -2,6 +2,7 @@ import type {
   AuthUser,
   GameDetails,
   GameEntry,
+  FollowedRating,
   ActivityResponse,
   GameSearchResponse,
   GameSummary,
@@ -130,6 +131,16 @@ export async function getGameEntry(slug: string): Promise<GameEntry | null> {
   if (response.status === 401) return null;
   if (!response.ok) throw new Error(`Entry request failed with ${response.status}`);
   return (await response.json()) as GameEntry;
+}
+
+export async function getFollowedRatings(slug: string): Promise<FollowedRating[]> {
+  const response = await fetch(`${apiUrl}/games/${encodeURIComponent(slug)}/following`, {
+    headers: await sessionHeaders(),
+    cache: "no-store",
+  });
+  if (!response.ok) return [];
+  const payload = (await response.json()) as { ratings?: FollowedRating[] };
+  return payload.ratings ?? [];
 }
 
 async function sessionHeaders(): Promise<Headers> {

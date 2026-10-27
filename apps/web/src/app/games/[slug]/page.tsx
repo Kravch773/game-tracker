@@ -1,4 +1,4 @@
-import { TRAILERS_ENABLED, t, type GameDetails, type GameEntry, type GameLinkKind, type GameOrigin } from "@gametracker/shared";
+import { TRAILERS_ENABLED, t, type FollowedRating, type GameDetails, type GameEntry, type GameLinkKind, type GameOrigin } from "@gametracker/shared";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CollectionRow } from "@/components/CollectionRow";
@@ -10,8 +10,9 @@ import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { TrailersButton } from "@/components/TrailersButton";
 import { VideoList } from "@/components/VideoList";
 import { formatHours, formatReleaseDate } from "@/lib/format";
+import { STATUS_LABELS } from "@/lib/library";
 import { genreIcon } from "@/lib/marks";
-import { getGame, getGameEntry, getMe } from "@/lib/api";
+import { getFollowedRatings, getGame, getGameEntry, getMe } from "@/lib/api";
 import { applyLocale } from "@/lib/locale";
 import type { Design } from "@/lib/look-cookie";
 import { screenshotAt, sharpCover } from "@/lib/images";
@@ -58,10 +59,11 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   if (!game) notFound();
 
   const [me, { design }] = await Promise.all([getMe(), getLook()]);
-  const entry = me ? await getGameEntry(slug) : null;
+  const [entry, followed] = me ? await Promise.all([getGameEntry(slug), getFollowedRatings(slug)]) : [null, []];
   const saved: GameEntry = entry ?? { status: null, rating: null, review: null, favorite: false, steamMinutes: null };
   const scores = <Scores game={game} saved={saved} design={design} />;
   const panel = <LibraryPanel slug={game.slug} loggedIn={me != null} entry={saved} design={design} />;
+  const friends = followed.length > 0 ? <FollowedRatings ratings={followed} design={design} /> : null;
   const facts = (
     <>
       <ChipGroup label={t("game.platforms")} items={game.platforms} />
@@ -108,6 +110,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
               <div className="aspect-[3/4] w-full rounded-[32px] bg-raised" />
             )}
             {panel}
+            {friends}
           </div>
         </div>
         <div className="flex flex-wrap gap-5">
@@ -166,6 +169,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             <div className="aspect-[3/4] w-44 rounded-3xl bg-raised ring-1 ring-ink/10 md:w-full" />
           )}
           {panel}
+          {friends}
           <StoreLinks links={game.links} variant="list" />
         </aside>
         <article className="min-w-0 md:pt-32">
@@ -262,6 +266,57 @@ function Scores({ game, saved, design }: { game: GameDetails; saved: GameEntry; 
         </div>
       ))}
     </div>
+  );
+}
+
+function scoreText(rating: number): string {
+  return Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
+}
+
+// What the people the viewer follows scored this game; 11 is the "extra" mark and counts as 10 in the average.
+function FollowedRatings({ ratings, design }: { ratings: FollowedRating[]; design: Design }) {
+  const average = ratings.reduce((sum, item) => sum + Math.min(item.rating, 10), 0) / ratings.length;
+  const shelf = design === "shelf";
+  return (
+    <section className={shelf ? "rounded-[32px] bg-panel p-6" : "rounded-3xl border border-line bg-panel p-4"}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className={shelf ? "font-display text-xl font-extrabold" : "text-[11px] font-bold tracking-[0.14em] text-muted uppercase"}>
+            {t("game.followedRatings")}
+          </h2>
+          <p className="mt-1 text-xs text-muted">{t("game.followedCount", { count: ratings.length })}</p>
+        </div>
+        <div className={`shrink-0 rounded-2xl px-3 py-1.5 text-center ${shelf ? "bg-tile-mint text-[#1b1530]" : "bg-raised"}`}>
+          <p className={`text-[10px] font-semibold uppercase ${shelf ? "opacity-75" : "text-muted"}`}>{t("game.followedAverage")}</p>
+          <p className="font-display text-xl leading-tight">{scoreText(Math.round(average * 10) / 10)}</p>
+        </div>
+      </div>
+      <ul className="mt-3 flex flex-col gap-1.5">
+        {ratings.map((item) => (
+          <li key={item.username}>
+            <a
+              href={`/u/${encodeURIComponent(item.username)}`}
+              className={`flex min-h-11 items-center gap-2.5 px-2 py-1.5 hover:bg-raised ${shelf ? "rounded-2xl" : "rounded-xl"}`}
+            >
+              <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent font-display text-xs text-accent-ink">
+                {item.username.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{item.username}</span>
+                <span className="block text-xs text-muted">{STATUS_LABELS[item.status]}</span>
+              </span>
+              <span
+                className={`inline-flex h-8 min-w-10 shrink-0 items-center justify-center rounded-full px-2.5 font-display text-sm ${
+                  item.rating === 11 ? "bg-tile-sun text-[#1b1530]" : "bg-raised"
+                }`}
+              >
+                {scoreText(item.rating)}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
