@@ -32,13 +32,41 @@ function Glyph({ path }: { path: string }) {
   );
 }
 
-// Two stacked segmented controls for the Console sidebar.
+// The design choice looks the same in both designs: a pill with a coloured dot per design.
+function DesignPills({ design, wide = false }: { design: Design; wide?: boolean }) {
+  const designs: { id: Design; label: string; swatch: string }[] = [
+    { id: "console", label: t("look.console"), swatch: "bg-[#0b0d12] ring-2 ring-[#d7ff3a] ring-inset" },
+    { id: "shelf", label: t("look.shelf"), swatch: "bg-[#ff6b4a] ring-2 ring-[#ffd84d] ring-inset" },
+  ];
+  return (
+    <div
+      role="radiogroup"
+      aria-label={t("look.design")}
+      className={`items-center gap-0.5 rounded-full bg-panel p-1 ${wide ? "grid h-12 grid-cols-2 border border-line" : "flex h-12"}`}
+    >
+      {designs.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          role="radio"
+          aria-checked={design === item.id}
+          aria-label={item.label}
+          onClick={() => chooseDesign(item.id, design)}
+          className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-2.5 text-[13px] font-bold sm:px-3 ${
+            design === item.id ? "bg-strong text-strong-ink" : "text-muted hover:text-ink"
+          }`}
+        >
+          <span className={`h-4 w-4 shrink-0 rounded-full ${item.swatch}`} />
+          <span className={wide ? "" : "hidden xl:inline"}>{item.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// The design pill and a theme toggle stacked for the Console sidebar.
 export function LookSwitchRail({ design, theme: initial }: { design: Design; theme: Theme }) {
   const [theme, chooseTheme] = useTheme(initial);
-  const designs: { id: Design; label: string; swatch: string; dot: string }[] = [
-    { id: "console", label: t("look.console"), swatch: "bg-[#0b0d12] ring-1 ring-ink/20", dot: "bg-[#d7ff3a]" },
-    { id: "shelf", label: t("look.shelf"), swatch: "bg-[#eeeaf6]", dot: "bg-[#ff6b4a]" },
-  ];
   const themes: { id: Theme; label: string; icon: string }[] = [
     { id: "dark", label: t("look.dark"), icon: MOON },
     { id: "light", label: t("look.light"), icon: SUN },
@@ -46,25 +74,7 @@ export function LookSwitchRail({ design, theme: initial }: { design: Design; the
   return (
     <div className="flex flex-col gap-2">
       <p className="px-1 text-[11px] font-bold tracking-[0.14em] text-muted uppercase">{t("look.title")}</p>
-      <div role="radiogroup" aria-label={t("look.design")} className="grid grid-cols-2 gap-1.5 rounded-2xl border border-line bg-panel p-1">
-        {designs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="radio"
-            aria-checked={design === item.id}
-            onClick={() => chooseDesign(item.id, design)}
-            className={`flex h-16 flex-col items-center justify-center gap-1.5 rounded-xl text-xs font-bold ${
-              design === item.id ? "bg-raised text-ink ring-1 ring-accent-fg" : "text-muted hover:text-ink"
-            }`}
-          >
-            <span className={`relative block h-6 w-10 rounded-md ${item.swatch}`}>
-              <span className={`absolute top-1 left-1 h-3.5 w-2.5 rounded-sm ${item.dot}`} />
-            </span>
-            {item.label}
-          </button>
-        ))}
-      </div>
+      <DesignPills design={design} wide />
       <div role="radiogroup" aria-label={t("look.theme")} className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-panel p-1">
         {themes.map((item) => (
           <button
@@ -89,30 +99,10 @@ export function LookSwitchRail({ design, theme: initial }: { design: Design; the
 // A design pill and a sun/moon button for the Shelf header.
 export function LookSwitchPill({ design, theme: initial }: { design: Design; theme: Theme }) {
   const [theme, chooseTheme] = useTheme(initial);
-  const designs: { id: Design; label: string; swatch: string }[] = [
-    { id: "console", label: t("look.console"), swatch: "bg-[#0b0d12] ring-2 ring-[#d7ff3a] ring-inset" },
-    { id: "shelf", label: t("look.shelf"), swatch: "bg-[#ff6b4a] ring-2 ring-[#ffd84d] ring-inset" },
-  ];
   const next = theme === "dark" ? "light" : "dark";
   return (
     <div className="flex items-center gap-2">
-      <div role="radiogroup" aria-label={t("look.design")} className="flex h-12 items-center gap-0.5 rounded-full bg-panel p-1">
-        {designs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="radio"
-            aria-checked={design === item.id}
-            onClick={() => chooseDesign(item.id, design)}
-            className={`inline-flex h-10 items-center gap-2 rounded-full px-2.5 text-[13px] font-bold sm:px-3 ${
-              design === item.id ? "bg-strong text-strong-ink" : "text-muted hover:text-ink"
-            }`}
-          >
-            <span className={`h-4 w-4 rounded-full ${item.swatch}`} />
-            <span className="hidden xl:inline">{item.label}</span>
-          </button>
-        ))}
-      </div>
+      <DesignPills design={design} />
       <button
         type="button"
         onClick={() => chooseTheme(next)}

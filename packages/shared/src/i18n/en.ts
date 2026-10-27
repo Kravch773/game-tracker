@@ -113,6 +113,7 @@ export const en = {
     screenshots: "Screenshots",
     videos: "Videos",
     media: "Screenshots and trailers",
+    openScreenshot: "Open screenshot {number}",
     watchOnYoutube: "Watch on YouTube",
     collapse: "Collapse",
     watch: "Watch",

@@ -111,6 +111,7 @@ export const uk = {
     screenshots: "Скріншоти",
     videos: "Відео",
     media: "Скріншоти та трейлери",
+    openScreenshot: "Відкрити скріншот {number}",
     watchOnYoutube: "Дивитися на YouTube",
     collapse: "Згорнути",
     watch: "Дивитися",

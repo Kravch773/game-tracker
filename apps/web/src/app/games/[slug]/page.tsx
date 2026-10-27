@@ -6,6 +6,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { Icon, IconBadge, type IconName } from "@/components/Icon";
 import { LibraryPanel } from "@/components/LibraryPanel";
 import { ReviewList } from "@/components/ReviewList";
+import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { TrailersButton } from "@/components/TrailersButton";
 import { VideoList } from "@/components/VideoList";
 import { formatHours, formatReleaseDate } from "@/lib/format";
@@ -271,29 +272,22 @@ function Media({ shots, videos }: { shots: GameDetails["screenshots"]; videos: G
   const rest = videos.filter((video) => video !== lead);
   return (
     <>
-      <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {lead && leadId ? (
-          <li className="col-span-2 row-span-2 overflow-hidden rounded-2xl border border-line bg-black">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${leadId}?rel=0`}
-              title={lead.name || t("game.watchOnYoutube")}
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="aspect-video h-full w-full border-0"
-            />
-          </li>
-        ) : null}
-        {shots.map((shot, index) => (
-          <li key={shot.url} className={`overflow-hidden rounded-2xl border border-line ${!lead && index === 0 ? "col-span-2 row-span-2" : ""}`}>
-            <img
-              src={!lead && index === 0 ? screenshotAt(shot.url, "t_screenshot_huge") : shot.url}
-              alt=""
-              loading="lazy"
-              className="aspect-video h-full w-full object-cover"
-            />
-          </li>
-        ))}
-      </ul>
+      <ScreenshotGallery
+        shots={shots}
+        lead={
+          lead && leadId ? (
+            <li className="col-span-2 row-span-2 overflow-hidden rounded-2xl border border-line bg-black">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${leadId}?rel=0`}
+                title={lead.name || t("game.watchOnYoutube")}
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="aspect-video h-full w-full border-0"
+              />
+            </li>
+          ) : undefined
+        }
+      />
       {rest.length > 0 ? <VideoList videos={rest} /> : null}
     </>
   );
