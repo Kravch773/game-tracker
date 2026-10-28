@@ -224,6 +224,7 @@ export const en = {
     empty: "Nothing here yet.",
   },
   profile: {
+    seriesTileHint: "Progress through game series",
     seriesUpcoming: "Not out yet",
     seriesUpcomingHint: "Announced parts do not count toward progress or completing the series.",
     seriesMetaUpcoming: "announced: {count}",

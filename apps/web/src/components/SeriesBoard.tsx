@@ -80,18 +80,13 @@ function summarize(series: GameSeries, showMissing: boolean): Summary {
   };
 }
 
-// On a sun-yellow Shelf card the yellow "finished" colour disappears, so it turns ink there.
-function colorOf(slot: Slot, sunny: boolean): string {
-  return sunny && slot === "finished" ? "#1b1530" : SLOT_COLOR[slot];
-}
-
-function ringStyle(summary: Summary, sunny: boolean): string {
+function ringStyle(summary: Summary): string {
   if (summary.total === 0) return SLOT_COLOR.missing;
   let at = 0;
   const stops = SLOTS.filter((slot) => summary.counts[slot] > 0).map((slot) => {
     const from = at;
     at += (summary.counts[slot] / summary.total) * 360;
-    return `${colorOf(slot, sunny)} ${from.toFixed(1)}deg ${at.toFixed(1)}deg`;
+    return `${SLOT_COLOR[slot]} ${from.toFixed(1)}deg ${at.toFixed(1)}deg`;
   });
   return `conic-gradient(${stops.join(", ")})`;
 }
@@ -244,9 +239,8 @@ export function SeriesBoard({ username, design }: { username: string; design: De
   );
 }
 
-function SeriesRing({ summary, sunny, size }: { summary: Summary; sunny: boolean; size: "md" | "lg" }) {
+function SeriesRing({ summary, size }: { summary: Summary; size: "md" | "lg" }) {
   const { counts, done, total } = summary;
-  const soft = sunny ? "opacity-75" : "text-muted";
   return (
     <span
       role="img"
@@ -254,18 +248,16 @@ function SeriesRing({ summary, sunny, size }: { summary: Summary; sunny: boolean
         .map((slot) => `${slotLabel(slot)} ${counts[slot]}`)
         .join(", ")}
       className={`relative shrink-0 rounded-full ${size === "lg" ? "h-32 w-32" : "h-24 w-24"}`}
-      style={{ background: ringStyle(summary, sunny) }}
+      style={{ background: ringStyle(summary) }}
     >
       <span
-        className={`absolute flex flex-col items-center justify-center rounded-full leading-none ${size === "lg" ? "inset-4" : "inset-3"} ${
-          sunny ? "bg-tile-sun" : "bg-panel"
-        }`}
+        className={`absolute flex flex-col items-center justify-center rounded-full leading-none ${size === "lg" ? "inset-4" : "inset-3"} bg-panel`}
       >
         <span className={`font-display ${size === "lg" ? "text-3xl" : "text-xl"}`}>
           {done}
-          <span className={`text-xs ${soft}`}>/{total}</span>
+          <span className={`text-xs text-muted`}>/{total}</span>
         </span>
-        <span className={`mt-1 text-[10px] ${soft}`}>{t("profile.seriesFinished")}</span>
+        <span className={`mt-1 text-[10px] text-muted`}>{t("profile.seriesFinished")}</span>
       </span>
     </span>
   );
@@ -273,9 +265,6 @@ function SeriesRing({ summary, sunny, size }: { summary: Summary; sunny: boolean
 
 function SeriesHead({ summary, shelf, showMissing, onOpen }: { summary: Summary; shelf: boolean; showMissing: boolean; onOpen?: () => void }) {
   const { series, counts, closed } = summary;
-  const sunny = shelf && closed;
-  const soft = sunny ? "opacity-75" : "text-muted";
-  const chip = sunny ? "bg-[#1b1530]/10" : "bg-raised";
   const meta = [t("profile.seriesMeta", { count: summary.total, years: summary.years })];
   if (showMissing && summary.missing > 0) meta.push(t("profile.seriesMetaMissing", { count: summary.missing }));
   if (summary.upcoming.length > 0) meta.push(t("profile.seriesMetaUpcoming", { count: summary.upcoming.length }));
@@ -294,17 +283,17 @@ function SeriesHead({ summary, shelf, showMissing, onOpen }: { summary: Summary;
         )}
         {closed ? (
           <span
-            className={`inline-flex h-6 items-center rounded-lg px-2 text-xs font-bold ${shelf ? "bg-[#1b1530] text-tile-sun" : "bg-accent/15 text-accent-fg"}`}
+            className={`inline-flex h-6 items-center rounded-lg px-2 text-xs font-bold ${shelf ? "bg-tile-sun text-[#1b1530]" : "bg-accent/15 text-accent-fg"}`}
           >
             {t("profile.seriesDone")}
           </span>
         ) : null}
       </div>
-      <p className={`text-sm ${soft}`}>{meta.join(" · ")}</p>
+      <p className={`text-sm text-muted`}>{meta.join(" · ")}</p>
       <ul className="flex flex-wrap gap-1.5">
         {SLOTS.filter((slot) => counts[slot] > 0).map((slot) => (
-          <li key={slot} className={`inline-flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs ${chip}`}>
-            <span className="h-2 w-2 rounded-full" style={{ background: colorOf(slot, sunny) }} />
+          <li key={slot} className={`inline-flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs bg-raised`}>
+            <span className="h-2 w-2 rounded-full" style={{ background: SLOT_COLOR[slot] }} />
             {slotLabel(slot)} <b>{counts[slot]}</b>
           </li>
         ))}
@@ -316,23 +305,22 @@ function SeriesHead({ summary, shelf, showMissing, onOpen }: { summary: Summary;
 function SeriesCard({ summary, shelf, showMissing }: { summary: Summary; shelf: boolean; showMissing: boolean }) {
   const [open, setOpen] = useState(false);
   const { series, closed } = summary;
-  const sunny = shelf && closed;
+  // A completed series keeps the dark card and gets a yellow outline: a fully yellow card was hard to read.
   const card = shelf
-    ? `rounded-[32px] p-5 sm:p-6 ${sunny ? "bg-tile-sun text-[#1b1530]" : "bg-panel"}`
+    ? `rounded-[32px] bg-panel p-5 sm:p-6 ${closed ? "ring-2 ring-tile-sun" : ""}`
     : `rounded-2xl border bg-panel p-5 ${closed ? "border-accent-fg" : "border-line"}`;
-  const soft = sunny ? "opacity-75" : "text-muted";
 
   return (
     <article className={`flex h-full flex-col gap-4 ${card}`}>
       <div className="flex items-center gap-4">
-        <SeriesRing summary={summary} sunny={sunny} size="md" />
+        <SeriesRing summary={summary} size="md" />
         <SeriesHead summary={summary} shelf={shelf} showMissing={showMissing} onOpen={() => setOpen(true)} />
         <div className="flex flex-col items-end gap-2 self-start">
           <button
             type="button"
             onClick={() => setOpen(true)}
             aria-label={t("profile.seriesOpen", { name: series.name })}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-full ${sunny ? "bg-[#1b1530]/10 hover:bg-[#1b1530]/20" : "bg-raised hover:text-accent-fg"}`}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised hover:text-accent-fg`}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="h-4 w-4">
               <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -340,21 +328,21 @@ function SeriesCard({ summary, shelf, showMissing }: { summary: Summary; shelf: 
           </button>
           <div className="hidden text-right sm:block">
             <p className={`font-display text-xl ${closed && !shelf ? "text-accent-fg" : ""}`}>{percentOf(summary)}%</p>
-            {summary.average != null ? <p className={`mt-0.5 text-xs ${soft}`}>{t("profile.seriesAverage", { rating: summary.average.toFixed(1) })}</p> : null}
+            {summary.average != null ? <p className={`mt-0.5 text-xs text-muted`}>{t("profile.seriesAverage", { rating: summary.average.toFixed(1) })}</p> : null}
           </div>
         </div>
       </div>
       <ol aria-label={t("profile.seriesOrder", { name: series.name })} className="-mx-1 flex gap-2 overflow-x-auto px-1 pt-2 pb-1">
         {summary.games.map((game, index) => (
-          <SeriesCover key={`${index}-${game.slug}`} game={game} sunny={sunny} />
+          <SeriesCover key={`${index}-${game.slug}`} game={game} />
         ))}
       </ol>
       {summary.upcoming.length > 0 ? (
         <div className="flex flex-col gap-1">
-          <p className={`text-xs font-semibold ${soft}`}>{t("profile.seriesUpcoming")}</p>
+          <p className={`text-xs font-semibold text-muted`}>{t("profile.seriesUpcoming")}</p>
           <ol aria-label={t("profile.seriesUpcoming")} className="-mx-1 flex gap-2 overflow-x-auto px-1 pt-2 pb-1">
             {summary.upcoming.map((game, index) => (
-              <SeriesCover key={`${index}-${game.slug}`} game={game} sunny={sunny} upcoming />
+              <SeriesCover key={`${index}-${game.slug}`} game={game} upcoming />
             ))}
           </ol>
         </div>
@@ -375,15 +363,15 @@ function coverTone(slot: Slot, upcoming: boolean): string {
   return "";
 }
 
-function RatingBadge({ game, slot, sunny }: { game: SeriesGame; slot: Slot; sunny: boolean }) {
+function RatingBadge({ game, slot }: { game: SeriesGame; slot: Slot }) {
   if (game.rating == null) return null;
   return (
     <span
       className="absolute -top-1.5 -right-1.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[11px] font-extrabold"
       style={{
-        background: colorOf(slot, sunny),
-        color: sunny && slot === "finished" ? "var(--color-tile-sun)" : "#1b1530",
-        boxShadow: `0 0 0 2px ${sunny ? "var(--color-tile-sun)" : "var(--color-panel)"}`,
+        background: SLOT_COLOR[slot],
+        color: "#1b1530",
+        boxShadow: "0 0 0 2px var(--color-panel)",
       }}
     >
       {scoreText(game.rating)}
@@ -391,7 +379,7 @@ function RatingBadge({ game, slot, sunny }: { game: SeriesGame; slot: Slot; sunn
   );
 }
 
-function SeriesCover({ game, sunny, upcoming = false }: { game: SeriesGame; sunny: boolean; upcoming?: boolean }) {
+function SeriesCover({ game, upcoming = false }: { game: SeriesGame; upcoming?: boolean }) {
   const slot = slotOf(game);
   const missing = slot === "missing";
   const year = game.releaseDate?.slice(0, 4) ?? "TBA";
@@ -409,10 +397,10 @@ function SeriesCover({ game, sunny, upcoming = false }: { game: SeriesGame; sunn
           <span className="block h-full w-full rounded-[9px] bg-raised" />
         )}
         {missing && !upcoming ? <span className="absolute inset-0 flex items-center justify-center text-xl text-ink">+</span> : null}
-        <RatingBadge game={game} slot={slot} sunny={sunny} />
+        <RatingBadge game={game} slot={slot} />
       </a>
-      {upcoming && missing ? null : <span className="h-1 rounded-full" style={{ background: colorOf(slot, sunny) }} />}
-      <span className={`text-center text-[11px] ${sunny ? "opacity-75" : "text-muted"}`}>{year}</span>
+      {upcoming && missing ? null : <span className="h-1 rounded-full" style={{ background: SLOT_COLOR[slot] }} />}
+      <span className="text-center text-[11px] text-muted">{year}</span>
     </li>
   );
 }
@@ -420,7 +408,6 @@ function SeriesCover({ game, sunny, upcoming = false }: { game: SeriesGame; sunn
 // The whole series at a readable size: every released part with its title and status, then the announced ones.
 function SeriesDialog({ summary, shelf, showMissing, onClose }: { summary: Summary; shelf: boolean; showMissing: boolean; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
-  const sunny = shelf && summary.closed;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -445,8 +432,8 @@ function SeriesDialog({ summary, shelf, showMissing, onClose }: { summary: Summa
         onClick={(event) => event.stopPropagation()}
         className={`flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden text-ink ${shelf ? "rounded-t-[32px] bg-bg sm:rounded-[32px]" : "rounded-t-3xl border border-line bg-bg sm:rounded-3xl"}`}
       >
-        <header className={`flex items-center gap-5 p-5 sm:p-6 ${sunny ? "bg-tile-sun text-[#1b1530]" : shelf ? "bg-panel" : "border-b border-line bg-panel"}`}>
-          <SeriesRing summary={summary} sunny={sunny} size="lg" />
+        <header className={`flex items-center gap-5 p-5 sm:p-6 ${shelf ? "bg-panel" : "border-b border-line bg-panel"}`}>
+          <SeriesRing summary={summary} size="lg" />
           <SeriesHead summary={summary} shelf={shelf} showMissing={showMissing} />
           <div className="flex flex-col items-end gap-3 self-start">
             <button
@@ -454,14 +441,14 @@ function SeriesDialog({ summary, shelf, showMissing, onClose }: { summary: Summa
               type="button"
               onClick={onClose}
               aria-label={t("common.close")}
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${sunny ? "bg-[#1b1530]/10" : "bg-raised"}`}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-full bg-raised`}
             >
               <Icon name="close" />
             </button>
             <div className="hidden text-right sm:block">
               <p className="font-display text-2xl">{percentOf(summary)}%</p>
               {summary.average != null ? (
-                <p className={`text-xs ${sunny ? "opacity-75" : "text-muted"}`}>{t("profile.seriesAverage", { rating: summary.average.toFixed(1) })}</p>
+                <p className="text-xs text-muted">{t("profile.seriesAverage", { rating: summary.average.toFixed(1) })}</p>
               ) : null}
             </div>
           </div>
@@ -502,7 +489,7 @@ function DialogGrid({ games, label, upcoming = false }: { games: SeriesGame[]; l
               ) : (
                 <span className="block h-full w-full rounded-xl bg-raised" />
               )}
-              <RatingBadge game={game} slot={slot} sunny={false} />
+              <RatingBadge game={game} slot={slot} />
             </a>
             <span className="h-1 rounded-full" style={{ background: SLOT_COLOR[slot] }} />
             <a href={coverHref(game)} className="line-clamp-2 text-sm leading-tight font-semibold hover:underline">

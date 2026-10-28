@@ -222,6 +222,7 @@ export const uk = {
     empty: "Поки що порожньо.",
   },
   profile: {
+    seriesTileHint: "Прогрес по серіях ігор",
     seriesUpcoming: "Ще не вийшли",
     seriesUpcomingHint: "Анонсовані частини не впливають на прогрес і закриття серії.",
     seriesMetaUpcoming: "анонсовано: {count}",

@@ -116,6 +116,11 @@ export function ProfileBoard({
         onList={setList}
         onImport={() => setImportOpen(true)}
         onExport={() => downloadLibrary(library)}
+        seriesOpen={tab === "series" && bucket == null}
+        onSeries={() => {
+          chooseTab("series");
+          document.getElementById("profile-lists")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
         follow={
           <FollowButton
             username={library.user.username}
@@ -131,27 +136,7 @@ export function ProfileBoard({
         bucket={bucket}
         onPick={(next) => setBucket((current) => (current === next ? null : next))}
       />
-      <div className="mt-8 flex gap-2 overflow-x-auto pb-1" role="tablist">
-        {/* Series is a different view of the same games, so it leads the row in an accent pill. */}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "series" && bucket == null}
-          onClick={() => chooseTab("series")}
-          className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-bold ${
-            tab === "series" && bucket == null
-              ? shelf
-                ? "bg-tile-lilac text-[#1b1530] ring-2 ring-ink"
-                : "bg-accent text-accent-ink"
-              : shelf
-                ? "bg-tile-lilac/70 text-[#1b1530] hover:bg-tile-lilac"
-                : "border border-accent-fg/60 bg-accent/10 text-ink hover:bg-accent/20"
-          }`}
-        >
-          <Icon name="layers" />
-          {t("profile.series")}
-        </button>
-        <span aria-hidden="true" className="mx-1 w-px shrink-0 self-stretch bg-line" />
+      <div id="profile-lists" className="mt-8 flex scroll-mt-24 gap-2 overflow-x-auto pb-1" role="tablist">
         {TABS.map((item) => {
           const count = library[item].length;
           const label = item === "favorites" ? t("library.favorites") : STATUS_LABELS[item];
@@ -509,6 +494,8 @@ function ProfileHead({
   onList,
   onImport,
   onExport,
+  seriesOpen,
+  onSeries,
   follow,
 }: {
   design: Design;
@@ -524,6 +511,8 @@ function ProfileHead({
   onList: (kind: "followers" | "following") => void;
   onImport: () => void;
   onExport: () => void;
+  seriesOpen: boolean;
+  onSeries: () => void;
   follow: ReactNode;
 }) {
   const shelf = design === "shelf";
@@ -576,6 +565,7 @@ function ProfileHead({
     </div>
   ) : null;
   const averageText = average == null ? "—" : average.toFixed(1);
+  const series = <SeriesTile shelf={shelf} open={seriesOpen} onClick={onSeries} />;
 
   if (shelf) {
     return (
@@ -597,6 +587,7 @@ function ProfileHead({
             {STATUS_LABELS.finished}: {finished}
           </span>
         </div>
+        {series}
         {steam}
       </section>
     );
@@ -615,11 +606,12 @@ function ProfileHead({
         </div>
         {actions}
       </div>
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         <div className="rounded-2xl border border-line bg-panel p-5">
           <p className="text-xs text-muted">{t("profile.average")}</p>
           <p className="mt-1 font-display text-3xl text-accent-fg">{averageText}</p>
         </div>
+        {series}
         <div className="rounded-2xl border border-line bg-panel p-5">
           <p className="text-xs text-muted">{STATUS_LABELS.finished}</p>
           <p className="mt-1 font-display text-3xl">{finished}</p>
@@ -627,5 +619,63 @@ function ProfileHead({
         {steam}
       </div>
     </section>
+  );
+}
+
+// The way into the Series view: a big tile beside the average rating, with a ring in the status colours as its mark.
+function SeriesTile({ shelf, open, onClick }: { shelf: boolean; open: boolean; onClick: () => void }) {
+  const ring = (
+    <span
+      aria-hidden="true"
+      className={`relative shrink-0 rounded-full ${shelf ? "h-16 w-16" : "h-14 w-14"}`}
+      style={{
+        background:
+          "conic-gradient(var(--color-accent) 0 150deg, var(--color-tile-mint) 150deg 200deg, var(--color-tile-sky) 200deg 270deg, var(--color-tile-coral) 270deg 310deg, color-mix(in srgb, var(--color-muted) 45%, transparent) 310deg 360deg)",
+      }}
+    >
+      <span className={`absolute rounded-full ${shelf ? "inset-2.5 bg-tile-lilac" : `inset-2 ${open ? "bg-accent" : "bg-panel"}`}`} />
+    </span>
+  );
+  if (shelf) {
+    return (
+      <button
+        type="button"
+        aria-pressed={open}
+        onClick={onClick}
+        className={`group flex flex-[2_1_200px] flex-col justify-between gap-4 rounded-[32px] bg-tile-lilac p-6 text-left text-[#1b1530] transition hover:-translate-y-0.5 ${
+          open ? "ring-4 ring-[#1b1530]" : ""
+        }`}
+      >
+        <span className="flex items-start justify-between gap-3">
+          <span className="text-sm font-bold">{t("profile.seriesTileHint")}</span>
+          {ring}
+        </span>
+        <span className="flex items-end justify-between gap-2">
+          <span className="font-display text-4xl leading-none font-extrabold">{t("profile.series")}</span>
+          <span aria-hidden="true" className="text-3xl leading-none transition group-hover:translate-x-1">
+            →
+          </span>
+        </span>
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      aria-pressed={open}
+      onClick={onClick}
+      className={`group flex items-center gap-4 rounded-2xl border p-5 text-left transition sm:col-span-2 ${
+        open ? "border-transparent bg-accent text-accent-ink" : "border-accent-fg/50 bg-accent/10 hover:bg-accent/15"
+      }`}
+    >
+      {ring}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="font-display text-2xl leading-tight">{t("profile.series")}</span>
+        <span className={`text-xs ${open ? "text-accent-ink/75" : "text-muted"}`}>{t("profile.seriesTileHint")}</span>
+      </span>
+      <span aria-hidden="true" className="text-2xl transition group-hover:translate-x-1">
+        →
+      </span>
+    </button>
   );
 }
