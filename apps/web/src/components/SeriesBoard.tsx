@@ -364,8 +364,9 @@ function SeriesCard({ summary, shelf, showMissing }: { summary: Summary; shelf: 
   );
 }
 
+// Games outside the lists open too: the API pulls an unknown slug in from IGDB on the first visit.
 function coverHref(game: SeriesGame): string {
-  return game.status == null ? `/?q=${encodeURIComponent(game.title)}` : `/games/${encodeURIComponent(game.slug)}`;
+  return `/games/${encodeURIComponent(game.slug)}`;
 }
 
 function coverTone(slot: Slot, upcoming: boolean): string {

@@ -132,6 +132,26 @@ export function ProfileBoard({
         onPick={(next) => setBucket((current) => (current === next ? null : next))}
       />
       <div className="mt-8 flex gap-2 overflow-x-auto pb-1" role="tablist">
+        {/* Series is a different view of the same games, so it leads the row in an accent pill. */}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "series" && bucket == null}
+          onClick={() => chooseTab("series")}
+          className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-bold ${
+            tab === "series" && bucket == null
+              ? shelf
+                ? "bg-tile-lilac text-[#1b1530] ring-2 ring-ink"
+                : "bg-accent text-accent-ink"
+              : shelf
+                ? "bg-tile-lilac/70 text-[#1b1530] hover:bg-tile-lilac"
+                : "border border-accent-fg/60 bg-accent/10 text-ink hover:bg-accent/20"
+          }`}
+        >
+          <Icon name="layers" />
+          {t("profile.series")}
+        </button>
+        <span aria-hidden="true" className="mx-1 w-px shrink-0 self-stretch bg-line" />
         {TABS.map((item) => {
           const count = library[item].length;
           const label = item === "favorites" ? t("library.favorites") : STATUS_LABELS[item];
@@ -158,24 +178,6 @@ export function ProfileBoard({
             </button>
           );
         })}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "series" && bucket == null}
-          onClick={() => chooseTab("series")}
-          className={`inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${
-            tab === "series" && bucket == null
-              ? shelf
-                ? "bg-tile-lilac text-[#1b1530]"
-                : "bg-strong text-strong-ink"
-              : shelf
-                ? "bg-panel hover:bg-raised"
-                : "border border-line bg-panel text-muted hover:text-ink"
-          }`}
-        >
-          <Icon name="layers" />
-          {t("profile.series")}
-        </button>
         {email ? (
           <button
             type="button"
