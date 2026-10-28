@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { getLook } from "@/lib/look";
 
 const POINTS = ["auth.pointLists", "auth.pointScores", "auth.pointSteam", "auth.pointFeed"] as const;
+const TITLES = { login: "auth.loginTitle", register: "auth.registerTitle", forgot: "auth.forgotTitle" } as const;
 const SHELF_TILES = ["bg-tile-mint", "bg-tile-sun", "bg-tile-lilac", "bg-tile-coral"];
 
 // Sign-in and sign-up share one frame: what the account gives on the left, the form on the right.
@@ -12,7 +13,7 @@ export async function AuthFrame({
   registerHref,
   children,
 }: {
-  mode: "login" | "register";
+  mode: "login" | "register" | "forgot";
   loginHref: string;
   registerHref: string;
   children: ReactNode;
@@ -58,7 +59,7 @@ export async function AuthFrame({
             {t("auth.registerTitle")}
           </a>
         </nav>
-        <h1 className="mt-6 font-display text-3xl tracking-tight">{mode === "login" ? t("auth.loginTitle") : t("auth.registerTitle")}</h1>
+        <h1 className="mt-6 font-display text-3xl tracking-tight">{t(TITLES[mode])}</h1>
         {children}
       </section>
     </main>

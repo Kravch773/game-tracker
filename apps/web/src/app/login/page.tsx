@@ -29,7 +29,10 @@ export default async function LoginPage({
   return (
     <AuthFrame mode="login" loginHref={loginHref(next)} registerHref={registerHref(next)}>
       <LoginForm next={next} />
-      <p className="mt-5 text-sm text-muted">
+      <a href="/forgot" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-ink hover:text-accent-fg">
+        {t("auth.forgot")}
+      </a>
+      <p className="mt-2 text-sm text-muted">
         {t("auth.noProfile")} <a href={registerHref(next)} className="font-semibold text-ink hover:text-accent-fg">{t("nav.register")}</a>
       </p>
     </AuthFrame>
