@@ -185,34 +185,39 @@ export function SeriesBoard({ username, design }: { username: string; design: De
         ))}
       </div>
 
-      <div className={`flex flex-wrap items-center gap-2 bg-panel p-2 ${shelf ? "rounded-[28px]" : "rounded-2xl border border-line"}`}>
-        {FILTERS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            aria-pressed={filter === item.id}
-            onClick={() => setFilter(item.id)}
-            className={`h-10 rounded-full px-4 text-sm font-semibold ${
-              filter === item.id ? "bg-strong text-strong-ink" : "text-muted hover:bg-raised hover:text-ink"
-            }`}
-          >
-            {t(item.label)}
-          </button>
-        ))}
-        <label className="ml-1 flex items-center gap-2 text-sm text-muted">
-          {t("profile.sort")}
-          <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} className="h-10 rounded-full border border-line bg-panel px-3 text-ink">
-            {SORTS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {t(item.label)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex min-h-10 cursor-pointer items-center gap-2 px-2 text-sm font-medium sm:ml-auto">
-          <input type="checkbox" checked={showMissing} onChange={(event) => setShowMissing(event.target.checked)} className="h-4 w-4 accent-accent" />
-          {t("profile.seriesShowMissing")}
-        </label>
+      <div className={`flex flex-col gap-2 bg-panel p-2 sm:flex-row sm:flex-wrap sm:items-center ${shelf ? "rounded-[28px]" : "rounded-2xl border border-line"}`}>
+        {/* On a phone the filters scroll in one line and the sort and checkbox sit under them. */}
+        <div className="-mx-2 flex gap-1 overflow-x-auto px-2 no-scrollbar sm:mx-0 sm:px-0">
+          {FILTERS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={filter === item.id}
+              onClick={() => setFilter(item.id)}
+              className={`h-10 shrink-0 rounded-full px-4 text-sm font-semibold ${
+                filter === item.id ? "bg-strong text-strong-ink" : "text-muted hover:bg-raised hover:text-ink"
+              }`}
+            >
+              {t(item.label)}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 sm:contents">
+          <label className="flex items-center gap-2 text-sm text-muted sm:ml-1">
+            {t("profile.sort")}
+            <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} className="h-10 rounded-full border border-line bg-panel px-3 text-ink">
+              {SORTS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {t(item.label)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex min-h-10 cursor-pointer items-center gap-2 text-sm font-medium sm:ml-auto sm:px-2">
+            <input type="checkbox" checked={showMissing} onChange={(event) => setShowMissing(event.target.checked)} className="h-4 w-4 accent-accent" />
+            {t("profile.seriesShowMissing")}
+          </label>
+        </div>
       </div>
 
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-hidden="true">
@@ -227,9 +232,9 @@ export function SeriesBoard({ username, design }: { username: string; design: De
       {shown.length === 0 ? (
         <p className="rounded-3xl border border-dashed border-line px-5 py-12 text-center text-muted">{t("profile.seriesNone")}</p>
       ) : (
-        <ul className="grid gap-4 lg:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {shown.map((item) => (
-            <li key={item.series.id}>
+            <li key={item.series.id} className="min-w-0">
               <SeriesCard summary={item} shelf={shelf} showMissing={showMissing} />
             </li>
           ))}
@@ -247,11 +252,11 @@ function SeriesRing({ summary, size }: { summary: Summary; size: "md" | "lg" }) 
       aria-label={SLOTS.filter((slot) => counts[slot] > 0)
         .map((slot) => `${slotLabel(slot)} ${counts[slot]}`)
         .join(", ")}
-      className={`relative shrink-0 rounded-full ${size === "lg" ? "h-32 w-32" : "h-24 w-24"}`}
+      className={`relative shrink-0 rounded-full ${size === "lg" ? "h-24 w-24 sm:h-32 sm:w-32" : "h-20 w-20 sm:h-24 sm:w-24"}`}
       style={{ background: ringStyle(summary) }}
     >
       <span
-        className={`absolute flex flex-col items-center justify-center rounded-full leading-none ${size === "lg" ? "inset-4" : "inset-3"} bg-panel`}
+        className={`absolute flex flex-col items-center justify-center rounded-full leading-none ${size === "lg" ? "inset-3 sm:inset-4" : "inset-2.5 sm:inset-3"} bg-panel`}
       >
         <span className={`font-display ${size === "lg" ? "text-3xl" : "text-xl"}`}>
           {done}
@@ -311,8 +316,8 @@ function SeriesCard({ summary, shelf, showMissing }: { summary: Summary; shelf: 
     : `rounded-2xl border bg-panel p-5 ${closed ? "border-accent-fg" : "border-line"}`;
 
   return (
-    <article className={`flex h-full flex-col gap-4 ${card}`}>
-      <div className="flex items-center gap-4">
+    <article className={`flex h-full min-w-0 flex-col gap-4 ${card}`}>
+      <div className="flex items-center gap-3 sm:gap-4">
         <SeriesRing summary={summary} size="md" />
         <SeriesHead summary={summary} shelf={shelf} showMissing={showMissing} onOpen={() => setOpen(true)} />
         <div className="flex flex-col items-end gap-2 self-start">
@@ -432,7 +437,7 @@ function SeriesDialog({ summary, shelf, showMissing, onClose }: { summary: Summa
         onClick={(event) => event.stopPropagation()}
         className={`flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden text-ink ${shelf ? "rounded-t-[32px] bg-bg sm:rounded-[32px]" : "rounded-t-3xl border border-line bg-bg sm:rounded-3xl"}`}
       >
-        <header className={`flex items-center gap-5 p-5 sm:p-6 ${shelf ? "bg-panel" : "border-b border-line bg-panel"}`}>
+        <header className={`flex items-center gap-3 p-4 sm:gap-5 sm:p-6 ${shelf ? "bg-panel" : "border-b border-line bg-panel"}`}>
           <SeriesRing summary={summary} size="lg" />
           <SeriesHead summary={summary} shelf={shelf} showMissing={showMissing} />
           <div className="flex flex-col items-end gap-3 self-start">
