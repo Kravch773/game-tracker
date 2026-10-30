@@ -1,7 +1,8 @@
 "use client";
 
 import { t, type LibraryGame, type UserLibrary } from "@gametracker/shared";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { BacklogArrange, BacklogSections } from "@/components/BacklogOrder";
 import { BacklogWheel } from "@/components/BacklogWheel";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
@@ -12,6 +13,7 @@ import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
 import { formatShortDate } from "@/lib/format";
 import { PROFILE_SECTIONS, STATUS_LABELS, ratingLabel } from "@/lib/library";
+import { apiUrl } from "@/lib/config";
 import type { Design } from "@/lib/look-cookie";
 import { myGamesListCsv } from "@/lib/mygameslist";
 
@@ -25,7 +27,7 @@ const SCALES = [
 ] as const;
 
 type Tab = (typeof TABS)[number] | "steamWishlist" | "series";
-type Sort = "added" | "release" | "rating" | "metacritic";
+type Sort = "order" | "added" | "release" | "rating" | "metacritic";
 
 function isTab(value: string | undefined): value is Tab {
   return value === "steamWishlist" || value === "series" || (TABS as readonly string[]).includes(value ?? "");
@@ -40,6 +42,7 @@ const TAB_FILL: Record<(typeof TABS)[number], string> = {
 };
 
 const SORT_LABEL = {
+  order: "profile.sortOrder",
   added: "profile.sortAdded",
   release: "profile.sortRelease",
   rating: "profile.sortRating",
@@ -58,7 +61,11 @@ export function ProfileBoard({
   design?: Design;
 }) {
   const [tab, setTab] = useState<Tab>(isTab(initialTab) ? initialTab : "playing");
-  const [sort, setSort] = useState<Sort>("added");
+  const [sort, setSort] = useState<Sort>(initialTab === "backlog" ? "order" : "added");
+  const [backlog, setBacklog] = useState(library.backlog);
+  const [arranging, setArranging] = useState(false);
+  const [orderError, setOrderError] = useState(false);
+  const saveTimer = useRef<number | null>(null);
   const [scale, setScale] = useState(0);
   const [bucket, setBucket] = useState<number | null>(null);
   const [showDate, setShowDate] = useState(true);
@@ -70,10 +77,22 @@ export function ProfileBoard({
   const [followers, setFollowers] = useState(library.followers);
   const [following, setFollowing] = useState(library.following);
   const sorts: Sort[] =
-    tab === "backlog" || tab === "steamWishlist" ? ["added", "release", "metacritic"] : ["added", "release", "rating", "metacritic"];
-  const activeSort = sorts.includes(sort) ? sort : "added";
+    tab === "backlog"
+      ? ["order", "added", "release", "metacritic"]
+      : tab === "steamWishlist"
+        ? ["added", "release", "metacritic"]
+        : ["added", "release", "rating", "metacritic"];
+  const activeSort = sorts.includes(sort) ? sort : sorts[0];
+  const ordered = tab === "backlog" && bucket == null && activeSort === "order";
   const rated = [...library.finished, ...library.dropped].filter((game) => game.rating != null);
-  const source = tab === "series" ? [] : bucket == null ? library[tab] : rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket);
+  const source =
+    tab === "series"
+      ? []
+      : bucket != null
+        ? rated.filter((game) => scoreBucket(game.rating ?? 0) === bucket)
+        : tab === "backlog"
+          ? backlog
+          : library[tab];
   const games = sortGames(source, activeSort);
   const initial = library.user.username.slice(0, 1).toUpperCase();
   const average = rated.length > 0 ? rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length : null;
@@ -85,6 +104,18 @@ export function ProfileBoard({
   }, []);
 
   useEffect(() => {
+    setBacklog(library.backlog);
+    setArranging(false);
+  }, [library.backlog]);
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current != null) window.clearTimeout(saveTimer.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
     setFollowers(library.followers);
     setFollowing(library.following);
   }, [library.user.username, library.followers, library.following]);
@@ -92,7 +123,48 @@ export function ProfileBoard({
   function chooseTab(next: Tab) {
     setTab(next);
     setBucket(null);
-    if ((next === "backlog" || next === "steamWishlist") && sort === "rating") setSort("added");
+    setArranging(false);
+    if (next === "backlog") setSort("order");
+    else if (sort === "order" || (next === "steamWishlist" && sort === "rating")) setSort("added");
+  }
+
+  // Drags fire many changes in a row, so the order is saved once they settle.
+  function reorder(next: LibraryGame[]) {
+    setBacklog(next);
+    setOrderError(false);
+    if (saveTimer.current != null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = null;
+      const body = {
+        priority: next.filter((game) => game.priority).map((game) => game.id),
+        rest: next.filter((game) => !game.priority).map((game) => game.id),
+      };
+      fetch(`${apiUrl}/me/backlog/order`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then((response) => {
+          if (!response.ok) setOrderError(true);
+        })
+        .catch(() => setOrderError(true));
+    }, 600);
+  }
+
+  function card(game: LibraryGame) {
+    return (
+      <li key={`${tab}-${bucket ?? "all"}-${game.id}`}>
+        <GameCard
+          game={game}
+          sort={activeSort}
+          showDate={showDate}
+          showRating={showRating}
+          showMetacritic={showMetacritic}
+          compact={scale >= 2}
+        />
+      </li>
+    );
   }
 
   function chooseScale(next: number) {
@@ -138,7 +210,7 @@ export function ProfileBoard({
       />
       <div id="profile-lists" className="mt-8 flex scroll-mt-24 gap-2 overflow-x-auto pb-1" role="tablist">
         {TABS.map((item) => {
-          const count = library[item].length;
+          const count = item === "backlog" ? backlog.length : library[item].length;
           const label = item === "favorites" ? t("library.favorites") : STATUS_LABELS[item];
           const selected = tab === item && bucket == null;
           return (
@@ -217,7 +289,19 @@ export function ProfileBoard({
                 onChange={(event) => chooseScale(Number(event.target.value))}
               />
             </label>
-            {email && tab === "backlog" && library.backlog.length > 0 ? (
+            {email && ordered && backlog.length > 1 ? (
+              <button
+                type="button"
+                aria-pressed={arranging}
+                onClick={() => setArranging((current) => !current)}
+                className={`inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${
+                  arranging ? "bg-strong text-strong-ink" : "border border-line bg-panel hover:bg-raised"
+                }`}
+              >
+                {arranging ? t("profile.arrangeDone") : t("profile.arrange")}
+              </button>
+            ) : null}
+            {email && tab === "backlog" && backlog.length > 0 ? (
               <button
                 type="button"
                 onClick={() => setWheelOpen(true)}
@@ -228,24 +312,16 @@ export function ProfileBoard({
               </button>
             ) : null}
           </div>
-          <BacklogWheel open={wheelOpen} games={library.backlog} onClose={() => setWheelOpen(false)} />
+          <BacklogWheel open={wheelOpen} games={backlog} onClose={() => setWheelOpen(false)} />
           <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+          {orderError ? <p className="mt-4 text-sm text-accent-fg">{t("profile.orderFailed")}</p> : null}
           {games.length === 0 ? (
             <p className="mt-6 rounded-3xl border border-dashed border-line px-5 py-12 text-center text-muted">{t("library.empty")}</p>
+          ) : ordered && arranging && email ? (
+            <BacklogArrange games={backlog} onChange={reorder} />
           ) : (
             <ul className={`mt-6 grid ${SCALES[scale]}`}>
-              {games.map((game) => (
-                <li key={`${tab}-${bucket ?? "all"}-${game.id}`}>
-                  <GameCard
-                    game={game}
-                    sort={activeSort}
-                    showDate={showDate}
-                    showRating={showRating}
-                    showMetacritic={showMetacritic}
-                    compact={scale >= 2}
-                  />
-                </li>
-              ))}
+              {ordered ? <BacklogSections games={games} card={card} /> : games.map(card)}
             </ul>
           )}
         </>
@@ -368,6 +444,7 @@ function Stats({
 }
 
 function sortGames(games: LibraryGame[], sort: Sort): LibraryGame[] {
+  if (sort === "order") return games;
   return [...games].sort((a, b) => {
     if (sort === "rating") return compareNumber(a.rating, b.rating);
     if (sort === "metacritic") return compareNumber(a.metacriticScore, b.metacriticScore);
@@ -458,6 +535,14 @@ function GameCard({
                 <Icon name="steam" className="h-3.5 w-3.5" />
               </span>
             ) : null}
+          </span>
+        ) : null}
+        {game.priority ? (
+          <span
+            className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-sm text-accent-ink"
+            aria-label={t("profile.priority")}
+          >
+            ★
           </span>
         ) : null}
       </span>

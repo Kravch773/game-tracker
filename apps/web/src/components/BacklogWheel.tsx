@@ -1,7 +1,7 @@
 "use client";
 
 import { t, type LibraryGame } from "@gametracker/shared";
-import { useEffect, useRef, useState, type TransitionEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type TransitionEvent } from "react";
 import { Dialog } from "@/components/Dialog";
 import { primaryClass, quietClass } from "@/lib/ui";
 
@@ -19,7 +19,16 @@ export function BacklogWheel({
   onClose: () => void;
 }) {
   const [mode, setMode] = useState<Mode>("elimination");
-  const [pool, setPool] = useState(games);
+  const [onlyPriority, setOnlyPriority] = useState(false);
+  const [onlyReleased, setOnlyReleased] = useState(false);
+  const source = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return games.filter(
+      (game) => (!onlyPriority || game.priority) && (!onlyReleased || (game.releaseDate != null && game.releaseDate <= today)),
+    );
+  }, [games, onlyPriority, onlyReleased]);
+  const hasPriority = games.some((game) => game.priority);
+  const [pool, setPool] = useState(source);
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [eliminated, setEliminated] = useState<LibraryGame | null>(null);
@@ -33,7 +42,7 @@ export function BacklogWheel({
     timer.current = null;
   }
 
-  function reset(nextMode = mode, source = games) {
+  function reset(nextMode = mode) {
     clearTimer();
     pending.current = null;
     setMode(nextMode);
@@ -86,11 +95,11 @@ export function BacklogWheel({
     if (!open) return;
     clearTimer();
     pending.current = null;
-    setPool(games);
+    setPool(source);
     setSpinning(false);
     setEliminated(null);
     setWinner(null);
-  }, [open, games]);
+  }, [open, source]);
 
   const duration = mode === "instant" ? "4.6s" : "3.4s";
 
@@ -100,10 +109,32 @@ export function BacklogWheel({
       title={t("wheel.title")}
       wide
       onClose={() => {
-        reset("elimination", games);
+        reset("elimination");
         onClose();
       }}
     >
+      <div className="mb-3 flex flex-wrap gap-x-5 gap-y-1">
+        <label className="inline-flex min-h-10 items-center gap-2 text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={onlyPriority}
+            disabled={spinning || !hasPriority}
+            onChange={(event) => setOnlyPriority(event.target.checked)}
+            className="accent-accent"
+          />
+          {t("wheel.onlyPriority")}
+        </label>
+        <label className="inline-flex min-h-10 items-center gap-2 text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={onlyReleased}
+            disabled={spinning}
+            onChange={(event) => setOnlyReleased(event.target.checked)}
+            className="accent-accent"
+          />
+          {t("wheel.onlyReleased")}
+        </label>
+      </div>
       <div className="mb-4 grid grid-cols-2 gap-2">
         {(["elimination", "instant"] as const).map((item) => (
           <button
@@ -111,7 +142,7 @@ export function BacklogWheel({
             type="button"
             disabled={spinning}
             aria-pressed={mode === item}
-            onClick={() => reset(item, games)}
+            onClick={() => reset(item)}
             className={`h-11 rounded-full border text-sm font-medium ${
               mode === item ? "border-accent bg-accent text-accent-ink" : "border-line bg-raised"
             }`}
@@ -134,7 +165,7 @@ export function BacklogWheel({
             transition: spinning ? `transform ${duration} cubic-bezier(0.12, 0.65, 0.08, 1)` : "none",
           }}
         >
-          <WheelDisc games={pool.length > 0 ? pool : games} />
+          <WheelDisc games={pool.length > 0 ? pool : source} />
         </div>
       </div>
       <div className="mt-4 min-h-16 text-center">
@@ -152,7 +183,7 @@ export function BacklogWheel({
             <span className="mt-1 block text-sm text-muted">{t("wheel.left", { count: pool.length })}</span>
           </p>
         ) : (
-          <p className="text-sm text-muted">{t("wheel.left", { count: pool.length })}</p>
+          <p className="text-sm text-muted">{source.length === 0 ? t("wheel.empty") : t("wheel.left", { count: pool.length })}</p>
         )}
       </div>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -165,7 +196,7 @@ export function BacklogWheel({
             {t("wheel.openGame")}
           </a>
         )}
-        <button type="button" disabled={spinning} onClick={() => reset(mode, games)} className={quietClass}>
+        <button type="button" disabled={spinning} onClick={() => reset(mode)} className={quietClass}>
           {t("wheel.again")}
         </button>
       </div>
