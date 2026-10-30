@@ -26,6 +26,8 @@ const LINK_LABELS: Record<Exclude<GameLinkKind, "official">, string> = {
   steam: "Steam",
   gog: "GOG",
   epic: "Epic Games",
+  playstation: "PlayStation Store",
+  xbox: "Xbox Store",
   wikipedia: "Wikipedia",
   metacritic: "Metacritic",
 };
@@ -399,6 +401,8 @@ const LINK_MARK: Record<GameLinkKind, { icon: IconName; tone: string }> = {
   steam: { icon: "steam", tone: "bg-sky-300 text-sky-950" },
   gog: { icon: "gog", tone: "bg-violet-300 text-violet-950" },
   epic: { icon: "epic", tone: "bg-zinc-100 text-zinc-900" },
+  playstation: { icon: "ps5", tone: "bg-blue-950 text-blue-100" },
+  xbox: { icon: "xbox-series", tone: "bg-green-950 text-green-100" },
   wikipedia: { icon: "wiki", tone: "bg-stone-200 text-stone-900" },
   metacritic: { icon: "meta", tone: "bg-emerald-300 text-emerald-950" },
   official: { icon: "link", tone: "bg-accent text-accent-ink" },
