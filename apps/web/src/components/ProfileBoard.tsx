@@ -2,7 +2,7 @@
 
 import { t, type LibraryGame, type UserLibrary } from "@gametracker/shared";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BacklogArrange, BacklogSections } from "@/components/BacklogOrder";
+import { BacklogArrange, BacklogSections, PriorityStar, type CardControls } from "@/components/BacklogOrder";
 import { BacklogWheel } from "@/components/BacklogWheel";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
@@ -152,9 +152,15 @@ export function ProfileBoard({
     }, 600);
   }
 
-  function card(game: LibraryGame) {
+  function card(game: LibraryGame, controls?: CardControls) {
     return (
-      <li key={`${tab}-${bucket ?? "all"}-${game.id}`}>
+      <li
+        key={`${tab}-${bucket ?? "all"}-${game.id}`}
+        {...controls?.itemProps}
+        className={`group/card relative ${controls?.itemProps ? "touch-manipulation select-none [-webkit-touch-callout:none]" : ""} ${
+          controls?.dragging ? "z-20 scale-105 opacity-70 transition-transform" : ""
+        }`}
+      >
         <GameCard
           game={game}
           sort={activeSort}
@@ -162,7 +168,9 @@ export function ProfileBoard({
           showRating={showRating}
           showMetacritic={showMetacritic}
           compact={scale >= 2}
+          badge={!controls?.onPriority}
         />
+        {controls?.onPriority ? <PriorityStar on={game.priority} onClick={controls.onPriority} /> : null}
       </li>
     );
   }
@@ -315,13 +323,18 @@ export function ProfileBoard({
           <BacklogWheel open={wheelOpen} games={backlog} onClose={() => setWheelOpen(false)} />
           <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
           {orderError ? <p className="mt-4 text-sm text-accent-fg">{t("profile.orderFailed")}</p> : null}
+          {email && ordered && !arranging && backlog.length > 1 ? <p className="mt-4 text-sm text-muted">{t("profile.dragHint")}</p> : null}
           {games.length === 0 ? (
             <p className="mt-6 rounded-3xl border border-dashed border-line px-5 py-12 text-center text-muted">{t("library.empty")}</p>
           ) : ordered && arranging && email ? (
             <BacklogArrange games={backlog} onChange={reorder} />
           ) : (
             <ul className={`mt-6 grid ${SCALES[scale]}`}>
-              {ordered ? <BacklogSections games={games} card={card} /> : games.map(card)}
+              {ordered ? (
+                <BacklogSections games={games} card={card} onChange={email ? reorder : undefined} />
+              ) : (
+                games.map((game) => card(game))
+              )}
             </ul>
           )}
         </>
@@ -502,6 +515,7 @@ function GameCard({
   showRating,
   showMetacritic,
   compact,
+  badge = true,
 }: {
   game: LibraryGame;
   sort: Sort;
@@ -509,14 +523,15 @@ function GameCard({
   showRating: boolean;
   showMetacritic: boolean;
   compact: boolean;
+  badge?: boolean;
 }) {
   const when = showDate ? cardDate(game, sort) : null;
   const metacritic = game.metacriticScore == null ? "—" : String(game.metacriticScore);
   return (
-    <a href={`/games/${encodeURIComponent(game.slug)}`} target="_blank" rel="noreferrer" className="group block">
+    <a href={`/games/${encodeURIComponent(game.slug)}`} target="_blank" rel="noreferrer" draggable={false} className="group block">
       <span className="relative block overflow-hidden rounded-2xl border border-line bg-raised">
         {game.coverUrl ? (
-          <img src={game.coverUrl} alt="" className="aspect-[3/4] w-full object-cover transition duration-300 group-hover:scale-105" />
+          <img src={game.coverUrl} alt="" draggable={false} className="aspect-[3/4] w-full object-cover transition duration-300 group-hover:scale-105" />
         ) : (
           <span className="block aspect-[3/4] bg-line" />
         )}
@@ -537,7 +552,7 @@ function GameCard({
             ) : null}
           </span>
         ) : null}
-        {game.priority ? (
+        {badge && game.priority ? (
           <span
             className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-sm text-accent-ink"
             aria-label={t("profile.priority")}

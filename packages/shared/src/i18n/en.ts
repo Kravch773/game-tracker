@@ -267,6 +267,8 @@ export const en = {
     arrange: "Arrange",
     arrangeDone: "Done",
     arrangeHint: "Drag a game by ⠿ to change the order. ★ moves it into priority or back.",
+    priorityHint: "Games you want to play first: they sit at the top of the list, and the wheel can spin just them.",
+    dragHint: "Drag covers to change the order. On a phone, press and hold a game, then move it. ☆ in the corner makes a game priority.",
     priorityEmpty: "Star the games you want to play first.",
     makePriority: "Make priority",
     removePriority: "Remove from priority",
