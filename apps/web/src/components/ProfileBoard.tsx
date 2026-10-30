@@ -2,7 +2,7 @@
 
 import { t, type LibraryGame, type UserLibrary } from "@gametracker/shared";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BacklogArrange, BacklogSections, PriorityStar, type CardControls } from "@/components/BacklogOrder";
+import { BacklogArrange, BacklogSections, DragHint, PriorityStar, type CardControls } from "@/components/BacklogOrder";
 import { BacklogWheel } from "@/components/BacklogWheel";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
@@ -157,9 +157,9 @@ export function ProfileBoard({
       <li
         key={`${tab}-${bucket ?? "all"}-${game.id}`}
         {...controls?.itemProps}
-        className={`group/card relative ${controls?.itemProps ? "touch-manipulation select-none [-webkit-touch-callout:none]" : ""} ${
-          controls?.dragging ? "z-20 scale-105 opacity-70 transition-transform" : ""
-        }`}
+        className={`group/card relative ${
+          controls?.itemProps ? "cursor-grab touch-manipulation select-none [-webkit-touch-callout:none]" : ""
+        } ${controls?.dragging ? "z-30 cursor-grabbing opacity-90 drop-shadow-2xl [&>a>span:first-child]:ring-2 [&>a>span:first-child]:ring-accent" : ""}`}
       >
         <GameCard
           game={game}
@@ -323,7 +323,7 @@ export function ProfileBoard({
           <BacklogWheel open={wheelOpen} games={backlog} onClose={() => setWheelOpen(false)} />
           <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
           {orderError ? <p className="mt-4 text-sm text-accent-fg">{t("profile.orderFailed")}</p> : null}
-          {email && ordered && !arranging && backlog.length > 1 ? <p className="mt-4 text-sm text-muted">{t("profile.dragHint")}</p> : null}
+          {email && ordered && !arranging && backlog.length > 1 ? <DragHint /> : null}
           {games.length === 0 ? (
             <p className="mt-6 rounded-3xl border border-dashed border-line px-5 py-12 text-center text-muted">{t("library.empty")}</p>
           ) : ordered && arranging && email ? (

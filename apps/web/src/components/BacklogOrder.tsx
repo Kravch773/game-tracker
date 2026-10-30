@@ -1,19 +1,50 @@
 "use client";
 
 import { t, type LibraryGame } from "@gametracker/shared";
-import { useEffect, useRef, useState, type HTMLAttributes, type PointerEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 
 export type CardControls = {
   dragging: boolean;
   onPriority?: () => void;
-  itemProps?: HTMLAttributes<HTMLLIElement> & { "data-game": string };
+  itemProps?: HTMLAttributes<HTMLLIElement> & { "data-game": string; ref: (node: HTMLLIElement | null) => void };
+};
+
+type Drag = {
+  id: string;
+  touch: boolean;
+  active: boolean;
+  timer: number | null;
+  startX: number;
+  startY: number;
+  grabX: number;
+  grabY: number;
+  x: number;
+  y: number;
 };
 
 const HOLD_MS = 280;
 const EDGE = 90;
+const SLIDE = "transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)";
+
+// Where a card sits in the layout, in viewport pixels; unlike getBoundingClientRect it ignores transforms,
+// so cards that are still sliding are hit and measured at the place they are heading to.
+function layoutOf(node: HTMLElement) {
+  const parent = node.offsetParent as HTMLElement | null;
+  const box = parent?.getBoundingClientRect() ?? { left: 0, top: 0 };
+  return { x: box.left + node.offsetLeft, y: box.top + node.offsetTop, width: node.offsetWidth, height: node.offsetHeight };
+}
 
 // The backlog shown in its owner's order: priority games on top, then the rest. With onChange the owner can
 // drag covers around the grid (mouse straight away, touch after a short hold) and star games into priority.
+// The dragged cover follows the pointer and the others slide into their new places.
 export function BacklogSections({
   games,
   card,
@@ -24,13 +55,37 @@ export function BacklogSections({
   onChange?: (games: LibraryGame[]) => void;
 }) {
   const [dragging, setDragging] = useState<string | null>(null);
-  const drag = useRef<{ id: string; x: number; y: number; touch: boolean; active: boolean; timer: number | null } | null>(null);
+  const drag = useRef<Drag | null>(null);
   const moved = useRef(false);
-  const pointer = useRef({ y: 0 });
+  const nodes = useRef(new Map<string, HTMLLIElement>());
+  const places = useRef(new Map<string, { x: number; y: number }>());
   const latest = useRef(games);
   latest.current = games;
   const priority = games.filter((game) => game.priority);
   const rest = games.filter((game) => !game.priority);
+
+  // After every reorder each card starts from where it was and slides to its new place.
+  useLayoutEffect(() => {
+    if (!onChange) return;
+    const next = new Map<string, { x: number; y: number }>();
+    nodes.current.forEach((node, id) => {
+      const box = layoutOf(node);
+      const place = { x: box.x + window.scrollX, y: box.y + window.scrollY };
+      next.set(id, place);
+      const before = places.current.get(id);
+      if (!before || drag.current?.id === id) return;
+      const dx = before.x - place.x;
+      const dy = before.y - place.y;
+      if (dx === 0 && dy === 0) return;
+      node.style.transition = "none";
+      node.style.transform = `translate(${dx}px, ${dy}px)`;
+      void node.offsetWidth;
+      node.style.transition = SLIDE;
+      node.style.transform = "";
+    });
+    places.current = next;
+    follow();
+  });
 
   // While a drag is on, touch scrolling is held back and the page scrolls by itself near the screen edges.
   useEffect(() => {
@@ -38,9 +93,16 @@ export function BacklogSections({
     const hold = (event: TouchEvent) => event.preventDefault();
     let frame = 0;
     const tick = () => {
-      const y = pointer.current.y;
-      if (y < EDGE) window.scrollBy(0, -Math.ceil((EDGE - y) / 6));
-      else if (y > window.innerHeight - EDGE) window.scrollBy(0, Math.ceil((y - window.innerHeight + EDGE) / 6));
+      const state = drag.current;
+      if (state) {
+        const before = window.scrollY;
+        if (state.y < EDGE) window.scrollBy(0, -Math.ceil((EDGE - state.y) / 6));
+        else if (state.y > window.innerHeight - EDGE) window.scrollBy(0, Math.ceil((state.y - window.innerHeight + EDGE) / 6));
+        if (window.scrollY !== before) {
+          follow();
+          moveOver(state.x, state.y);
+        }
+      }
       frame = window.requestAnimationFrame(tick);
     };
     document.addEventListener("touchmove", hold, { passive: false });
@@ -49,7 +111,7 @@ export function BacklogSections({
       document.removeEventListener("touchmove", hold);
       window.cancelAnimationFrame(frame);
     };
-  }, [dragging]);
+  });
 
   if (!onChange) {
     const plain = (game: LibraryGame) => card(game, { dragging: false });
@@ -65,17 +127,38 @@ export function BacklogSections({
   }
   const change = onChange;
 
+  // Keeps the dragged cover under the pointer, wherever the layout has put its slot.
+  function follow() {
+    const state = drag.current;
+    const node = state?.active ? nodes.current.get(state.id) : undefined;
+    if (!state || !node) return;
+    const box = layoutOf(node);
+    node.style.transition = "none";
+    node.style.transform = `translate(${state.x - state.grabX - box.x}px, ${state.y - state.grabY - box.y}px)`;
+  }
+
   function start(id: string) {
     const state = drag.current;
-    if (!state || state.id !== id) return;
+    const node = nodes.current.get(id);
+    if (!state || state.id !== id || !node) return;
+    const box = layoutOf(node);
     state.active = true;
+    state.grabX = state.startX - box.x;
+    state.grabY = state.startY - box.y;
     moved.current = false;
+    if (state.touch) navigator.vibrate?.(12);
     setDragging(id);
+    follow();
   }
 
   function stop() {
     const state = drag.current;
     if (state?.timer != null) window.clearTimeout(state.timer);
+    const node = state?.active ? nodes.current.get(state.id) : undefined;
+    if (node) {
+      node.style.transition = SLIDE;
+      node.style.transform = "";
+    }
     drag.current = null;
     setDragging(null);
   }
@@ -83,9 +166,14 @@ export function BacklogSections({
   // Dropping on a game takes its place; a game dropped into the other group joins that group.
   function moveOver(x: number, y: number) {
     const state = drag.current;
-    if (!state) return;
-    const target = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-game]")?.dataset.game;
-    if (!target || target === state.id) return;
+    if (!state?.active) return;
+    let target: string | null = null;
+    nodes.current.forEach((node, id) => {
+      if (target || id === state.id) return;
+      const box = layoutOf(node);
+      if (x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height) target = id;
+    });
+    if (!target) return;
     const list = latest.current;
     const from = list.findIndex((game) => game.id === state.id);
     const to = list.findIndex((game) => game.id === target);
@@ -110,18 +198,23 @@ export function BacklogSections({
       onPriority: () => toggle(game),
       itemProps: {
         "data-game": game.id,
+        ref: (node) => {
+          if (node) nodes.current.set(game.id, node);
+          else nodes.current.delete(game.id);
+        },
         onPointerDown: (event) => {
           if (event.button !== 0 || (event.target as HTMLElement).closest("button")) return;
           const touch = event.pointerType !== "mouse";
-          drag.current = { id: game.id, x: event.clientX, y: event.clientY, touch, active: false, timer: null };
-          pointer.current.y = event.clientY;
+          const { clientX: x, clientY: y } = event;
+          drag.current = { id: game.id, touch, active: false, timer: null, startX: x, startY: y, grabX: 0, grabY: 0, x, y };
           if (touch) drag.current.timer = window.setTimeout(() => start(game.id), HOLD_MS);
         },
-        onPointerMove: (event) => {
+        onPointerMove: (event: PointerEvent<HTMLLIElement>) => {
           const state = drag.current;
           if (!state) return;
-          pointer.current.y = event.clientY;
-          const distance = Math.hypot(event.clientX - state.x, event.clientY - state.y);
+          state.x = event.clientX;
+          state.y = event.clientY;
+          const distance = Math.hypot(state.x - state.startX, state.y - state.startY);
           if (!state.active) {
             if (state.touch || distance <= 6) {
               if (state.touch && distance > 8) stop();
@@ -135,7 +228,8 @@ export function BacklogSections({
             start(game.id);
           }
           event.preventDefault();
-          moveOver(event.clientX, event.clientY);
+          follow();
+          moveOver(state.x, state.y);
         },
         onPointerUp: () => {
           const active = drag.current?.active;
@@ -164,6 +258,50 @@ export function BacklogSections({
       {priority.length > 0 ? <SectionTitle label={t("profile.rest")} count={rest.length} /> : null}
       {rest.map((game) => card(game, controls(game)))}
     </>
+  );
+}
+
+const HINT_KEY = "gt-backlog-drag-hint";
+
+// A one-time card above the backlog grid: a tiny looping demo of two covers swapping places, what can be
+// done here, and a button that hides it for good on this device.
+export function DragHint() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      setOpen(window.localStorage.getItem(HINT_KEY) !== "seen");
+    } catch {
+      setOpen(true);
+    }
+  }, []);
+
+  if (!open) return null;
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-accent/40 bg-accent/10 p-3 pr-4">
+      <span aria-hidden="true" className="flex h-12 w-14 shrink-0 items-center justify-center gap-1.5">
+        <span className="h-9 w-5 rounded-md bg-muted/50 motion-safe:animate-[gt-drag-shift_2.6s_ease-in-out_infinite]" />
+        <span className="relative z-10 h-9 w-5 rounded-md bg-accent shadow-lg motion-safe:animate-[gt-drag-lift_2.6s_ease-in-out_infinite]" />
+      </span>
+      <span className="min-w-0 flex-1 basis-56 text-sm">
+        <span className="block font-semibold">{t("profile.dragTitle")}</span>
+        <span className="block text-muted">{t("profile.dragHint")}</span>
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false);
+          try {
+            window.localStorage.setItem(HINT_KEY, "seen");
+          } catch {
+            // Without storage the hint simply comes back next time.
+          }
+        }}
+        className="h-10 shrink-0 rounded-full border border-line bg-panel px-4 text-sm font-semibold hover:bg-raised"
+      >
+        {t("profile.dragGotIt")}
+      </button>
+    </div>
   );
 }
 

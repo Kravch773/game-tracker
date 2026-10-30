@@ -128,3 +128,18 @@ html[data-design="shelf"][data-theme="dark"] {
     outline-offset: 2px;
   }
 }
+
+/* The backlog drag hint: the lit cover lifts, moves left over its neighbour and settles, then goes back. */
+@keyframes gt-drag-lift {
+  0%, 12% { transform: translate(0, 0) scale(1); }
+  22% { transform: translate(0, -4px) scale(1.12); }
+  48% { transform: translate(-26px, -4px) scale(1.12); }
+  58%, 70% { transform: translate(-26px, 0) scale(1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes gt-drag-shift {
+  0%, 25% { transform: translateX(0); }
+  45%, 70% { transform: translateX(26px); }
+  100% { transform: translateX(0); }
+}
