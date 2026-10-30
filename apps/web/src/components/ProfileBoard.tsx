@@ -41,6 +41,9 @@ const TAB_FILL: Record<(typeof TABS)[number], string> = {
   favorites: "bg-tile-rose",
 };
 
+// Lists whose games can carry a rating: the score chart, the average and the rating view draw on all of them.
+const RATED_LISTS = ["finished", "dropped", "playing"] as const;
+
 const SORT_LABEL = {
   order: "profile.sortOrder",
   added: "profile.sortAdded",
@@ -84,8 +87,8 @@ export function ProfileBoard({
         : ["added", "release", "rating", "metacritic"];
   const activeSort = sorts.includes(sort) ? sort : sorts[0];
   const ordered = tab === "backlog" && bucket == null && activeSort === "order";
-  const rated = [...library.finished, ...library.dropped].filter((game) => game.rating != null);
-  const droppedIds = new Set(library.dropped.map((game) => game.id));
+  const rated = RATED_LISTS.flatMap((status) => library[status]).filter((game) => game.rating != null);
+  const statusOf = new Map(RATED_LISTS.flatMap((status) => library[status].map((game) => [game.id, status] as const)));
   const source =
     tab === "series"
       ? []
@@ -170,7 +173,7 @@ export function ProfileBoard({
           showMetacritic={showMetacritic}
           compact={scale >= 2}
           badge={!controls?.onPriority}
-          status={bucket == null ? undefined : droppedIds.has(game.id) ? "dropped" : "finished"}
+          status={bucket == null ? undefined : statusOf.get(game.id)}
         />
         {controls?.onPriority ? <PriorityStar on={game.priority} onClick={controls.onPriority} /> : null}
       </li>
@@ -335,7 +338,22 @@ export function ProfileBoard({
               {ordered ? (
                 <BacklogSections games={games} card={card} onChange={email ? reorder : undefined} />
               ) : (
-                games.map((game) => card(game))
+                bucket != null ? (
+                  RATED_LISTS.map((status) => {
+                    const group = games.filter((game) => statusOf.get(game.id) === status);
+                    if (group.length === 0) return null;
+                    return [
+                      <li key={`title-${status}`} className="col-span-full flex items-baseline gap-2 [&:not(:first-child)]:mt-4">
+                        <Icon name={STATUS_MARK[status].icon} className="h-5 w-5 self-center" />
+                        <span className="font-display text-xl">{STATUS_LABELS[status]}</span>
+                        <span className="text-sm text-muted">{group.length}</span>
+                      </li>,
+                      ...group.map((game) => card(game)),
+                    ];
+                  })
+                ) : (
+                  games.map((game) => card(game))
+                )
               )}
             </ul>
           )}
@@ -527,8 +545,8 @@ function GameCard({
   showMetacritic: boolean;
   compact: boolean;
   badge?: boolean;
-  // Shown when the grid mixes lists, as the rating view does with completed and dropped games.
-  status?: "finished" | "dropped";
+  // Shown when the grid mixes lists, as the rating view does with completed, dropped and current games.
+  status?: (typeof RATED_LISTS)[number];
 }) {
   const when = showDate ? cardDate(game, sort) : null;
   const metacritic = game.metacriticScore == null ? "—" : String(game.metacriticScore);
@@ -560,7 +578,7 @@ function GameCard({
         {status ? (
           <span
             className={`absolute bottom-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
-              status === "dropped" ? "bg-rose-400 text-rose-950" : "bg-black/70 text-white"
+              status === "dropped" ? "bg-rose-400 text-rose-950" : status === "playing" ? "bg-sky-300 text-sky-950" : "bg-black/70 text-white"
             }`}
           >
             <Icon name={STATUS_MARK[status].icon} className="h-3.5 w-3.5 shrink-0" />
