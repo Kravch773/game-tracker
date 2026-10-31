@@ -1,4 +1,4 @@
-import { BRAND_PATHS, type BrandName } from "@/lib/brands";
+import { BRAND_PATHS, type BrandName } from "@gametracker/shared";
 
 export type IconName =
   | "calendar"
