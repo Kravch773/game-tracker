@@ -8,11 +8,11 @@ import { apiUrl } from "@/lib/config";
 import { formatMoney, formatShortDate } from "@/lib/format";
 
 export const STORE_MARK: Record<PriceStore, { icon: IconName; tone: string }> = {
-  steam: { icon: "steam", tone: "bg-sky-300" },
-  gog: { icon: "gog", tone: "bg-violet-300 text-violet-950" },
-  playstation: { icon: "ps5", tone: "bg-blue-950" },
-  xbox: { icon: "xbox-series", tone: "bg-green-950 text-green-100" },
-  xboxpc: { icon: "pc", tone: "bg-green-950 text-green-100" },
+  steam: { icon: "steam", tone: "bg-[#1b2838] text-white" },
+  gog: { icon: "gog", tone: "bg-[#86328a] text-white" },
+  playstation: { icon: "ps5", tone: "bg-[#0070d1] text-white" },
+  xbox: { icon: "xbox-series", tone: "bg-[#107c10] text-white" },
+  xboxpc: { icon: "pc", tone: "bg-[#0078d4] text-white" },
 };
 
 export function storeName(store: PriceStore): string {
@@ -80,7 +80,7 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
                   }`}
                 >
                   <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${STORE_MARK[price.store].tone}`}>
-                    <Icon name={STORE_MARK[price.store].icon} className="h-4 w-4" />
+                    <Icon name={STORE_MARK[price.store].icon} className="h-5 w-5" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="flex items-baseline justify-between gap-2">

@@ -1,3 +1,5 @@
+import { BRAND_PATHS, type BrandName } from "@/lib/brands";
+
 export type IconName =
   | "calendar"
   | "pulse"
@@ -65,6 +67,14 @@ export type IconName =
 
 export function Icon({ name, className = "" }: { name: IconName; className?: string }) {
   const sized = /\bh-/.test(className) ? className : `h-4 w-4 ${className}`;
+  // Store and platform marks are vector logos in the text colour, so they stay sharp and fill their badges.
+  if (name in BRAND_PATHS) {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={`pointer-events-none shrink-0 ${sized}`}>
+        <path fill="currentColor" d={BRAND_PATHS[name as BrandName]} />
+      </svg>
+    );
+  }
   return (
     <img
       src={`/icons/${name}.png`}

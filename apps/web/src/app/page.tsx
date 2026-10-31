@@ -191,7 +191,7 @@ function ShelfLinks({ design }: { design: Design }) {
         <div className="flex flex-wrap gap-2">
           {CATALOG_PLATFORMS.map((platform) => (
             <a key={platform.id} href={`/platforms/${platform.id}`} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-panel px-4 text-sm font-semibold hover:bg-raised">
-              <Icon name={PLATFORM_MARK[platform.id].icon} className="h-3.5 w-3.5" />
+              <Icon name={PLATFORM_MARK[platform.id].icon} className="h-4 w-4" />
               {t(PLATFORM_LABEL[platform.id])}
             </a>
           ))}
@@ -210,7 +210,7 @@ function ShelfLinks({ design }: { design: Design }) {
       ))}
       {CATALOG_PLATFORMS.map((platform) => (
         <a key={platform.id} href={`/platforms/${platform.id}`} className={chipClass}>
-          <Icon name={PLATFORM_MARK[platform.id].icon} className={`h-3.5 w-3.5 ${PLATFORM_MARK[platform.id].tone}`} />
+          <Icon name={PLATFORM_MARK[platform.id].icon} className={`h-4 w-4 ${PLATFORM_MARK[platform.id].tone}`} />
           {t(PLATFORM_LABEL[platform.id])}
         </a>
       ))}

@@ -697,10 +697,10 @@ function GameCard({
             ) : null}
             {game.steamMinutes != null ? (
               <span
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-300 text-sky-950"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#1b2838] text-white"
                 aria-label="Steam"
               >
-                <Icon name="steam" className="h-3.5 w-3.5" />
+                <Icon name="steam" className="h-4 w-4" />
               </span>
             ) : null}
           </span>
@@ -752,8 +752,8 @@ function PriceStrip({ price, lowest, compact }: { price: StorePrice; lowest: boo
       className={`absolute right-2 bottom-2 left-2 flex items-center rounded-xl bg-black/80 text-white backdrop-blur-sm ${compact ? "gap-1 px-1 py-1" : "gap-1.5 px-1.5 py-1.5"}`}
       title={storeName(price.store)}
     >
-      <span className={`inline-flex shrink-0 items-center justify-center rounded-full ${mark.tone} ${compact ? "h-4 w-4" : "h-6 w-6"}`}>
-        <Icon name={mark.icon} className={compact ? "h-2.5 w-2.5" : "h-3.5 w-3.5"} />
+      <span className={`inline-flex shrink-0 items-center justify-center rounded-full ${mark.tone} ${compact ? "h-5 w-5" : "h-6 w-6"}`}>
+        <Icon name={mark.icon} className={compact ? "h-3 w-3" : "h-4 w-4"} />
       </span>
       <span className="sr-only">{storeName(price.store)}</span>
       <span className={`min-w-0 truncate font-bold tabular-nums ${compact ? "text-[11px]" : "text-sm"} ${price.cut > 0 && compact ? "text-emerald-300" : ""}`}>

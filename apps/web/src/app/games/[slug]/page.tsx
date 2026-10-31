@@ -396,7 +396,7 @@ function StoreLinks({ links, variant }: { links: GameDetails["links"]; variant: 
               className="flex h-11 items-center gap-2.5 rounded-xl bg-raised px-2 text-sm font-semibold hover:ring-1 hover:ring-accent-fg"
             >
               <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${LINK_MARK[link.kind].tone}`}>
-                <Icon name={LINK_MARK[link.kind].icon} className="h-3.5 w-3.5" />
+                <Icon name={LINK_MARK[link.kind].icon} className="h-[18px] w-[18px]" />
               </span>
               <span className="flex-1">{linkLabel(link.kind)}</span>
               <span aria-hidden="true" className="text-muted">
@@ -411,11 +411,11 @@ function StoreLinks({ links, variant }: { links: GameDetails["links"]; variant: 
 }
 
 const LINK_MARK: Record<GameLinkKind, { icon: IconName; tone: string }> = {
-  steam: { icon: "steam", tone: "bg-sky-300 text-sky-950" },
-  gog: { icon: "gog", tone: "bg-violet-300 text-violet-950" },
-  epic: { icon: "epic", tone: "bg-zinc-100 text-zinc-900" },
-  playstation: { icon: "ps5", tone: "bg-blue-950 text-blue-100" },
-  xbox: { icon: "xbox-series", tone: "bg-green-950 text-green-100" },
+  steam: { icon: "steam", tone: "bg-[#1b2838] text-white" },
+  gog: { icon: "gog", tone: "bg-[#86328a] text-white" },
+  epic: { icon: "epic", tone: "bg-[#2a2a2a] text-white" },
+  playstation: { icon: "ps5", tone: "bg-[#0070d1] text-white" },
+  xbox: { icon: "xbox-series", tone: "bg-[#107c10] text-white" },
   wikipedia: { icon: "wiki", tone: "bg-stone-200 text-stone-900" },
   metacritic: { icon: "meta", tone: "bg-emerald-300 text-emerald-950" },
   official: { icon: "link", tone: "bg-accent text-accent-ink" },

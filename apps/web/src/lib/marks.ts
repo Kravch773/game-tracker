@@ -89,7 +89,7 @@ export function genreIcon(name: string): IconName | null {
 }
 
 export const PLATFORM_MARK: Record<CatalogPlatformId, Mark> = {
-  pc: { icon: "pc", tone: "bg-slate-300/10 text-slate-200" },
+  pc: { icon: "pc", tone: "bg-slate-300/10 text-slate-700 dark:text-slate-200" },
   ps5: { icon: "ps5", tone: "bg-sky-300/10 text-sky-700 dark:text-sky-300" },
   ps4: { icon: "ps4", tone: "bg-blue-300/10 text-blue-700 dark:text-blue-300" },
   "xbox-series": { icon: "xbox-series", tone: "bg-emerald-300/10 text-emerald-700 dark:text-emerald-300" },
