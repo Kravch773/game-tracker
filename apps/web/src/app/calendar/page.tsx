@@ -177,7 +177,12 @@ export default async function CalendarPage({
 
 type Tier = "xl" | "md" | "sm";
 
-const TIER_WIDTH: Record<Tier, string> = { xl: "w-44 sm:w-60", md: "w-32 sm:w-40", sm: "w-24 sm:w-28" };
+// The list's column gap is 0.875rem: two big covers, three middle or four small ones share a phone's row.
+const TIER_WIDTH: Record<Tier, string> = {
+  xl: "w-[calc((100%-0.875rem)/2)] sm:w-60",
+  md: "w-[calc((100%-1.75rem)/3)] sm:w-40",
+  sm: "w-[calc((100%-2.625rem)/4)] sm:w-28",
+};
 
 // Hyped games get the big covers, the long tail gets small ones.
 function tierOf(game: ReleaseGame): Tier {

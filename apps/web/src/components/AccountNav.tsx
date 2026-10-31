@@ -52,12 +52,12 @@ export function AccountNav({ user, variant }: { user: AuthUser | null; variant: 
   }
 
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
       <DealsBell variant="compact" />
       <a
         href={profile}
         aria-label={user.username}
-        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent font-display text-accent-ink"
+        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent font-display text-accent-ink sm:h-11 sm:w-11"
       >
         {initial}
       </a>

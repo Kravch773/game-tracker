@@ -290,12 +290,12 @@ export function ProfileBoard({
       ) : (
         <>
           <div className={`mt-4 flex flex-wrap items-center gap-3 bg-panel p-2 pl-4 ${shelf ? "rounded-[28px]" : "rounded-2xl border border-line"}`}>
-            <label className="flex items-center gap-3 text-sm text-muted">
+            <label className="flex items-center gap-3 text-sm text-muted max-sm:w-full">
               {t("profile.sort")}
               <select
                 value={activeSort}
                 onChange={(event) => setSort(event.target.value as Sort)}
-                className="h-10 rounded-full border border-line bg-panel px-3 text-ink"
+                className="h-10 min-w-0 rounded-full border border-line bg-panel px-3 text-ink max-sm:flex-1"
               >
                 {sorts.map((item) => (
                   <option key={item} value={item}>
@@ -312,9 +312,10 @@ export function ProfileBoard({
             <DisplayToggle label={t("profile.showDate")} checked={showDate} onChange={setShowDate} />
             <DisplayToggle label={t("profile.showRating")} checked={showRating} onChange={setShowRating} />
             <DisplayToggle label={t("profile.showMetacritic")} checked={showMetacritic} onChange={setShowMetacritic} />
-            <label className="flex items-center gap-3 text-sm text-muted">
+            <label className="flex items-center gap-3 text-sm text-muted max-sm:w-full">
               {t("profile.cardSize")}
               <input
+                className="max-sm:min-w-0 max-sm:flex-1"
                 type="range"
                 min={0}
                 max={SCALES.length - 1}
@@ -723,7 +724,7 @@ function ProfileHead({
     </p>
   );
   const steam = email ? (
-    <div className={shelf ? "flex flex-[4_1_320px] flex-col gap-3 rounded-[32px] bg-strong p-6 text-strong-ink" : "flex flex-col gap-3 rounded-2xl border border-line bg-panel p-5 sm:col-span-2"}>
+    <div className={shelf ? "flex flex-[4_1_320px] flex-col gap-3 rounded-[32px] bg-strong p-6 text-strong-ink" : "col-span-2 flex flex-col gap-3 rounded-2xl border border-line bg-panel p-5 max-lg:order-2"}>
       <p className="font-display text-lg font-bold">Steam</p>
       <p className={`text-sm ${shelf ? "text-strong-ink/75" : "text-muted"}`}>
         {t("profile.steamWishlist")}: {wishlist}
@@ -749,11 +750,11 @@ function ProfileHead({
     return (
       <section className="flex flex-wrap gap-5">
         <div className="flex flex-[5_1_420px] flex-wrap items-center gap-5 rounded-[32px] bg-tile-sun p-6 text-[#1b1530]">
-          <span className="inline-flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#1b1530] font-display text-4xl font-extrabold text-tile-sun">
+          <span className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#1b1530] font-display text-2xl font-extrabold text-tile-sun sm:h-24 sm:w-24 sm:text-4xl">
             {initial}
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <h1 className="truncate font-display text-4xl font-extrabold">{username}</h1>
+            <h1 className="truncate font-display text-3xl font-extrabold sm:text-4xl">{username}</h1>
             {people}
             {actions}
           </div>
@@ -773,18 +774,19 @@ function ProfileHead({
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center gap-5">
-        <span className="inline-flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-accent font-display text-4xl text-accent-ink">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+        <span className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-accent font-display text-2xl text-accent-ink sm:h-24 sm:w-24 sm:rounded-3xl sm:text-4xl">
           {initial}
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <h1 className="truncate font-display text-4xl tracking-tight">{username}</h1>
+          <h1 className="truncate font-display text-3xl tracking-tight sm:text-4xl">{username}</h1>
           {email ? <p className="text-sm text-muted">{email}</p> : null}
           <div className="text-muted">{people}</div>
         </div>
-        {actions}
+        <div className="max-sm:w-full max-sm:[&>*]:w-full">{actions}</div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      {/* Phones and tablets pair the two numbers on one row, with the wide tiles below them. */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
         <div className="rounded-2xl border border-line bg-panel p-5">
           <p className="text-xs text-muted">{t("profile.average")}</p>
           <p className="mt-1 font-display text-3xl text-accent-fg">{averageText}</p>
@@ -842,7 +844,7 @@ function SeriesTile({ shelf, open, onClick }: { shelf: boolean; open: boolean; o
       type="button"
       aria-pressed={open}
       onClick={onClick}
-      className={`group flex items-center gap-4 rounded-2xl border p-5 text-left transition sm:col-span-2 ${
+      className={`group col-span-2 flex items-center gap-4 rounded-2xl border p-5 text-left transition max-lg:order-1 ${
         open ? "border-transparent bg-accent text-accent-ink" : "border-accent-fg/50 bg-accent/10 hover:bg-accent/15"
       }`}
     >

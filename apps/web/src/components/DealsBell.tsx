@@ -117,7 +117,7 @@ export function DealsBell({ variant }: { variant: "rail" | "compact" }) {
         aria-expanded={open}
         aria-label={count > 0 ? t("prices.bellNew", { count }) : t("prices.bell")}
         onClick={toggle}
-        className={`relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+        className={`relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11 ${
           open ? "bg-accent text-accent-ink" : variant === "rail" ? "hover:bg-raised/60" : "border border-line bg-panel hover:bg-raised"
         }`}
       >

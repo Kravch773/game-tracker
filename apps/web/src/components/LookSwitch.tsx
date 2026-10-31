@@ -42,7 +42,7 @@ function DesignPills({ design, wide = false }: { design: Design; wide?: boolean 
     <div
       role="radiogroup"
       aria-label={t("look.design")}
-      className={`items-center gap-0.5 rounded-full bg-panel p-1 ${wide ? "grid h-12 grid-cols-2 border border-line" : "flex h-12"}`}
+      className={`items-center gap-0.5 rounded-full bg-panel p-1 ${wide ? "grid h-12 grid-cols-2 border border-line" : "flex h-10 sm:h-12"}`}
     >
       {designs.map((item) => (
         <button
@@ -52,7 +52,7 @@ function DesignPills({ design, wide = false }: { design: Design; wide?: boolean 
           aria-checked={design === item.id}
           aria-label={item.label}
           onClick={() => chooseDesign(item.id, design)}
-          className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-2.5 text-[13px] font-bold sm:px-3 ${
+          className={`inline-flex items-center justify-center gap-2 rounded-full text-[13px] font-bold sm:px-3 ${wide ? "h-10 px-2.5" : "h-8 px-2 sm:h-10"} ${
             design === item.id ? "bg-strong text-strong-ink" : "text-muted hover:text-ink"
           }`}
         >
@@ -101,13 +101,13 @@ export function LookSwitchPill({ design, theme: initial }: { design: Design; the
   const [theme, chooseTheme] = useTheme(initial);
   const next = theme === "dark" ? "light" : "dark";
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 sm:gap-2">
       <DesignPills design={design} />
       <button
         type="button"
         onClick={() => chooseTheme(next)}
         aria-label={next === "light" ? t("look.toLight") : t("look.toDark")}
-        className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-panel text-ink"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-panel text-ink sm:h-12 sm:w-12"
       >
         <Glyph path={theme === "dark" ? SUN : MOON} />
       </button>

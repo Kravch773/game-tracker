@@ -165,59 +165,69 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
           {t("common.backToSearch")}
         </a>
       </div>
-      <div className="relative -mt-28 grid items-start gap-8 md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside className="flex flex-col gap-4">
+      {/* On phones the side column and the article open up into one column, ordered so the title, dates and scores
+          come right after the cover and the prices and store links after the description. */}
+      <div className="relative -mt-28 flex flex-col gap-6 md:grid md:items-start md:gap-8 md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <aside className="contents md:flex md:flex-col md:gap-4">
           {game.coverUrl ? (
             <img src={sharpCover(game.coverUrl)} alt={game.title} className="aspect-[3/4] w-44 rounded-3xl object-cover shadow-2xl ring-1 ring-ink/10 md:w-full" />
           ) : (
             <div className="aspect-[3/4] w-44 rounded-3xl bg-raised ring-1 ring-ink/10 md:w-full" />
           )}
-          {panel}
-          {friends}
-          <PriceBlock slug={game.slug} title={game.title} variant="console" />
-          <StoreLinks links={game.links} variant="list" />
-        </aside>
-        <article className="min-w-0 md:pt-32">
-          <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
-          <p className="text-sm text-muted">{date}</p>
-          <h1 className="mt-2 font-display text-4xl tracking-tight sm:text-6xl">{game.title}</h1>
-          {credits}
-          <div className="mt-5">{scores}</div>
-          {sections.length > 0 ? (
-            <nav aria-label={game.title} className="mt-8 flex gap-1 overflow-x-auto border-b border-line no-scrollbar">
-              <a href="#about" className="-mb-px inline-flex h-11 shrink-0 items-center border-b-2 border-accent-fg px-3 text-sm font-semibold">
-                {t("game.about")}
-              </a>
-              {sections.map((item) => (
-                <a key={item.id} href={`#${item.id}`} className="-mb-px inline-flex h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm font-semibold text-muted hover:text-ink">
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-          ) : null}
-          <div id="about" className="scroll-mt-24">
-            {game.summary ? <p className="mt-6 max-w-3xl text-[17px] leading-8 text-ink/85">{game.summary}</p> : null}
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">{facts}</div>
-            {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
+          <div className="order-2 flex flex-col gap-4 md:order-none">
+            {panel}
+            {friends}
           </div>
-          {game.storyline ? (
-            <section id="story" className="mt-12 max-w-3xl scroll-mt-24">
-              <SectionTitle icon="book" tone="bg-amber-300/10 text-amber-700 dark:text-amber-300">
-                {t("game.story")}
-              </SectionTitle>
-              <p className="mt-3 leading-8 text-muted">{game.storyline}</p>
-            </section>
-          ) : null}
-          {game.screenshots.length > 0 || game.videos.length > 0 ? (
-            <section id="media" className="mt-12 scroll-mt-24">
-              <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300">
-                {t("game.media")}
-              </SectionTitle>
-              <Media shots={game.screenshots} videos={game.videos} />
-            </section>
-          ) : null}
-          <div id="reviews" className="scroll-mt-24">
-            <ReviewList reviews={game.reviews ?? []} />
+          <div className="order-4 flex flex-col gap-4 md:order-none">
+            <PriceBlock slug={game.slug} title={game.title} variant="console" />
+            <StoreLinks links={game.links} variant="list" />
+          </div>
+        </aside>
+        <article className="contents min-w-0 md:block md:pt-32">
+          <header className="order-1 md:order-none">
+            <OriginTags origins={game.origins} text={game.ukrainianText} audio={game.ukrainianAudio} />
+            <p className="text-sm text-muted">{date}</p>
+            <h1 className="mt-2 font-display text-4xl tracking-tight sm:text-6xl">{game.title}</h1>
+            {credits}
+            <div className="mt-5">{scores}</div>
+          </header>
+          <div className="order-3 min-w-0 md:order-none">
+            {sections.length > 0 ? (
+              <nav aria-label={game.title} className="mt-8 flex gap-1 overflow-x-auto border-b border-line no-scrollbar">
+                <a href="#about" className="-mb-px inline-flex h-11 shrink-0 items-center border-b-2 border-accent-fg px-3 text-sm font-semibold">
+                  {t("game.about")}
+                </a>
+                {sections.map((item) => (
+                  <a key={item.id} href={`#${item.id}`} className="-mb-px inline-flex h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm font-semibold text-muted hover:text-ink">
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            ) : null}
+            <div id="about" className="scroll-mt-24">
+              {game.summary ? <p className="mt-6 max-w-3xl text-[17px] leading-8 text-ink/85">{game.summary}</p> : null}
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">{facts}</div>
+              {TRAILERS_ENABLED ? <TrailersButton slug={game.slug} /> : null}
+            </div>
+            {game.storyline ? (
+              <section id="story" className="mt-12 max-w-3xl scroll-mt-24">
+                <SectionTitle icon="book" tone="bg-amber-300/10 text-amber-700 dark:text-amber-300">
+                  {t("game.story")}
+                </SectionTitle>
+                <p className="mt-3 leading-8 text-muted">{game.storyline}</p>
+              </section>
+            ) : null}
+            {game.screenshots.length > 0 || game.videos.length > 0 ? (
+              <section id="media" className="mt-12 scroll-mt-24">
+                <SectionTitle icon="camera" tone="bg-sky-300/10 text-sky-700 dark:text-sky-300">
+                  {t("game.media")}
+                </SectionTitle>
+                <Media shots={game.screenshots} videos={game.videos} />
+              </section>
+            ) : null}
+            <div id="reviews" className="scroll-mt-24">
+              <ReviewList reviews={game.reviews ?? []} />
+            </div>
           </div>
         </article>
       </div>

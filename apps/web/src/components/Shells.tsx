@@ -19,9 +19,9 @@ const LIBRARY_ROWS = [
   { list: "favorites", label: "library.favorites", dot: "bg-pink-400" },
 ] as const;
 
-function Logo({ full = true }: { full?: boolean }) {
+function Logo({ full = true, className = "" }: { full?: boolean; className?: string }) {
   return (
-    <a href="/" aria-label="GameTracker" className="inline-flex h-11 shrink-0 items-center gap-2.5">
+    <a href="/" aria-label="GameTracker" className={`inline-flex h-11 shrink-0 items-center gap-2.5 ${className}`}>
       <img src="/brand-mark.png" alt="" className="h-9 w-auto" />
       {full ? <span className="font-display text-base font-semibold">GameTracker</span> : null}
     </a>
@@ -86,8 +86,9 @@ export function ConsoleShell({ user, design, theme, children }: ShellProps) {
       <div className="min-w-0 flex-1">
         <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-xl lg:hidden lg:has-[form]:block">
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 lg:h-16 lg:flex-nowrap lg:px-10 lg:py-0">
-            <div className="flex w-full items-center gap-2 lg:hidden">
-              <Logo full={false} />
+            <div className="flex w-full items-center gap-1 sm:gap-2 lg:hidden">
+              {/* On the narrowest phones a signed-in header (bell, avatar) has no room for the mark; Catalog below goes home. */}
+              <Logo full={false} className={user ? "max-[379px]:hidden" : ""} />
               <span className="flex-1" />
               <LookSwitchPill design={design} theme={theme} />
               <LanguageSwitch />

@@ -20,7 +20,7 @@ export function LanguageSwitch() {
           type="button"
           aria-pressed={locale === current}
           onClick={() => choose(locale)}
-          className={`h-10 min-w-10 rounded-full px-2.5 text-xs font-semibold ${
+          className={`h-9 min-w-9 rounded-full px-2 text-xs font-semibold sm:h-10 sm:min-w-10 sm:px-2.5 ${
             locale === current ? "bg-accent text-accent-ink" : "text-muted hover:text-ink"
           }`}
         >
