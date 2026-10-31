@@ -3,6 +3,7 @@
 import { getLocale, priceRegionFor, t, type GamePrices, type PriceStore } from "@gametracker/shared";
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/Icon";
+import { PriceChart } from "@/components/PriceChart";
 import { apiUrl } from "@/lib/config";
 import { formatMoney, formatShortDate } from "@/lib/format";
 
@@ -11,6 +12,7 @@ const STORE_MARK: Record<PriceStore, { icon: IconName; tone: string }> = {
   gog: { icon: "gog", tone: "bg-violet-300 text-violet-950" },
   playstation: { icon: "ps5", tone: "bg-blue-950" },
   xbox: { icon: "xbox-series", tone: "bg-green-950 text-green-100" },
+  xboxpc: { icon: "pc", tone: "bg-green-950 text-green-100" },
 };
 
 export function storeName(store: PriceStore): string {
@@ -23,6 +25,7 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
   const region = priceRegionFor(getLocale());
   const [prices, setPrices] = useState<GamePrices | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
+  const [charts, setCharts] = useState<Set<PriceStore>>(new Set());
 
   useEffect(() => {
     let live = true;
@@ -64,8 +67,7 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
           {stores.map((price) => {
             const name = storeName(price.store);
             const sale = price.cut > 0;
-            // The Xbox Store does not sell console-only games in Ukraine; their US price stands in.
-            const foreign = region === "ua" && price.store === "xbox" && price.currency === "USD";
+            const open = charts.has(price.store);
             return (
               <li key={price.store}>
                 <a
@@ -86,10 +88,7 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
                       <span className="shrink-0 font-display text-base font-semibold tabular-nums">{formatMoney(price.amount, price.currency)}</span>
                     </span>
                     <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted">
-                      <span className="flex flex-col gap-0.5">
-                        <span>{sale ? (price.endsAt ? t("prices.until", { date: formatShortDate(price.endsAt) }) : null) : t("prices.full")}</span>
-                        {foreign ? <span>{t("prices.usPrice")}</span> : null}
-                      </span>
+                      <span>{sale ? (price.endsAt ? t("prices.until", { date: formatShortDate(price.endsAt) }) : null) : t("prices.full")}</span>
                       {sale ? (
                         <span className="inline-flex items-center gap-1.5">
                           <span className="rounded-md bg-emerald-300 px-1.5 py-0.5 font-bold text-emerald-950">−{price.cut}%</span>
@@ -99,6 +98,25 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
                     </span>
                   </span>
                 </a>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() =>
+                    setCharts((current) => {
+                      const next = new Set(current);
+                      if (next.has(price.store)) next.delete(price.store);
+                      else next.add(price.store);
+                      return next;
+                    })
+                  }
+                  className="mt-1 inline-flex min-h-8 items-center gap-1 px-1 text-xs font-semibold text-muted hover:text-accent-fg"
+                >
+                  {t(open ? "prices.chartHide" : "prices.chartShow")}
+                  <span aria-hidden="true" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+                    ▾
+                  </span>
+                </button>
+                {open ? <PriceChart points={prices?.history?.[price.store] ?? []} store={name} /> : null}
               </li>
             );
           })}
