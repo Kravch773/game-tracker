@@ -8,10 +8,16 @@ import { formatMoney, formatShortDate } from "@/lib/format";
 
 const STORE_MARK: Record<PriceStore, { icon: IconName; tone: string }> = {
   steam: { icon: "steam", tone: "bg-sky-300" },
+  gog: { icon: "gog", tone: "bg-violet-300 text-violet-950" },
   playstation: { icon: "ps5", tone: "bg-blue-950" },
+  xbox: { icon: "xbox-series", tone: "bg-green-950 text-green-100" },
 };
 
-// Current Steam and PlayStation Store prices for the visitor's language: Ukrainian stores in hryvnias, US stores in
+export function storeName(store: PriceStore): string {
+  return t(`prices.${store}`);
+}
+
+// Current store prices for the visitor's language: Ukrainian stores (in hryvnias, GOG in dollars), US stores in
 // dollars. They load after the page, since the PlayStation Store can take a few seconds to answer.
 export function PriceBlock({ slug, title, variant }: { slug: string; title: string; variant: "console" | "shelf" }) {
   const region = priceRegionFor(getLocale());
@@ -56,7 +62,7 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
           {stores.map((price) => {
-            const name = t(price.store === "steam" ? "prices.steam" : "prices.playstation");
+            const name = storeName(price.store);
             const sale = price.cut > 0;
             return (
               <li key={price.store}>
@@ -97,7 +103,7 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
         <p className="mt-3 rounded-xl bg-amber-300/15 px-3 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200">
           {t("prices.lowest", {
             price: formatMoney(lowest.amount, lowest.currency),
-            store: t(lowest.store === "steam" ? "prices.steam" : "prices.playstation"),
+            store: storeName(lowest.store),
             date: formatShortDate(lowest.seenOn),
           })}
         </p>

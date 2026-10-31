@@ -4,6 +4,7 @@ import { getLocale, priceRegionFor, t, type DealsResponse } from "@gametracker/s
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { apiUrl } from "@/lib/config";
+import { storeName } from "@/components/PriceBlock";
 import { formatMoney, formatShortDate } from "@/lib/format";
 
 // The page may hold more than one bell (the rail and the phone header) and the profile reads the same deals:
@@ -166,7 +167,7 @@ export function DealsBell({ variant }: { variant: "rail" | "compact" }) {
                       <span className="flex min-w-0 flex-1 flex-col gap-1">
                         <span className="truncate text-sm font-semibold">{deal.game.title}</span>
                         <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
-                          <span className="font-semibold text-ink/80">{t(deal.price.store === "steam" ? "prices.steam" : "prices.playstation")}</span>
+                          <span className="font-semibold text-ink/80">{storeName(deal.price.store)}</span>
                           {deal.lowest ? (
                             <span className="rounded-md bg-amber-300 px-1.5 py-0.5 font-bold text-amber-950">{t("prices.lowTag")}</span>
                           ) : null}
