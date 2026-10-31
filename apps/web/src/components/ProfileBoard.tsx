@@ -1,6 +1,18 @@
 "use client";
 
-import { getLocale, priceRegionFor, t, type Deal, type LibraryGame, type UserLibrary } from "@gametracker/shared";
+import {
+  PRICE_STORES,
+  getLocale,
+  priceRegionFor,
+  t,
+  type Deal,
+  type LibraryGame,
+  type LibraryPrices,
+  type PriceRegion,
+  type PriceStore,
+  type StorePrice,
+  type UserLibrary,
+} from "@gametracker/shared";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BacklogArrange, BacklogSections, DragHint, PriorityStar, type CardControls } from "@/components/BacklogOrder";
 import { BacklogWheel } from "@/components/BacklogWheel";
@@ -9,6 +21,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
 import { Icon } from "@/components/Icon";
 import { ImportDialog } from "@/components/ImportDialog";
+import { STORE_MARK, storeName } from "@/components/PriceBlock";
 import { SeriesBoard } from "@/components/SeriesBoard";
 import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
@@ -20,6 +33,7 @@ import { myGamesListCsv } from "@/lib/mygameslist";
 
 const TABS = [...PROFILE_SECTIONS, "favorites"] as const;
 const SCALE_KEY = "gt-profile-scale";
+const PRICE_STORE_KEY = "gt-profile-price-store";
 const SCALES = [
   "grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4",
   "grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 md:grid-cols-6",
@@ -28,7 +42,8 @@ const SCALES = [
 ] as const;
 
 type Tab = (typeof TABS)[number] | "steamWishlist" | "series";
-type Sort = "order" | "added" | "release" | "rating" | "metacritic";
+type Sort = "order" | "added" | "release" | "rating" | "metacritic" | "price";
+type PriceChoice = "lowest" | PriceStore;
 
 function isTab(value: string | undefined): value is Tab {
   return value === "steamWishlist" || value === "series" || (TABS as readonly string[]).includes(value ?? "");
@@ -51,7 +66,23 @@ const SORT_LABEL = {
   release: "profile.sortRelease",
   rating: "profile.sortRating",
   metacritic: "profile.sortMetacritic",
+  price: "profile.sortPrice",
 } as const;
+
+const REGION_CURRENCY: Record<PriceRegion, string> = { ua: "UAH", us: "USD" };
+
+// The price a card shows: one store's, or the lowest of them. Stores price a region in different currencies (GOG
+// Ukraine in dollars), so the region's own currency comes first and a dollar price counts only when none is local.
+function pickPrice(prices: StorePrice[] | undefined, choice: PriceChoice, region: PriceRegion): StorePrice | null {
+  if (!prices || prices.length === 0) return null;
+  if (choice !== "lowest") return prices.find((price) => price.store === choice) ?? null;
+  return [...prices].sort((a, b) => priceOrder(a, b, region))[0];
+}
+
+function priceOrder(a: StorePrice, b: StorePrice, region: PriceRegion): number {
+  const local = (price: StorePrice) => (price.currency === REGION_CURRENCY[region] ? 0 : 1);
+  return local(a) - local(b) || a.amount - b.amount;
+}
 
 export function ProfileBoard({
   library,
@@ -77,6 +108,10 @@ export function ProfileBoard({
   const [showDate, setShowDate] = useState(true);
   const [showRating, setShowRating] = useState(true);
   const [showMetacritic, setShowMetacritic] = useState(true);
+  const [showPrice, setShowPrice] = useState(true);
+  const [priceChoice, setPriceChoice] = useState<PriceChoice>("lowest");
+  const [prices, setPrices] = useState<Record<string, StorePrice[]>>({});
+  const region = priceRegionFor(getLocale());
   const [wheelOpen, setWheelOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [list, setList] = useState<"followers" | "following" | null>(null);
@@ -84,10 +119,10 @@ export function ProfileBoard({
   const [following, setFollowing] = useState(library.following);
   const sorts: Sort[] =
     tab === "backlog"
-      ? ["order", "added", "release", "metacritic"]
+      ? ["order", "added", "release", "metacritic", "price"]
       : tab === "steamWishlist"
-        ? ["added", "release", "metacritic"]
-        : ["added", "release", "rating", "metacritic"];
+        ? ["added", "release", "metacritic", "price"]
+        : ["added", "release", "rating", "metacritic", "price"];
   const activeSort = sorts.includes(sort) ? sort : sorts[0];
   const saleList = tab === "backlog" || tab === "steamWishlist";
   const saleCount = saleList && bucket == null ? library[tab === "backlog" ? "backlog" : "steamWishlist"].filter((game) => deals.has(game.id)).length : 0;
@@ -104,7 +139,8 @@ export function ProfileBoard({
         : tab === "backlog"
           ? backlog
           : library[tab];
-  const games = sortGames(onlySales ? source.filter((game) => deals.has(game.id)) : source, activeSort);
+  const priceOf = (game: LibraryGame) => pickPrice(prices[game.id], priceChoice, region);
+  const games = sortGames(onlySales ? source.filter((game) => deals.has(game.id)) : source, activeSort, priceOf, region);
   const initial = library.user.username.slice(0, 1).toUpperCase();
   const average = rated.length > 0 ? rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length : null;
   const shelf = design === "shelf";
@@ -112,7 +148,24 @@ export function ProfileBoard({
   useEffect(() => {
     const saved = Number(window.localStorage.getItem(SCALE_KEY));
     if (Number.isInteger(saved) && saved >= 0 && saved < SCALES.length) setScale(saved);
+    const store = window.localStorage.getItem(PRICE_STORE_KEY);
+    if (store && (store === "lowest" || (PRICE_STORES as readonly string[]).includes(store))) setPriceChoice(store as PriceChoice);
   }, []);
+
+  // Prices of every game on the profile, in the visitor's region; they come after the page.
+  useEffect(() => {
+    let live = true;
+    fetch(`${apiUrl}/users/${encodeURIComponent(library.user.username)}/prices?region=${region}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        const payload = (await response.json()) as LibraryPrices;
+        if (live) setPrices(payload.games);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [library.user.username, region]);
 
   // The owner's discounts come from the same request as the bell's.
   useEffect(() => {
@@ -192,6 +245,7 @@ export function ProfileBoard({
           showDate={showDate}
           showRating={showRating}
           showMetacritic={showMetacritic}
+          price={showPrice ? priceOf(game) : null}
           compact={scale >= 2}
           badge={!controls?.onPriority}
           status={bucket == null ? undefined : statusOf.get(game.id)}
@@ -200,6 +254,11 @@ export function ProfileBoard({
         {controls?.onPriority ? <PriorityStar on={game.priority} onClick={controls.onPriority} /> : null}
       </li>
     );
+  }
+
+  function choosePrice(next: PriceChoice) {
+    setPriceChoice(next);
+    window.localStorage.setItem(PRICE_STORE_KEY, next);
   }
 
   function chooseScale(next: number) {
@@ -312,6 +371,22 @@ export function ProfileBoard({
             <DisplayToggle label={t("profile.showDate")} checked={showDate} onChange={setShowDate} />
             <DisplayToggle label={t("profile.showRating")} checked={showRating} onChange={setShowRating} />
             <DisplayToggle label={t("profile.showMetacritic")} checked={showMetacritic} onChange={setShowMetacritic} />
+            <DisplayToggle label={t("profile.showPrice")} checked={showPrice} onChange={setShowPrice} />
+            <label className="flex items-center gap-3 text-sm text-muted max-sm:w-full">
+              {t("profile.priceStore")}
+              <select
+                value={priceChoice}
+                onChange={(event) => choosePrice(event.target.value as PriceChoice)}
+                className="h-10 min-w-0 rounded-full border border-line bg-panel px-3 text-ink max-sm:flex-1"
+              >
+                <option value="lowest">{t("profile.priceLowest")}</option>
+                {PRICE_STORES.map((store) => (
+                  <option key={store} value={store}>
+                    {storeName(store)}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="flex items-center gap-3 text-sm text-muted max-sm:w-full">
               {t("profile.cardSize")}
               <input
@@ -511,8 +586,22 @@ function Stats({
   );
 }
 
-function sortGames(games: LibraryGame[], sort: Sort): LibraryGame[] {
+function sortGames(
+  games: LibraryGame[],
+  sort: Sort,
+  priceOf: (game: LibraryGame) => StorePrice | null,
+  region: PriceRegion,
+): LibraryGame[] {
   if (sort === "order") return games;
+  // Cheapest first; games without a price go last.
+  if (sort === "price") {
+    return [...games].sort((a, b) => {
+      const left = priceOf(a);
+      const right = priceOf(b);
+      if (!left || !right) return Number(!left) - Number(!right);
+      return priceOrder(left, right, region);
+    });
+  }
   return [...games].sort((a, b) => {
     if (sort === "rating") return compareNumber(a.rating, b.rating);
     if (sort === "metacritic") return compareNumber(a.metacriticScore, b.metacriticScore);
@@ -573,12 +662,14 @@ function GameCard({
   badge = true,
   status,
   deal,
+  price,
 }: {
   game: LibraryGame;
   sort: Sort;
   showDate: boolean;
   showRating: boolean;
   showMetacritic: boolean;
+  price: StorePrice | null;
   compact: boolean;
   badge?: boolean;
   // Shown when the grid mixes lists, as the rating view does with completed, dropped and current games.
@@ -643,18 +734,41 @@ function GameCard({
       <span className={`mt-3 block font-medium group-hover:text-accent-fg ${compact ? "line-clamp-2 text-sm" : ""}`}>{game.title}</span>
       {when ? <span className="mt-1 block text-sm text-muted">{when}</span> : null}
       {game.review && !compact ? <span className="mt-1 line-clamp-3 block text-sm leading-5 text-muted">{game.review}</span> : null}
-      {showMetacritic ? (
-        <span
-          className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
-            game.metacriticScore == null ? "border border-line text-muted" : "bg-emerald-300 text-emerald-950"
-          }`}
-          aria-label={t("profile.metacriticScore", { score: metacritic })}
-        >
-          <Icon name="meta" className="h-3.5 w-3.5" />
-          {metacritic}
+      {showMetacritic || price ? (
+        <span className="mt-2 flex flex-wrap items-center gap-1.5">
+          {showMetacritic ? (
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+                game.metacriticScore == null ? "border border-line text-muted" : "bg-emerald-300 text-emerald-950"
+              }`}
+              aria-label={t("profile.metacriticScore", { score: metacritic })}
+            >
+              <Icon name="meta" className="h-3.5 w-3.5" />
+              {metacritic}
+            </span>
+          ) : null}
+          {price ? <PriceChip price={price} compact={compact} /> : null}
         </span>
       ) : null}
     </a>
+  );
+}
+
+// A store's price with its mark; a sale shows its cut beside it.
+function PriceChip({ price, compact }: { price: StorePrice; compact: boolean }) {
+  const mark = STORE_MARK[price.store];
+  return (
+    <span
+      className="inline-flex max-w-full items-center gap-1 rounded-full border border-line py-0.5 pr-2 pl-0.5 text-xs font-semibold tabular-nums"
+      title={storeName(price.store)}
+    >
+      <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${mark.tone}`}>
+        <Icon name={mark.icon} className="h-3 w-3" />
+      </span>
+      <span className="sr-only">{storeName(price.store)}</span>
+      <span className="truncate">{formatMoney(price.amount, price.currency)}</span>
+      {price.cut > 0 && !compact ? <span className="rounded bg-emerald-300 px-1 text-[10px] font-bold text-emerald-950">−{price.cut}%</span> : null}
+    </span>
   );
 }
 

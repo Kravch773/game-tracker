@@ -7,7 +7,7 @@ import { PriceChart } from "@/components/PriceChart";
 import { apiUrl } from "@/lib/config";
 import { formatMoney, formatShortDate } from "@/lib/format";
 
-const STORE_MARK: Record<PriceStore, { icon: IconName; tone: string }> = {
+export const STORE_MARK: Record<PriceStore, { icon: IconName; tone: string }> = {
   steam: { icon: "steam", tone: "bg-sky-300" },
   gog: { icon: "gog", tone: "bg-violet-300 text-violet-950" },
   playstation: { icon: "ps5", tone: "bg-blue-950" },
