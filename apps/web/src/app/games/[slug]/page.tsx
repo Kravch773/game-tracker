@@ -5,6 +5,7 @@ import { CollectionRow } from "@/components/CollectionRow";
 import { JsonLd } from "@/components/JsonLd";
 import { Icon, IconBadge, type IconName } from "@/components/Icon";
 import { LibraryPanel } from "@/components/LibraryPanel";
+import { PriceBlock } from "@/components/PriceBlock";
 import { ReviewList } from "@/components/ReviewList";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { TrailersButton } from "@/components/TrailersButton";
@@ -113,6 +114,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
             )}
             {panel}
             {friends}
+            <PriceBlock slug={game.slug} title={game.title} variant="shelf" />
           </div>
         </div>
         <div className="flex flex-wrap gap-5">
@@ -172,6 +174,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
           )}
           {panel}
           {friends}
+          <PriceBlock slug={game.slug} title={game.title} variant="console" />
           <StoreLinks links={game.links} variant="list" />
         </aside>
         <article className="min-w-0 md:pt-32">

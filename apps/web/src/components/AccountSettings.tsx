@@ -1,7 +1,7 @@
 "use client";
 
-import { t } from "@gametracker/shared";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { DEAL_MIN_CUTS, t, type DealSettings } from "@gametracker/shared";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/Icon";
 import { SteamSync } from "@/components/SteamSync";
 import { apiUrl } from "@/lib/config";
@@ -19,6 +19,7 @@ export function AccountSettings({ username, steamId }: { username: string; steam
       <UsernameForm username={username} />
       <PasswordForm />
       <SteamSync initialProfile={steamId ? `https://steamcommunity.com/profiles/${steamId}` : ""} />
+      <DealSettingsForm />
       <DeleteForm />
     </div>
   );
@@ -161,3 +162,97 @@ function AuthForm({
 
 const quietDanger =
   "inline-flex h-11 items-center justify-center rounded-full border border-line px-5 text-sm text-muted hover:text-ink disabled:opacity-50";
+
+// Discount alerts save on every change; there is nothing to type, so no submit button.
+function DealSettingsForm() {
+  const [settings, setSettings] = useState<DealSettings | null>(null);
+  const [status, setStatus] = useState<"idle" | "saved" | "failed">("idle");
+
+  useEffect(() => {
+    fetch(`${apiUrl}/me/deal-settings`, { credentials: "include" })
+      .then(async (response) => (response.ok ? setSettings((await response.json()) as DealSettings) : setStatus("failed")))
+      .catch(() => setStatus("failed"));
+  }, []);
+
+  async function save(patch: Partial<DealSettings>) {
+    if (!settings) return;
+    const previous = settings;
+    setSettings({ ...settings, ...patch });
+    setStatus("idle");
+    try {
+      const response = await fetch(`${apiUrl}/me/deal-settings`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      setSettings((await response.json()) as DealSettings);
+      setStatus("saved");
+    } catch {
+      setSettings(previous);
+      setStatus("failed");
+    }
+  }
+
+  return (
+    <section id="deals" className="scroll-mt-24 rounded-3xl border border-line bg-panel/80 p-5">
+      <h2 className="flex items-center gap-2.5 font-display text-2xl">
+        <Icon name="tag" className="h-5 w-5 text-accent-fg" />
+        {t("prices.settingsTitle")}
+      </h2>
+      <p className="mt-2 text-sm text-muted">{t("prices.settingsLead")}</p>
+      <div className="mt-4 flex flex-col gap-3">
+        <label className="flex items-start gap-3 rounded-2xl bg-raised p-3">
+          <input
+            type="checkbox"
+            checked={settings ? !settings.alerts : false}
+            disabled={!settings}
+            onChange={(event) => void save({ alerts: !event.target.checked })}
+            className="mt-0.5 h-5 w-5 accent-accent"
+          />
+          <span className="flex flex-col gap-1">
+            <span className="text-sm font-semibold">{t("prices.mute")}</span>
+            <span className="text-xs text-muted">{t("prices.muteHint")}</span>
+          </span>
+        </label>
+        <label className="flex flex-wrap items-center gap-3 rounded-2xl bg-raised p-3">
+          <span className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-sm font-semibold">{t("prices.minCut")}</span>
+            <span className="text-xs text-muted">{t("prices.minCutHint")}</span>
+          </span>
+          <select
+            value={settings?.minCut ?? 10}
+            disabled={!settings}
+            onChange={(event) => void save({ minCut: Number(event.target.value) })}
+            className="h-11 rounded-full border border-line bg-panel px-3 text-sm font-semibold"
+          >
+            {DEAL_MIN_CUTS.map((cut) => (
+              <option key={cut} value={cut}>
+                {cut}%
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-start gap-3 rounded-2xl bg-raised p-3">
+          <input
+            type="checkbox"
+            checked={settings?.wishlist ?? true}
+            disabled={!settings}
+            onChange={(event) => void save({ wishlist: event.target.checked })}
+            className="mt-0.5 h-5 w-5 accent-accent"
+          />
+          <span className="flex flex-col gap-1">
+            <span className="text-sm font-semibold">{t("prices.wishlist")}</span>
+            <span className="text-xs text-muted">{t("prices.wishlistHint")}</span>
+          </span>
+        </label>
+      </div>
+      {status !== "idle" ? (
+        <p role="status" className="mt-3 text-sm text-muted">
+          {t(status === "saved" ? "prices.saved" : "prices.failed")}
+        </p>
+      ) : null}
+    </section>
+  );
+}

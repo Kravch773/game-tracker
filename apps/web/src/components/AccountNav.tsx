@@ -1,4 +1,5 @@
 import { t, type AuthUser } from "@gametracker/shared";
+import { DealsBell } from "@/components/DealsBell";
 import { Icon } from "@/components/Icon";
 import { LogoutButton } from "./LogoutButton";
 import { primaryClass, quietClass } from "@/lib/ui";
@@ -44,18 +45,22 @@ export function AccountNav({ user, variant }: { user: AuthUser | null; variant: 
           </span>
           <span className="truncate text-sm font-semibold">{user.username}</span>
         </a>
+        <DealsBell variant="rail" />
         <LogoutButton />
       </div>
     );
   }
 
   return (
-    <a
-      href={profile}
-      aria-label={user.username}
-      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent font-display text-accent-ink"
-    >
-      {initial}
-    </a>
+    <div className="flex shrink-0 items-center gap-2">
+      <DealsBell variant="compact" />
+      <a
+        href={profile}
+        aria-label={user.username}
+        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent font-display text-accent-ink"
+      >
+        {initial}
+      </a>
+    </div>
   );
 }

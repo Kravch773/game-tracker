@@ -44,3 +44,14 @@ function atNoon(value: string): Date {
 export function formatHours(hours: number): string {
   return Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
 }
+
+// Store amounts come in minor units. Hryvnias read "1 079 ₴" (kopecks only when there are some), dollars "$35.99".
+export function formatMoney(amount: number, currency: string): string {
+  const value = amount / 100;
+  const whole = Number.isInteger(value);
+  if (currency === "UAH") {
+    const number = new Intl.NumberFormat("uk-UA", { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 }).format(value);
+    return `${number} ₴`;
+  }
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 2 }).format(value);
+}

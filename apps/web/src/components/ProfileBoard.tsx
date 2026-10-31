@@ -1,9 +1,10 @@
 "use client";
 
-import { t, type LibraryGame, type UserLibrary } from "@gametracker/shared";
+import { getLocale, priceRegionFor, t, type Deal, type LibraryGame, type UserLibrary } from "@gametracker/shared";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BacklogArrange, BacklogSections, DragHint, PriorityStar, type CardControls } from "@/components/BacklogOrder";
 import { BacklogWheel } from "@/components/BacklogWheel";
+import { loadDeals } from "@/components/DealsBell";
 import { FollowButton } from "@/components/FollowButton";
 import { FollowList } from "@/components/FollowList";
 import { Icon } from "@/components/Icon";
@@ -11,7 +12,7 @@ import { ImportDialog } from "@/components/ImportDialog";
 import { SeriesBoard } from "@/components/SeriesBoard";
 import { STATUS_MARK } from "@/lib/marks";
 import type { IconName } from "@/components/Icon";
-import { formatShortDate } from "@/lib/format";
+import { formatMoney, formatShortDate } from "@/lib/format";
 import { PROFILE_SECTIONS, STATUS_LABELS, ratingLabel } from "@/lib/library";
 import { apiUrl } from "@/lib/config";
 import type { Design } from "@/lib/look-cookie";
@@ -68,6 +69,8 @@ export function ProfileBoard({
   const [backlog, setBacklog] = useState(library.backlog);
   const [arranging, setArranging] = useState(false);
   const [orderError, setOrderError] = useState(false);
+  const [deals, setDeals] = useState<Map<string, Deal>>(new Map());
+  const [saleOnly, setSaleOnly] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const [scale, setScale] = useState(0);
   const [bucket, setBucket] = useState<number | null>(null);
@@ -86,7 +89,11 @@ export function ProfileBoard({
         ? ["added", "release", "metacritic"]
         : ["added", "release", "rating", "metacritic"];
   const activeSort = sorts.includes(sort) ? sort : sorts[0];
-  const ordered = tab === "backlog" && bucket == null && activeSort === "order";
+  const saleList = tab === "backlog" || tab === "steamWishlist";
+  const saleCount = saleList && bucket == null ? library[tab === "backlog" ? "backlog" : "steamWishlist"].filter((game) => deals.has(game.id)).length : 0;
+  const onlySales = saleOnly && saleCount > 0;
+  // A filtered backlog can't be reordered, so the sale filter shows a plain grid.
+  const ordered = tab === "backlog" && bucket == null && activeSort === "order" && !onlySales;
   const rated = RATED_LISTS.flatMap((status) => library[status]).filter((game) => game.rating != null);
   const statusOf = new Map(RATED_LISTS.flatMap((status) => library[status].map((game) => [game.id, status] as const)));
   const source =
@@ -97,7 +104,7 @@ export function ProfileBoard({
         : tab === "backlog"
           ? backlog
           : library[tab];
-  const games = sortGames(source, activeSort);
+  const games = sortGames(onlySales ? source.filter((game) => deals.has(game.id)) : source, activeSort);
   const initial = library.user.username.slice(0, 1).toUpperCase();
   const average = rated.length > 0 ? rated.reduce((sum, game) => sum + (game.rating ?? 0), 0) / rated.length : null;
   const shelf = design === "shelf";
@@ -106,6 +113,20 @@ export function ProfileBoard({
     const saved = Number(window.localStorage.getItem(SCALE_KEY));
     if (Number.isInteger(saved) && saved >= 0 && saved < SCALES.length) setScale(saved);
   }, []);
+
+  // The owner's discounts come from the same request as the bell's.
+  useEffect(() => {
+    if (!email) return;
+    let live = true;
+    loadDeals(priceRegionFor(getLocale()))
+      .then((payload) => {
+        if (live) setDeals(new Map(payload.deals.map((deal) => [deal.game.id, deal])));
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [email]);
 
   useEffect(() => {
     setBacklog(library.backlog);
@@ -174,6 +195,7 @@ export function ProfileBoard({
           compact={scale >= 2}
           badge={!controls?.onPriority}
           status={bucket == null ? undefined : statusOf.get(game.id)}
+          deal={saleList && bucket == null ? deals.get(game.id) : undefined}
         />
         {controls?.onPriority ? <PriorityStar on={game.priority} onClick={controls.onPriority} /> : null}
       </li>
@@ -302,6 +324,18 @@ export function ProfileBoard({
                 onChange={(event) => chooseScale(Number(event.target.value))}
               />
             </label>
+            {saleCount > 0 ? (
+              <button
+                type="button"
+                aria-pressed={onlySales}
+                onClick={() => setSaleOnly((current) => !current)}
+                className={`inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${
+                  onlySales ? "bg-emerald-300 text-emerald-950" : "border border-line bg-panel hover:bg-raised"
+                }`}
+              >
+                {t("prices.onSale")} <span className="tabular-nums">{saleCount}</span>
+              </button>
+            ) : null}
             {email && ordered && backlog.length > 1 ? (
               <button
                 type="button"
@@ -537,6 +571,7 @@ function GameCard({
   compact,
   badge = true,
   status,
+  deal,
 }: {
   game: LibraryGame;
   sort: Sort;
@@ -547,6 +582,7 @@ function GameCard({
   badge?: boolean;
   // Shown when the grid mixes lists, as the rating view does with completed, dropped and current games.
   status?: (typeof RATED_LISTS)[number];
+  deal?: Deal;
 }) {
   const when = showDate ? cardDate(game, sort) : null;
   const metacritic = game.metacriticScore == null ? "—" : String(game.metacriticScore);
@@ -572,6 +608,15 @@ function GameCard({
               >
                 <Icon name="steam" className="h-3.5 w-3.5" />
               </span>
+            ) : null}
+          </span>
+        ) : null}
+        {deal ? (
+          <span className="absolute right-2 bottom-2 left-2 flex items-center gap-1.5 rounded-xl bg-black/80 px-2 py-1.5 text-white">
+            <span className="rounded-md bg-emerald-300 px-1.5 py-0.5 text-xs font-bold text-emerald-950">−{deal.price.cut}%</span>
+            {compact ? null : <span className="truncate text-sm font-bold tabular-nums">{formatMoney(deal.price.amount, deal.price.currency)}</span>}
+            {deal.lowest ? (
+              <span className="ml-auto h-2.5 w-2.5 shrink-0 rounded-full bg-amber-300" title={t("prices.lowTag")} aria-label={t("prices.lowTag")} />
             ) : null}
           </span>
         ) : null}
