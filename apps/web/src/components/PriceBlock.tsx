@@ -64,6 +64,8 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
           {stores.map((price) => {
             const name = storeName(price.store);
             const sale = price.cut > 0;
+            // The Xbox Store does not sell console-only games in Ukraine; their US price stands in.
+            const foreign = region === "ua" && price.store === "xbox" && price.currency === "USD";
             return (
               <li key={price.store}>
                 <a
@@ -84,7 +86,10 @@ export function PriceBlock({ slug, title, variant }: { slug: string; title: stri
                       <span className="shrink-0 font-display text-base font-semibold tabular-nums">{formatMoney(price.amount, price.currency)}</span>
                     </span>
                     <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted">
-                      <span>{sale ? (price.endsAt ? t("prices.until", { date: formatShortDate(price.endsAt) }) : null) : t("prices.full")}</span>
+                      <span className="flex flex-col gap-0.5">
+                        <span>{sale ? (price.endsAt ? t("prices.until", { date: formatShortDate(price.endsAt) }) : null) : t("prices.full")}</span>
+                        {foreign ? <span>{t("prices.usPrice")}</span> : null}
+                      </span>
                       {sale ? (
                         <span className="inline-flex items-center gap-1.5">
                           <span className="rounded-md bg-emerald-300 px-1.5 py-0.5 font-bold text-emerald-950">−{price.cut}%</span>
