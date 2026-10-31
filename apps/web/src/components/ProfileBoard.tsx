@@ -677,6 +677,8 @@ function GameCard({
   deal?: Deal;
 }) {
   const when = showDate ? cardDate(game, sort) : null;
+  // The chosen price, or the bell's sale when prices are hidden.
+  const shown = price ?? deal?.price ?? null;
   const metacritic = game.metacriticScore == null ? "—" : String(game.metacriticScore);
   return (
     <a href={`/games/${encodeURIComponent(game.slug)}`} target="_blank" rel="noreferrer" draggable={false} className="group block">
@@ -703,18 +705,10 @@ function GameCard({
             ) : null}
           </span>
         ) : null}
-        {deal ? (
-          <span className="absolute right-2 bottom-2 left-2 flex items-center gap-1.5 rounded-xl bg-black/80 px-2 py-1.5 text-white">
-            <span className="rounded-md bg-emerald-300 px-1.5 py-0.5 text-xs font-bold text-emerald-950">−{deal.price.cut}%</span>
-            {compact ? null : <span className="truncate text-sm font-bold tabular-nums">{formatMoney(deal.price.amount, deal.price.currency)}</span>}
-            {deal.lowest ? (
-              <span className="ml-auto h-2.5 w-2.5 shrink-0 rounded-full bg-amber-300" title={t("prices.lowTag")} aria-label={t("prices.lowTag")} />
-            ) : null}
-          </span>
-        ) : null}
+        {shown ? <PriceStrip price={shown} lowest={deal?.lowest === true && deal.price.store === shown.store} compact={compact} /> : null}
         {status ? (
           <span
-            className={`absolute bottom-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+            className={`absolute top-2 right-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
               status === "dropped" ? "bg-rose-400 text-rose-950" : status === "playing" ? "bg-sky-300 text-sky-950" : "bg-black/70 text-white"
             }`}
           >
@@ -734,40 +728,44 @@ function GameCard({
       <span className={`mt-3 block font-medium group-hover:text-accent-fg ${compact ? "line-clamp-2 text-sm" : ""}`}>{game.title}</span>
       {when ? <span className="mt-1 block text-sm text-muted">{when}</span> : null}
       {game.review && !compact ? <span className="mt-1 line-clamp-3 block text-sm leading-5 text-muted">{game.review}</span> : null}
-      {showMetacritic || price ? (
-        <span className="mt-2 flex flex-wrap items-center gap-1.5">
-          {showMetacritic ? (
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
-                game.metacriticScore == null ? "border border-line text-muted" : "bg-emerald-300 text-emerald-950"
-              }`}
-              aria-label={t("profile.metacriticScore", { score: metacritic })}
-            >
-              <Icon name="meta" className="h-3.5 w-3.5" />
-              {metacritic}
-            </span>
-          ) : null}
-          {price ? <PriceChip price={price} compact={compact} /> : null}
+      {showMetacritic ? (
+        <span
+          className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+            game.metacriticScore == null ? "border border-line text-muted" : "bg-emerald-300 text-emerald-950"
+          }`}
+          aria-label={t("profile.metacriticScore", { score: metacritic })}
+        >
+          <Icon name="meta" className="h-3.5 w-3.5" />
+          {metacritic}
         </span>
       ) : null}
     </a>
   );
 }
 
-// A store's price with its mark; a sale shows its cut beside it.
-function PriceChip({ price, compact }: { price: StorePrice; compact: boolean }) {
+// A store's price across the bottom of the cover, with the store's mark; a sale shows its cut on the corner and the
+// lowest price seen so far gets an amber dot.
+function PriceStrip({ price, lowest, compact }: { price: StorePrice; lowest: boolean; compact: boolean }) {
   const mark = STORE_MARK[price.store];
   return (
     <span
-      className="inline-flex max-w-full items-center gap-1 rounded-full border border-line py-0.5 pr-2 pl-0.5 text-xs font-semibold tabular-nums"
+      className={`absolute right-2 bottom-2 left-2 flex items-center rounded-xl bg-black/80 text-white backdrop-blur-sm ${compact ? "gap-1 px-1 py-1" : "gap-1.5 px-1.5 py-1.5"}`}
       title={storeName(price.store)}
     >
-      <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${mark.tone}`}>
-        <Icon name={mark.icon} className="h-3 w-3" />
+      <span className={`inline-flex shrink-0 items-center justify-center rounded-full ${mark.tone} ${compact ? "h-4 w-4" : "h-6 w-6"}`}>
+        <Icon name={mark.icon} className={compact ? "h-2.5 w-2.5" : "h-3.5 w-3.5"} />
       </span>
       <span className="sr-only">{storeName(price.store)}</span>
-      <span className="truncate">{formatMoney(price.amount, price.currency)}</span>
-      {price.cut > 0 && !compact ? <span className="rounded bg-emerald-300 px-1 text-[10px] font-bold text-emerald-950">−{price.cut}%</span> : null}
+      <span className={`min-w-0 truncate font-bold tabular-nums ${compact ? "text-[11px]" : "text-sm"} ${price.cut > 0 && compact ? "text-emerald-300" : ""}`}>
+        {formatMoney(price.amount, price.currency)}
+      </span>
+      {lowest ? <span className="ml-auto h-2.5 w-2.5 shrink-0 rounded-full bg-amber-300" title={t("prices.lowTag")} aria-label={t("prices.lowTag")} /> : null}
+      {/* The cut sits on the strip's corner, so a narrow card keeps the whole price readable. */}
+      {price.cut > 0 && !compact ? (
+        <span className="absolute -top-2.5 right-1.5 rounded-md bg-emerald-300 px-1.5 py-0.5 text-[11px] leading-none font-bold text-emerald-950 shadow">
+          −{price.cut}%
+        </span>
+      ) : null}
     </span>
   );
 }
